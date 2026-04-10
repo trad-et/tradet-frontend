@@ -9,6 +9,7 @@ import '../widgets/sharia_badge.dart';
 import '../widgets/price_change.dart';
 import '../widgets/candlestick_chart.dart';
 import '../widgets/responsive_layout.dart';
+import 'alerts_screen.dart';
 
 class TradeScreen extends StatefulWidget {
   final Asset asset;
@@ -156,6 +157,34 @@ class _TradeScreenState extends State<TradeScreen> {
                         isCompliant: asset.isShariaCompliant, compact: true),
                     const Spacer(),
                     if (asset.isEcxListed) const EcxBadge(),
+                    Consumer<AppProvider>(
+                      builder: (ctx, prov, _) {
+                        final inWatchlist = prov.watchlist.any((a) => a.id == widget.asset.id);
+                        return Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: Icon(
+                                inWatchlist ? Icons.star_rounded : Icons.star_outline_rounded,
+                                color: inWatchlist ? const Color(0xFFFBBF24) : HalalEtTheme.textMuted,
+                              ),
+                              onPressed: () async {
+                                if (inWatchlist) {
+                                  await prov.removeFromWatchlist(widget.asset.id);
+                                } else {
+                                  await prov.addToWatchlist(widget.asset.id);
+                                }
+                              },
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.notifications_outlined, color: HalalEtTheme.textMuted),
+                              onPressed: () => Navigator.of(ctx).push(
+                                MaterialPageRoute(builder: (_) => const AlertsScreen())),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
                   ],
                 ),
               ),

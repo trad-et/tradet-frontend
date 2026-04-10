@@ -86,6 +86,8 @@ class AppLocalizations {
   String get newsFeed => _t({'en': 'News\nFeed', 'am': 'ዜና\nምንጭ', 'ti': 'ዜና\nምንጪ', 'om': 'Oduu\nOdeeffannoo', 'so': 'Wararka\nCusub', 'gur': 'ዜና\nምንጭ'});
   String get priceAlerts => _t({'en': 'Price\nAlerts', 'am': 'የዋጋ\nማንቂያ', 'ti': 'ናይ ዋጋ\nመጠንቀቕታ', 'om': 'Beeksisa\nGatii', 'so': 'Digniin\nQiimo', 'gur': 'የዋጋ\nማስጠንቀቂያ'});
   String get refreshAllData => _t({'en': 'Refresh all data', 'am': 'ሁሉንም ውሂብ አድስ', 'ti': 'ኩሉ ዳታ ኣሐድስ', 'om': 'Daataa hunda haaromsi', 'so': 'Cusbooneysii xogta oo dhan', 'gur': 'ሁሉንም ሓበሬታ አድስ'});
+  String get watchlist => _t({'en': 'Watchlist', 'am': 'ክትትል ዝርዝር', 'ti': 'ክትትል ዝርዝር', 'om': 'Hordofaa', 'so': 'Liiska Ilaalinta', 'gur': 'ክትትል ዝርዝር'});
+  String get capitalAtRisk => _t({'en': 'Capital at Risk', 'am': 'ተጋላጭ ካፒታል', 'ti': 'ኣብ ሓደጋ ዘሎ ካፒታል', 'om': 'Kaappitaala Gaaga Jiru', 'so': 'Maalgelin Khatar', 'gur': 'ተጋላጭ ካፒታል'});
 
   // ─── Market ──────────────────────────────────────
   String get market => _t({'en': 'Market', 'am': 'ገበያ', 'ti': 'ዕዳጋ', 'om': 'Gabaa', 'so': 'Suuqa', 'gur': 'ገቢያ'});

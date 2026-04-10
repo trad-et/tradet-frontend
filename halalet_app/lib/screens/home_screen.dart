@@ -9,6 +9,7 @@ import 'dashboard_screen.dart';
 import 'market_screen.dart';
 import 'portfolio_screen.dart';
 import 'orders_screen.dart';
+import 'watchlist_screen.dart';
 import 'profile_screen.dart';
 import 'login_screen.dart';
 import 'news_screen.dart';
@@ -28,6 +29,7 @@ List<_NavItem> _navItems(AppLocalizations l) => [
   _NavItem(Icons.candlestick_chart_outlined, Icons.candlestick_chart, l.market),
   _NavItem(Icons.pie_chart_outline, Icons.pie_chart, l.portfolio),
   _NavItem(Icons.receipt_long_outlined, Icons.receipt_long, l.orders),
+  _NavItem(Icons.star_outline_rounded, Icons.star_rounded, l.watchlist),
   _NavItem(Icons.notifications_outlined, Icons.notifications, l.priceAlertsTitle),
   _NavItem(Icons.newspaper_outlined, Icons.newspaper, l.newsFeedTitle),
   _NavItem(Icons.volunteer_activism_outlined, Icons.volunteer_activism, l.zakatCalculatorTitle),
@@ -51,6 +53,7 @@ class _HomeScreenState extends State<HomeScreen> {
     const MarketScreen(),
     const PortfolioScreen(),
     const OrdersScreen(),
+    const WatchlistScreen(),
     const AlertsScreen(),
     const NewsScreen(),
     const ZakatScreen(),
@@ -114,11 +117,12 @@ class _HomeScreenState extends State<HomeScreen> {
   void _showMoreSheet() {
     final l = AppLocalizations.of(context);
     final moreItems = [
-      _MoreItem(Icons.notifications, l.priceAlertsTitle, 4),
-      _MoreItem(Icons.newspaper, l.newsFeedTitle, 5),
-      _MoreItem(Icons.volunteer_activism, l.zakatCalculatorTitle, 6),
-      _MoreItem(Icons.currency_exchange, l.currencyConverter, 7),
-      _MoreItem(Icons.person, l.profile, 8),
+      _MoreItem(Icons.star_rounded, l.watchlist, 4),
+      _MoreItem(Icons.notifications, l.priceAlertsTitle, 5),
+      _MoreItem(Icons.newspaper, l.newsFeedTitle, 6),
+      _MoreItem(Icons.volunteer_activism, l.zakatCalculatorTitle, 7),
+      _MoreItem(Icons.currency_exchange, l.currencyConverter, 8),
+      _MoreItem(Icons.person, l.profile, 9),
     ];
 
     showModalBottomSheet(

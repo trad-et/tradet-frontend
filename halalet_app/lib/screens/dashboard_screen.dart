@@ -63,13 +63,7 @@ class DashboardScreen extends StatelessWidget {
         // Quick access cards for new features
         _QuickAccessGrid(l: l),
         const SizedBox(height: 24),
-        _SectionHeader(title: l.topMovers),
-        const SizedBox(height: 12),
-        _topMoversSection(provider, fmt),
-        const SizedBox(height: 24),
-        _SectionHeader(title: l.topLosers),
-        const SizedBox(height: 12),
-        _topLosersSection(provider, fmt),
+        _MoversSection(provider: provider, fmt: fmt),
         const SizedBox(height: 24),
         if (provider.holdings.isNotEmpty) ...[
           _SectionHeader(title: l.yourHoldings),
@@ -143,16 +137,8 @@ class DashboardScreen extends StatelessWidget {
         ],
         const SizedBox(height: 28),
 
-        // Top Movers - full width grid on web
-        _SectionHeader(title: l.topMovers),
-        const SizedBox(height: 14),
-        _webTopMovers(provider, fmt, desktop),
-        const SizedBox(height: 28),
-
-        // Top Losers
-        _SectionHeader(title: l.topLosers),
-        const SizedBox(height: 14),
-        _webTopLosers(provider, fmt, desktop),
+        // Top Movers / Losers segmented
+        _MoversSection(provider: provider, fmt: fmt, webMode: true, desktop: desktop),
         const SizedBox(height: 28),
 
         // Quick access to new features
@@ -270,13 +256,11 @@ class DashboardScreen extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(
               child: _StatCard(
-                icon: Icons.verified_outlined,
-                label: l.kycStatus,
-                value: provider.user?.kycStatus.toUpperCase() ?? '--',
-                color: provider.user?.isKycVerified == true
-                    ? HalalEtTheme.positive
-                    : HalalEtTheme.warning,
-                onTap: onNavigateTo != null ? () => onNavigateTo(8) : null,
+                icon: Icons.star_outline_rounded,
+                label: l.watchlist,
+                value: '${provider.watchlist.length} assets',
+                color: const Color(0xFFFBBF24),
+                onTap: onNavigateTo != null ? () => onNavigateTo(4) : null,
               ),
             ),
           ],
@@ -337,145 +321,17 @@ class DashboardScreen extends StatelessWidget {
               const SizedBox(width: 14),
               Expanded(
                 child: _StatCard(
-                  icon: Icons.verified_outlined,
-                  label: l.kycStatus,
-                  value: provider.user?.kycStatus.toUpperCase() ?? '--',
-                  color: provider.user?.isKycVerified == true
-                      ? HalalEtTheme.positive
-                      : HalalEtTheme.warning,
-                  onTap: onNavigateTo != null ? () => onNavigateTo(8) : null,
+                  icon: Icons.star_outline_rounded,
+                  label: l.watchlist,
+                  value: '${provider.watchlist.length} assets',
+                  color: const Color(0xFFFBBF24),
+                  onTap: onNavigateTo != null ? () => onNavigateTo(4) : null,
                 ),
               ),
             ],
           ),
         ),
       ],
-    );
-  }
-
-  Widget _topMoversSection(AppProvider provider, NumberFormat fmt) {
-    if (provider.assets.isNotEmpty) {
-      return SizedBox(
-        height: 140,
-        child: ListView.separated(
-          scrollDirection: Axis.horizontal,
-          itemCount: _getTopMovers(provider).length,
-          separatorBuilder: (_, __) => const SizedBox(width: 12),
-          itemBuilder: (context, index) {
-            final asset = _getTopMovers(provider)[index];
-            return _TopMoverCard(asset: asset, fmt: fmt);
-          },
-        ),
-      );
-    } else if (provider.assetsLoading) {
-      return const Center(
-        child: Padding(
-          padding: EdgeInsets.all(20),
-          child: CircularProgressIndicator(color: HalalEtTheme.positive),
-        ),
-      );
-    } else if (provider.assetsError != null) {
-      return _ErrorRetryWidget(
-        message: provider.assetsError!,
-        onRetry: () => provider.loadAssets(),
-      );
-    }
-    return const Padding(
-      padding: EdgeInsets.all(16),
-      child: Text('No market data available',
-          style: TextStyle(color: HalalEtTheme.textMuted, fontSize: 13)),
-    );
-  }
-
-  Widget _topLosersSection(AppProvider provider, NumberFormat fmt) {
-    if (provider.assets.isNotEmpty) {
-      final losers = _getTopLosers(provider);
-      if (losers.isEmpty) {
-        return const Padding(
-          padding: EdgeInsets.all(16),
-          child: Text('No losers today',
-              style: TextStyle(color: HalalEtTheme.textMuted, fontSize: 13)),
-        );
-      }
-      return SizedBox(
-        height: 140,
-        child: ListView.separated(
-          scrollDirection: Axis.horizontal,
-          itemCount: losers.length,
-          separatorBuilder: (_, __) => const SizedBox(width: 12),
-          itemBuilder: (context, index) {
-            return _TopMoverCard(asset: losers[index], fmt: fmt);
-          },
-        ),
-      );
-    }
-    return const SizedBox.shrink();
-  }
-
-  Widget _webTopLosers(AppProvider provider, NumberFormat fmt, bool desktop) {
-    if (provider.assets.isNotEmpty) {
-      final losers = _getTopLosers(provider);
-      if (losers.isEmpty) {
-        return const Padding(
-          padding: EdgeInsets.all(16),
-          child: Text('No losers today',
-              style: TextStyle(color: HalalEtTheme.textMuted, fontSize: 13)),
-        );
-      }
-      final crossAxisCount = desktop ? 6 : 3;
-      return GridView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: crossAxisCount,
-          crossAxisSpacing: 14,
-          mainAxisSpacing: 14,
-          childAspectRatio: 1.1,
-        ),
-        itemCount: losers.length,
-        itemBuilder: (context, index) {
-          return _TopMoverCard(asset: losers[index], fmt: fmt, webMode: true);
-        },
-      );
-    }
-    return const SizedBox.shrink();
-  }
-
-  Widget _webTopMovers(AppProvider provider, NumberFormat fmt, bool desktop) {
-    if (provider.assets.isNotEmpty) {
-      final movers = _getTopMovers(provider);
-      final crossAxisCount = desktop ? 6 : 3;
-      return GridView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: crossAxisCount,
-          crossAxisSpacing: 14,
-          mainAxisSpacing: 14,
-          childAspectRatio: 1.1,
-        ),
-        itemCount: movers.length,
-        itemBuilder: (context, index) {
-          return _TopMoverCard(asset: movers[index], fmt: fmt, webMode: true);
-        },
-      );
-    } else if (provider.assetsLoading) {
-      return const Center(
-        child: Padding(
-          padding: EdgeInsets.all(20),
-          child: CircularProgressIndicator(color: HalalEtTheme.positive),
-        ),
-      );
-    } else if (provider.assetsError != null) {
-      return _ErrorRetryWidget(
-        message: provider.assetsError!,
-        onRetry: () => provider.loadAssets(),
-      );
-    }
-    return const Padding(
-      padding: EdgeInsets.all(16),
-      child: Text('No market data available',
-          style: TextStyle(color: HalalEtTheme.textMuted, fontSize: 13)),
     );
   }
 
@@ -511,17 +367,146 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  List<dynamic> _getTopMovers(AppProvider provider) {
-    final gainers = provider.assets.where((a) => (a.change24h ?? 0) > 0).toList()
-      ..sort((a, b) => (b.change24h ?? 0).compareTo(a.change24h ?? 0));
-    return gainers.take(6).toList();
-  }
+}
 
-  List<dynamic> _getTopLosers(AppProvider provider) {
-    final losers = provider.assets.where((a) => (a.change24h ?? 0) < 0).toList()
-      ..sort((a, b) => (a.change24h ?? 0).compareTo(b.change24h ?? 0));
-    return losers.take(6).toList();
+// ─── Top-level mover section builders (used by _MoversSection widget) ───
+
+Widget _topMoversSection(AppProvider provider, NumberFormat fmt) {
+  if (provider.assets.isNotEmpty) {
+    return SizedBox(
+      height: 140,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: _getTopMovers(provider).length,
+        separatorBuilder: (_, __) => const SizedBox(width: 12),
+        itemBuilder: (context, index) {
+          final asset = _getTopMovers(provider)[index];
+          return _TopMoverCard(asset: asset, fmt: fmt);
+        },
+      ),
+    );
+  } else if (provider.assetsLoading) {
+    return const Center(
+      child: Padding(
+        padding: EdgeInsets.all(20),
+        child: CircularProgressIndicator(color: HalalEtTheme.positive),
+      ),
+    );
+  } else if (provider.assetsError != null) {
+    return _ErrorRetryWidget(
+      message: provider.assetsError!,
+      onRetry: () => provider.loadAssets(),
+    );
   }
+  return const Padding(
+    padding: EdgeInsets.all(16),
+    child: Text('No market data available',
+        style: TextStyle(color: HalalEtTheme.textMuted, fontSize: 13)),
+  );
+}
+
+Widget _topLosersSection(AppProvider provider, NumberFormat fmt) {
+  if (provider.assets.isNotEmpty) {
+    final losers = _getTopLosers(provider);
+    if (losers.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.all(16),
+        child: Text('No losers today',
+            style: TextStyle(color: HalalEtTheme.textMuted, fontSize: 13)),
+      );
+    }
+    return SizedBox(
+      height: 140,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: losers.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 12),
+        itemBuilder: (context, index) {
+          return _TopMoverCard(asset: losers[index], fmt: fmt);
+        },
+      ),
+    );
+  }
+  return const SizedBox.shrink();
+}
+
+Widget _webTopMoversSection(AppProvider provider, NumberFormat fmt, bool desktop) {
+  if (provider.assets.isNotEmpty) {
+    final movers = _getTopMovers(provider);
+    final crossAxisCount = desktop ? 6 : 3;
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: crossAxisCount,
+        crossAxisSpacing: 14,
+        mainAxisSpacing: 14,
+        childAspectRatio: 1.1,
+      ),
+      itemCount: movers.length,
+      itemBuilder: (context, index) {
+        return _TopMoverCard(asset: movers[index], fmt: fmt, webMode: true);
+      },
+    );
+  } else if (provider.assetsLoading) {
+    return const Center(
+      child: Padding(
+        padding: EdgeInsets.all(20),
+        child: CircularProgressIndicator(color: HalalEtTheme.positive),
+      ),
+    );
+  } else if (provider.assetsError != null) {
+    return _ErrorRetryWidget(
+      message: provider.assetsError!,
+      onRetry: () => provider.loadAssets(),
+    );
+  }
+  return const Padding(
+    padding: EdgeInsets.all(16),
+    child: Text('No market data available',
+        style: TextStyle(color: HalalEtTheme.textMuted, fontSize: 13)),
+  );
+}
+
+Widget _webTopLosersSection(AppProvider provider, NumberFormat fmt, bool desktop) {
+  if (provider.assets.isNotEmpty) {
+    final losers = _getTopLosers(provider);
+    if (losers.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.all(16),
+        child: Text('No losers today',
+            style: TextStyle(color: HalalEtTheme.textMuted, fontSize: 13)),
+      );
+    }
+    final crossAxisCount = desktop ? 6 : 3;
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: crossAxisCount,
+        crossAxisSpacing: 14,
+        mainAxisSpacing: 14,
+        childAspectRatio: 1.1,
+      ),
+      itemCount: losers.length,
+      itemBuilder: (context, index) {
+        return _TopMoverCard(asset: losers[index], fmt: fmt, webMode: true);
+      },
+    );
+  }
+  return const SizedBox.shrink();
+}
+
+List<dynamic> _getTopMovers(AppProvider provider) {
+  final gainers = provider.assets.where((a) => (a.change24h ?? 0) > 0).toList()
+    ..sort((a, b) => (b.change24h ?? 0).compareTo(a.change24h ?? 0));
+  return gainers.take(6).toList();
+}
+
+List<dynamic> _getTopLosers(AppProvider provider) {
+  final losers = provider.assets.where((a) => (a.change24h ?? 0) < 0).toList()
+    ..sort((a, b) => (a.change24h ?? 0).compareTo(b.change24h ?? 0));
+  return losers.take(6).toList();
 }
 
 // ─── Web Section Card ───
@@ -596,9 +581,9 @@ class _PortfolioCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final summary = provider.portfolioSummary;
-    final totalValue =
-        summary?.totalPortfolioValue ?? provider.user?.walletBalance ?? 0;
+    final holdingsValue = (summary?.totalPortfolioValue ?? 0) - (summary?.cashBalance ?? 0);
     final totalPnl = summary?.totalPnl ?? 0;
     final pnlPercent = summary != null && summary.totalInvested > 0
         ? (totalPnl / summary.totalInvested * 100)
@@ -623,9 +608,9 @@ class _PortfolioCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Text(
-                'Total Portfolio Value',
-                style: TextStyle(fontSize: 13, color: HalalEtTheme.textSecondary),
+              Text(
+                l.capitalAtRisk,
+                style: const TextStyle(fontSize: 13, color: HalalEtTheme.textSecondary),
               ),
               const Spacer(),
               Container(
@@ -646,7 +631,7 @@ class _PortfolioCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            '${fmt.format(totalValue)} ETB',
+            '${fmt.format(holdingsValue)} ETB',
             style: const TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.w800,
@@ -1433,149 +1418,203 @@ void _showDepositSheet(BuildContext context) {
     );
   }
 
-const _kEthiopianBanks = [
-    'Commercial Bank of Ethiopia (CBE)', 'Awash Bank', 'Dashen Bank',
-    'Bank of Abyssinia', 'Wegagen Bank', 'United Bank',
-    'Nib International Bank', 'Cooperative Bank of Oromia',
-    'Lion International Bank', 'Oromia Bank', 'Bunna Bank',
-  ];
+void _showWithdrawSheet(BuildContext context) {
+  final amountCtrl = TextEditingController();
+  PaymentMethod? selectedMethod;
 
-  void _showWithdrawSheet(BuildContext context) {
-    final amountCtrl = TextEditingController();
-    final accountCtrl = TextEditingController();
-    String? selectedBank;
+  // Ensure payment methods are loaded
+  if (context.read<AppProvider>().paymentMethods.isEmpty) {
+    context.read<AppProvider>().loadPaymentMethods();
+  }
 
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: HalalEtTheme.cardBg,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setSheetState) => Padding(
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: HalalEtTheme.cardBg,
+    isScrollControlled: true,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+    ),
+    builder: (ctx) => StatefulBuilder(
+      builder: (ctx, setSheetState) {
+        final provider = ctx.read<AppProvider>();
+        final methods = provider.paymentMethods;
+        final available = provider.availableCashBalance;
+        final reserved = provider.reservedForOrders;
+        final l = AppLocalizations.of(ctx);
+
+        // Auto-select primary on first load
+        if (selectedMethod == null && methods.isNotEmpty) {
+          selectedMethod = methods.firstWhere(
+            (m) => m.isPrimary, orElse: () => methods.first);
+        }
+
+        return Padding(
           padding: EdgeInsets.fromLTRB(24, 24, 24, MediaQuery.of(ctx).viewInsets.bottom + 24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Center(child: Container(width: 40, height: 4,
-                  decoration: BoxDecoration(color: HalalEtTheme.divider, borderRadius: BorderRadius.circular(2)))),
+                  decoration: BoxDecoration(color: HalalEtTheme.divider,
+                      borderRadius: BorderRadius.circular(2)))),
               const SizedBox(height: 20),
-              const Text('Withdraw ETB',
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: Colors.white)),
+              Text(l.withdrawEtb,
+                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: Colors.white)),
               const SizedBox(height: 4),
-              const Text('ገንዘብ አውጣ • Withdraw to your bank account (Riba-free)',
+              const Text('Riba-free withdrawal to your saved bank account',
                   style: TextStyle(fontSize: 13, color: HalalEtTheme.textSecondary)),
               const SizedBox(height: 12),
-              Consumer<AppProvider>(
-                builder: (_, provider, __) {
-                  final available = provider.availableCashBalance;
-                  final reserved = provider.reservedForOrders;
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+              Text('Available: ${available.toStringAsFixed(2)} ETB',
+                  style: const TextStyle(fontSize: 13, color: HalalEtTheme.positive, fontWeight: FontWeight.w600)),
+              if (reserved > 0)
+                Text('Reserved in open orders: ${reserved.toStringAsFixed(2)} ETB',
+                    style: const TextStyle(fontSize: 11, color: HalalEtTheme.warning)),
+              const SizedBox(height: 16),
+              if (methods.isEmpty) ...[
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: HalalEtTheme.surfaceLight,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: HalalEtTheme.warning.withValues(alpha: 0.4)),
+                  ),
+                  child: const Column(
                     children: [
-                      Text('Available: ${available.toStringAsFixed(2)} ETB',
-                          style: const TextStyle(fontSize: 13, color: HalalEtTheme.positive, fontWeight: FontWeight.w600)),
-                      if (reserved > 0)
-                        Text('Reserved in open orders: ${reserved.toStringAsFixed(2)} ETB',
-                            style: const TextStyle(fontSize: 11, color: HalalEtTheme.warning)),
+                      Icon(Icons.account_balance_outlined, color: HalalEtTheme.warning, size: 32),
+                      SizedBox(height: 8),
+                      Text('No payment methods saved.',
+                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                      SizedBox(height: 4),
+                      Text('Go to Profile → Payment Methods to add your bank account.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 12, color: HalalEtTheme.textSecondary)),
                     ],
-                  );
-                },
-              ),
-              const SizedBox(height: 14),
-              DropdownButtonFormField<String>(
-                value: selectedBank,
-                dropdownColor: HalalEtTheme.surfaceLight,
-                style: const TextStyle(color: Colors.white, fontSize: 14),
-                decoration: const InputDecoration(
-                  labelText: 'Select Bank / ባንክ ይምረጡ',
-                  prefixIcon: Icon(Icons.account_balance, size: 20),
+                  ),
                 ),
-                items: _kEthiopianBanks.map((bank) => DropdownMenuItem(
-                  value: bank,
-                  child: Text(bank, style: const TextStyle(fontSize: 13)),
-                )).toList(),
-                onChanged: (v) => setSheetState(() => selectedBank = v),
-              ),
-              const SizedBox(height: 14),
-              TextField(
-                controller: accountCtrl,
-                keyboardType: TextInputType.number,
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white),
-                decoration: const InputDecoration(
-                  labelText: 'Account Number / የሒሳብ ቁጥር',
-                  prefixIcon: Icon(Icons.credit_card, size: 20),
+              ] else ...[
+                const Text('Select payment method:',
+                    style: TextStyle(fontSize: 12, color: HalalEtTheme.textMuted)),
+                const SizedBox(height: 8),
+                ...methods.map((m) => GestureDetector(
+                  onTap: () => setSheetState(() => selectedMethod = m),
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: selectedMethod?.id == m.id
+                          ? HalalEtTheme.positive.withValues(alpha: 0.1)
+                          : HalalEtTheme.surfaceLight,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: selectedMethod?.id == m.id
+                            ? HalalEtTheme.positive.withValues(alpha: 0.5)
+                            : HalalEtTheme.divider.withValues(alpha: 0.2),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.account_balance_outlined,
+                            size: 18, color: selectedMethod?.id == m.id
+                                ? HalalEtTheme.positive : HalalEtTheme.textMuted),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(m.bankName,
+                                  style: const TextStyle(
+                                      color: Colors.white, fontWeight: FontWeight.w600, fontSize: 13)),
+                              Text('${m.accountNumber} • ${m.accountName}',
+                                  style: const TextStyle(
+                                      color: HalalEtTheme.textMuted, fontSize: 11)),
+                            ],
+                          ),
+                        ),
+                        if (m.isPrimary)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: HalalEtTheme.positive.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: const Text('Primary',
+                                style: TextStyle(fontSize: 9, fontWeight: FontWeight.w600,
+                                    color: HalalEtTheme.positive)),
+                          ),
+                        const SizedBox(width: 6),
+                        Icon(
+                          selectedMethod?.id == m.id
+                              ? Icons.radio_button_checked
+                              : Icons.radio_button_off,
+                          color: selectedMethod?.id == m.id
+                              ? HalalEtTheme.positive
+                              : HalalEtTheme.textMuted,
+                          size: 18,
+                        ),
+                      ],
+                    ),
+                  ),
+                )),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: amountCtrl,
+                  keyboardType: TextInputType.number,
+                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: Colors.white),
+                  decoration: const InputDecoration(
+                    prefixText: 'ETB  ',
+                    prefixStyle: TextStyle(fontSize: 24, fontWeight: FontWeight.w700,
+                        color: HalalEtTheme.textSecondary),
+                    hintText: '0.00',
+                  ),
                 ),
-              ),
-              const SizedBox(height: 14),
-              TextField(
-                controller: amountCtrl,
-                keyboardType: TextInputType.number,
-                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: Colors.white),
-                decoration: const InputDecoration(
-                  prefixText: 'ETB  ',
-                  prefixStyle: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: HalalEtTheme.textSecondary),
-                  hintText: '0.00',
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: HalalEtTheme.accent,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  onPressed: () async {
+                    final amount = double.tryParse(amountCtrl.text);
+                    if (amount == null || amount <= 0) return;
+                    if (selectedMethod == null) return;
+                    if (amount > available) {
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        content: Text('Insufficient balance. Available: ${available.toStringAsFixed(2)} ETB'),
+                        backgroundColor: HalalEtTheme.negative,
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ));
+                      return;
+                    }
+                    Navigator.pop(ctx);
+                    final result = await context.read<AppProvider>().withdraw(
+                      amount: amount,
+                      bankName: selectedMethod!.bankName,
+                      accountNumber: selectedMethod!.accountNumber,
+                    );
+                    if (context.mounted) {
+                      final isError = result.containsKey('error');
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        content: Text(isError
+                            ? (result['error'] ?? 'Withdrawal failed')
+                            : (result['message'] ?? 'Withdrawal complete')),
+                        backgroundColor: isError ? HalalEtTheme.negative : HalalEtTheme.positive,
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ));
+                    }
+                  },
+                  child: Text(l.withdraw,
+                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
                 ),
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: HalalEtTheme.accent,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                ),
-                onPressed: () async {
-                  final amount = double.tryParse(amountCtrl.text);
-                  if (amount == null || amount <= 0) return;
-                  if (selectedBank == null) {
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                      content: const Text('Please select a bank'),
-                      backgroundColor: HalalEtTheme.warning, behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    ));
-                    return;
-                  }
-                  if (accountCtrl.text.trim().isEmpty) {
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                      content: const Text('Please enter account number'),
-                      backgroundColor: HalalEtTheme.warning, behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    ));
-                    return;
-                  }
-                  final available = context.read<AppProvider>().availableCashBalance;
-                  if (amount > available) {
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                      content: Text('Insufficient available balance. Available: ${available.toStringAsFixed(2)} ETB'),
-                      backgroundColor: HalalEtTheme.negative, behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    ));
-                    return;
-                  }
-                  Navigator.pop(ctx);
-                  final result = await context.read<AppProvider>().withdraw(
-                    amount: amount, bankName: selectedBank!, accountNumber: accountCtrl.text.trim(),
-                  );
-                  if (context.mounted) {
-                    final isError = result.containsKey('error');
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                      content: Text(isError ? (result['error'] ?? 'Withdrawal failed') : (result['message'] ?? 'Withdrawal complete')),
-                      backgroundColor: isError ? HalalEtTheme.negative : HalalEtTheme.positive,
-                      behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    ));
-                  }
-                },
-                child: Text(AppLocalizations.of(ctx).withdraw, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
-              ),
+              ],
             ],
           ),
-        ),
-      ),
-    );
-  }
+        );
+      },
+    ),
+  );
+}
 
 class _ErrorRetryWidget extends StatelessWidget {
   final String message;
@@ -1617,6 +1656,89 @@ class _ErrorRetryWidget extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ─── Segmented Movers / Losers Section ───
+
+class _MoversSection extends StatefulWidget {
+  final AppProvider provider;
+  final NumberFormat fmt;
+  final bool webMode;
+  final bool desktop;
+  const _MoversSection({
+    required this.provider,
+    required this.fmt,
+    this.webMode = false,
+    this.desktop = false,
+  });
+  @override
+  State<_MoversSection> createState() => _MoversSectionState();
+}
+
+class _MoversSectionState extends State<_MoversSection> {
+  bool _showGainers = true;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Container(
+                padding: const EdgeInsets.all(3),
+                decoration: BoxDecoration(
+                  color: HalalEtTheme.surfaceLight,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(child: _tab(l.topMovers, true)),
+                    const SizedBox(width: 3),
+                    Expanded(child: _tab(l.topLosers, false)),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        _showGainers
+            ? (widget.webMode
+                ? _webTopMoversSection(widget.provider, widget.fmt, widget.desktop)
+                : _topMoversSection(widget.provider, widget.fmt))
+            : (widget.webMode
+                ? _webTopLosersSection(widget.provider, widget.fmt, widget.desktop)
+                : _topLosersSection(widget.provider, widget.fmt)),
+      ],
+    );
+  }
+
+  Widget _tab(String label, bool isGainers) {
+    final selected = _showGainers == isGainers;
+    final color = isGainers ? HalalEtTheme.positive : HalalEtTheme.negative;
+    return GestureDetector(
+      onTap: () => setState(() => _showGainers = isGainers),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 9),
+        decoration: BoxDecoration(
+          color: selected ? color.withValues(alpha: 0.2) : Colors.transparent,
+          borderRadius: BorderRadius.circular(10),
+          border: selected ? Border.all(color: color.withValues(alpha: 0.4)) : null,
+        ),
+        alignment: Alignment.center,
+        child: Text(label,
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 13,
+              color: selected ? color : HalalEtTheme.textMuted,
+            )),
       ),
     );
   }

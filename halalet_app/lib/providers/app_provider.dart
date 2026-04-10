@@ -407,6 +407,20 @@ class AppProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> addToWatchlist(int assetId) async {
+    try {
+      await _api.addToWatchlist(assetId);
+      await loadWatchlist();
+    } catch (_) {}
+  }
+
+  Future<void> removeFromWatchlist(int assetId) async {
+    try {
+      await _api.removeFromWatchlist(assetId);
+      await loadWatchlist();
+    } catch (_) {}
+  }
+
   Future<Map<String, dynamic>> deposit(double amount) async {
     _isLoading = true;
     notifyListeners();
