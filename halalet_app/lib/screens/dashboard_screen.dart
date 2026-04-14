@@ -18,6 +18,9 @@ import 'converter_screen.dart';
 import 'transactions_screen.dart';
 import 'home_screen.dart';
 import 'login_screen.dart';
+import 'analytics_screen.dart';
+import '../widgets/disclaimer_footer.dart';
+import '../widgets/language_selector.dart';
 
 class DashboardScreen extends StatelessWidget {
   final void Function(int index)? onNavigateTo;
@@ -30,13 +33,13 @@ class DashboardScreen extends StatelessWidget {
     final l = AppLocalizations.of(context);
 
     return Container(
-      decoration: BoxDecoration(gradient: HalalEtTheme.bgGradient),
+      decoration: BoxDecoration(gradient: TradEtTheme.bgGradient),
       child: SafeArea(
         child: Consumer<AppProvider>(
           builder: (context, provider, _) {
             return RefreshIndicator(
-              color: HalalEtTheme.positive,
-              backgroundColor: HalalEtTheme.cardBg,
+              color: TradEtTheme.positive,
+              backgroundColor: TradEtTheme.cardBg,
               onRefresh: () => provider.loadAllData(),
               child: wide
                   ? _buildWebLayout(context, provider, fmt, l, onNavigateTo)
@@ -49,11 +52,37 @@ class DashboardScreen extends StatelessWidget {
   }
 
   // ─── MOBILE LAYOUT ───
-  Widget _buildMobileLayout(BuildContext context, AppProvider provider, NumberFormat fmt, AppLocalizations l, void Function(int)? onNavigateTo) {
+  Widget _buildMobileLayout(
+    BuildContext context,
+    AppProvider provider,
+    NumberFormat fmt,
+    AppLocalizations l,
+    void Function(int)? onNavigateTo,
+  ) {
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
       children: [
-        _greeting(provider, l),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(child: _greeting(provider, l)),
+            const LanguageSelector(),
+            const SizedBox(width: 8),
+            _HeaderIconButton(
+              icon: Icons.bar_chart_rounded,
+              color: TradEtTheme.primaryLight,
+              onTap: () => Navigator.of(context).push(
+                appRoute(
+                  context,
+                  _WrappedScreen(
+                    child: const AnalyticsScreen(),
+                    showMobileAppBar: false,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
         const SizedBox(height: 16),
         // Exchange rate ticker
         _ExchangeRateTicker(api: provider.api),
@@ -77,28 +106,43 @@ class DashboardScreen extends StatelessWidget {
         if (provider.holdings.isNotEmpty) ...[
           _SectionHeader(title: l.yourHoldings),
           const SizedBox(height: 12),
-          ...provider.holdings.take(3).map((h) => Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: _HoldingTile(holding: h, fmt: fmt),
-              )),
+          ...provider.holdings
+              .take(3)
+              .map(
+                (h) => Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: _HoldingTile(holding: h, fmt: fmt),
+                ),
+              ),
         ],
         if (provider.orders.isNotEmpty) ...[
           const SizedBox(height: 16),
           _SectionHeader(title: l.recentOrders),
           const SizedBox(height: 12),
-          ...provider.orders.take(3).map((o) => Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: _OrderTile(order: o, fmt: fmt),
-              )),
+          ...provider.orders
+              .take(3)
+              .map(
+                (o) => Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: _OrderTile(order: o, fmt: fmt),
+                ),
+              ),
         ],
         const SizedBox(height: 20),
+        const DisclaimerFooter(),
+        const SizedBox(height: 8),
       ],
     );
   }
 
-
   // ─── WEB LAYOUT ───
-  Widget _buildWebLayout(BuildContext context, AppProvider provider, NumberFormat fmt, AppLocalizations l, void Function(int)? onNavigateTo) {
+  Widget _buildWebLayout(
+    BuildContext context,
+    AppProvider provider,
+    NumberFormat fmt,
+    AppLocalizations l,
+    void Function(int)? onNavigateTo,
+  ) {
     final desktop = isDesktop(context);
 
     return ListView(
@@ -106,22 +150,48 @@ class DashboardScreen extends StatelessWidget {
       children: [
         // Header row
         Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Expanded(child: _greeting(provider, l)),
-            provider.isLoading
-              ? const Padding(
-                  padding: EdgeInsets.all(12),
-                  child: SizedBox(
-                    width: 20, height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: HalalEtTheme.textSecondary),
+            // Language selector
+            const LanguageSelector(),
+            const SizedBox(width: 8),
+            // Analytics icon
+            _HeaderIconButton(
+              icon: Icons.bar_chart_rounded,
+              color: TradEtTheme.primaryLight,
+              onTap: () => Navigator.of(context).push(
+                appRoute(
+                  context,
+                  _WrappedScreen(
+                    child: const AnalyticsScreen(),
+                    showMobileAppBar: false,
                   ),
-                )
-              : IconButton(
-                  onPressed: () => provider.loadAllData(),
-                  icon: const Icon(Icons.refresh_rounded, color: HalalEtTheme.textSecondary),
-                  tooltip: l.refreshAllData,
                 ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            // Refresh icon
+            provider.isLoading
+                ? const SizedBox(
+                    width: 36,
+                    height: 36,
+                    child: Center(
+                      child: SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: TradEtTheme.textSecondary,
+                        ),
+                      ),
+                    ),
+                  )
+                : _HeaderIconButton(
+                    icon: Icons.refresh_rounded,
+                    color: TradEtTheme.textSecondary,
+                    onTap: () => provider.loadAllData(),
+                  ),
           ],
         ),
         const SizedBox(height: 16),
@@ -129,19 +199,19 @@ class DashboardScreen extends StatelessWidget {
         _ExchangeRateTicker(api: provider.api),
         const SizedBox(height: 20),
 
-        // Top row: Capital at Risk + Cash Balance (equal height)
+        // Desktop 2-column layout:
+        //  Row 1: Capital at Risk (left) | Cash Balance (right)  — equal widths
+        //  Row 2: Portfolio Split (left) | 3 stat cards (right)  — equal widths
         if (desktop) ...[
           IntrinsicHeight(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Expanded(
-                  flex: 3,
                   child: _PortfolioCard(provider: provider, fmt: fmt),
                 ),
                 const SizedBox(width: 20),
                 Expanded(
-                  flex: 4,
                   child: _CashBalanceCard(
                     value: '${fmt.format(provider.availableCashBalance)} ETB',
                     subLabel: provider.reservedForOrders > 0
@@ -153,10 +223,8 @@ class DashboardScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 14),
-          // Bottom row: Allocation + 3 stat cards (all equal height)
-          _webStatsGrid(context, provider, fmt, onNavigateTo),
-        ]
-        else ...[
+          IntrinsicHeight(child: _webRow2(context, provider, l, onNavigateTo)),
+        ] else ...[
           _PortfolioCard(provider: provider, fmt: fmt),
           const SizedBox(height: 14),
           _CashBalanceCard(
@@ -166,12 +234,17 @@ class DashboardScreen extends StatelessWidget {
                 : null,
           ),
           const SizedBox(height: 14),
-          _webStatsGrid(context, provider, fmt, onNavigateTo),
+          IntrinsicHeight(child: _webRow2(context, provider, l, onNavigateTo)),
         ],
         const SizedBox(height: 28),
 
         // Top Movers / Losers segmented
-        _MoversSection(provider: provider, fmt: fmt, webMode: true, desktop: desktop),
+        _MoversSection(
+          provider: provider,
+          fmt: fmt,
+          webMode: true,
+          desktop: desktop,
+        ),
         const SizedBox(height: 28),
 
         // Quick access to new features
@@ -195,6 +268,9 @@ class DashboardScreen extends StatelessWidget {
           const SizedBox(height: 20),
           _webOrdersSection(provider, fmt),
         ],
+        const SizedBox(height: 28),
+        const DisclaimerFooter(),
+        const SizedBox(height: 8),
       ],
     );
   }
@@ -212,7 +288,7 @@ class DashboardScreen extends StatelessWidget {
                 '${l.assalamuAlaikum}${provider.user != null ? "," : ""}',
                 style: const TextStyle(
                   fontSize: 14,
-                  color: HalalEtTheme.textSecondary,
+                  color: TradEtTheme.textSecondary,
                 ),
               ),
               if (provider.user != null)
@@ -228,25 +304,20 @@ class DashboardScreen extends StatelessWidget {
             ],
           ),
         ),
-        Container(
-          width: 44,
-          height: 44,
-          decoration: BoxDecoration(
-            gradient: HalalEtTheme.heroGradient,
-            borderRadius: BorderRadius.circular(14),
-          ),
-          child: const Icon(Icons.show_chart_rounded, size: 22, color: Colors.white),
-        ),
       ],
     );
   }
 
-  Widget _mobileStatsGrid(BuildContext context, AppProvider provider, NumberFormat fmt, AppLocalizations l, void Function(int)? onNavigateTo) {
+  Widget _mobileStatsGrid(
+    BuildContext context,
+    AppProvider provider,
+    NumberFormat fmt,
+    AppLocalizations l,
+    void Function(int)? onNavigateTo,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _AllocationCard(provider: provider, fmt: fmt),
-        const SizedBox(height: 12),
         Row(
           children: [
             Expanded(
@@ -254,7 +325,7 @@ class DashboardScreen extends StatelessWidget {
                 icon: Icons.receipt_long_outlined,
                 label: l.openOrders,
                 value: '${provider.orders.where((o) => o.isPending).length}',
-                color: HalalEtTheme.primaryLight,
+                color: TradEtTheme.primaryLight,
                 onTap: onNavigateTo != null ? () => onNavigateTo(3) : null,
               ),
             ),
@@ -268,7 +339,11 @@ class DashboardScreen extends StatelessWidget {
                 onTap: onNavigateTo != null ? () => onNavigateTo(2) : null,
               ),
             ),
-            const SizedBox(width: 12),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
             Expanded(
               child: _StatCard(
                 icon: Icons.star_outline_rounded,
@@ -278,54 +353,106 @@ class DashboardScreen extends StatelessWidget {
                 onTap: onNavigateTo != null ? () => onNavigateTo(4) : null,
               ),
             ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _StatCard(
+                icon: Icons.swap_horiz_rounded,
+                label: l.transactions,
+                value: l.viewHistory,
+                color: const Color(0xFF22D3EE),
+                onTap: () => Navigator.of(context).push(
+                  appRoute(
+                    context,
+                    _WrappedScreen(
+                      child: const TransactionsScreen(),
+                      showMobileAppBar: false,
+                    ),
+                  ),
+                ),
+              ),
+            ),
           ],
         ),
       ],
     );
   }
 
-  Widget _webStatsGrid(BuildContext context, AppProvider provider, NumberFormat fmt, void Function(int)? onNavigateTo) {
-    final l = AppLocalizations.of(context);
-    return IntrinsicHeight(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Expanded(
-            flex: 3,
-            child: _AllocationCard(provider: provider, fmt: fmt),
+  /// Row 2: Portfolio Split (flex:2) | Transactions (flex:1) | Open Orders (flex:1) | Holdings (flex:1) | Watchlist (flex:1)
+  /// Right 3 cards together = 3/6 = 50% of the row width.
+  Widget _webRow2(
+    BuildContext context,
+    AppProvider provider,
+    AppLocalizations l,
+    void Function(int)? onNavigateTo,
+  ) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // Portfolio Split — flex:2 (~33%)
+        Expanded(
+          flex: 2,
+          child: _AllocationCard(
+            provider: provider,
+            fmt: NumberFormat('#,##0.00', 'en'),
           ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: _StatCard(
-              icon: Icons.receipt_long_outlined,
-              label: l.openOrders,
-              value: '${provider.orders.where((o) => o.isPending).length}',
-              color: HalalEtTheme.primaryLight,
-              onTap: onNavigateTo != null ? () => onNavigateTo(3) : null,
+        ),
+        const SizedBox(width: 14),
+        // Transactions — flex:1 (~17%)
+        Expanded(
+          flex: 1,
+          child: _StatCard(
+            icon: Icons.swap_horiz_rounded,
+            label: l.transactions,
+            value: l.viewHistory,
+            color: const Color(0xFF22D3EE),
+            onTap: () => Navigator.of(context).push(
+              appRoute(
+                context,
+                _WrappedScreen(
+                  child: const TransactionsScreen(),
+                  showMobileAppBar: false,
+                ),
+              ),
             ),
           ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: _StatCard(
-              icon: Icons.pie_chart_outline,
-              label: l.holdings,
-              value: '${provider.holdings.length} assets',
-              color: const Color(0xFF818CF8),
-              onTap: onNavigateTo != null ? () => onNavigateTo(2) : null,
-            ),
+        ),
+        const SizedBox(width: 14),
+        // Open Orders — flex:1 (~17%)
+        Expanded(
+          flex: 1,
+          child: _StatCard(
+            icon: Icons.receipt_long_outlined,
+            label: l.openOrders,
+            value: '${provider.orders.where((o) => o.isPending).length}',
+            color: TradEtTheme.primaryLight,
+            onTap: onNavigateTo != null ? () => onNavigateTo(3) : null,
           ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: _StatCard(
-              icon: Icons.star_outline_rounded,
-              label: l.watchlist,
-              value: '${provider.watchlist.length} assets',
-              color: const Color(0xFFFBBF24),
-              onTap: onNavigateTo != null ? () => onNavigateTo(4) : null,
-            ),
+        ),
+        const SizedBox(width: 14),
+        // Holdings — flex:1 (~17%)
+        Expanded(
+          flex: 1,
+          child: _StatCard(
+            icon: Icons.pie_chart_outline,
+            label: l.holdings,
+            value: '${provider.holdings.length} assets',
+            color: const Color(0xFF818CF8),
+            onTap: onNavigateTo != null ? () => onNavigateTo(2) : null,
           ),
-        ],
-      ),
+        ),
+        const SizedBox(width: 14),
+        // Watchlist — flex:1 (~17%) — right 3 total = 50%
+        Expanded(
+          flex: 1,
+          child: _StatCard(
+            icon: Icons.star_outline_rounded,
+            label: l.watchlist,
+            value: '${provider.watchlist.length} assets',
+            color: const Color(0xFFFBBF24),
+            onTap: onNavigateTo != null ? () => onNavigateTo(4) : null,
+          ),
+        ),
+      ],
     );
   }
 
@@ -337,10 +464,15 @@ class DashboardScreen extends StatelessWidget {
       emptyIcon: Icons.pie_chart_outline_rounded,
       emptyText: 'No holdings yet',
       child: Column(
-        children: provider.holdings.take(5).map((h) => Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: _HoldingTile(holding: h, fmt: fmt),
-            )).toList(),
+        children: provider.holdings
+            .take(5)
+            .map(
+              (h) => Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: _HoldingTile(holding: h, fmt: fmt),
+              ),
+            )
+            .toList(),
       ),
     );
   }
@@ -353,14 +485,18 @@ class DashboardScreen extends StatelessWidget {
       emptyIcon: Icons.receipt_long_outlined,
       emptyText: 'No orders yet',
       child: Column(
-        children: provider.orders.take(5).map((o) => Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: _OrderTile(order: o, fmt: fmt),
-            )).toList(),
+        children: provider.orders
+            .take(5)
+            .map(
+              (o) => Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: _OrderTile(order: o, fmt: fmt),
+              ),
+            )
+            .toList(),
       ),
     );
   }
-
 }
 
 // ─── Top-level mover section builders (used by _MoversSection widget) ───
@@ -383,7 +519,7 @@ Widget _topMoversSection(AppProvider provider, NumberFormat fmt) {
     return const Center(
       child: Padding(
         padding: EdgeInsets.all(20),
-        child: CircularProgressIndicator(color: HalalEtTheme.positive),
+        child: CircularProgressIndicator(color: TradEtTheme.positive),
       ),
     );
   } else if (provider.assetsError != null) {
@@ -394,8 +530,10 @@ Widget _topMoversSection(AppProvider provider, NumberFormat fmt) {
   }
   return const Padding(
     padding: EdgeInsets.all(16),
-    child: Text('No market data available',
-        style: TextStyle(color: HalalEtTheme.textMuted, fontSize: 13)),
+    child: Text(
+      'No market data available',
+      style: TextStyle(color: TradEtTheme.textMuted, fontSize: 13),
+    ),
   );
 }
 
@@ -405,8 +543,10 @@ Widget _topLosersSection(AppProvider provider, NumberFormat fmt) {
     if (losers.isEmpty) {
       return const Padding(
         padding: EdgeInsets.all(16),
-        child: Text('No losers today',
-            style: TextStyle(color: HalalEtTheme.textMuted, fontSize: 13)),
+        child: Text(
+          'No losers today',
+          style: TextStyle(color: TradEtTheme.textMuted, fontSize: 13),
+        ),
       );
     }
     return SizedBox(
@@ -424,7 +564,11 @@ Widget _topLosersSection(AppProvider provider, NumberFormat fmt) {
   return const SizedBox.shrink();
 }
 
-Widget _webTopMoversSection(AppProvider provider, NumberFormat fmt, bool desktop) {
+Widget _webTopMoversSection(
+  AppProvider provider,
+  NumberFormat fmt,
+  bool desktop,
+) {
   if (provider.assets.isNotEmpty) {
     final movers = _getTopMovers(provider);
     final crossAxisCount = desktop ? 6 : 3;
@@ -446,7 +590,7 @@ Widget _webTopMoversSection(AppProvider provider, NumberFormat fmt, bool desktop
     return const Center(
       child: Padding(
         padding: EdgeInsets.all(20),
-        child: CircularProgressIndicator(color: HalalEtTheme.positive),
+        child: CircularProgressIndicator(color: TradEtTheme.positive),
       ),
     );
   } else if (provider.assetsError != null) {
@@ -457,19 +601,27 @@ Widget _webTopMoversSection(AppProvider provider, NumberFormat fmt, bool desktop
   }
   return const Padding(
     padding: EdgeInsets.all(16),
-    child: Text('No market data available',
-        style: TextStyle(color: HalalEtTheme.textMuted, fontSize: 13)),
+    child: Text(
+      'No market data available',
+      style: TextStyle(color: TradEtTheme.textMuted, fontSize: 13),
+    ),
   );
 }
 
-Widget _webTopLosersSection(AppProvider provider, NumberFormat fmt, bool desktop) {
+Widget _webTopLosersSection(
+  AppProvider provider,
+  NumberFormat fmt,
+  bool desktop,
+) {
   if (provider.assets.isNotEmpty) {
     final losers = _getTopLosers(provider);
     if (losers.isEmpty) {
       return const Padding(
         padding: EdgeInsets.all(16),
-        child: Text('No losers today',
-            style: TextStyle(color: HalalEtTheme.textMuted, fontSize: 13)),
+        child: Text(
+          'No losers today',
+          style: TextStyle(color: TradEtTheme.textMuted, fontSize: 13),
+        ),
       );
     }
     final crossAxisCount = desktop ? 6 : 3;
@@ -526,21 +678,31 @@ class _WebSectionCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: HalalEtTheme.cardBg.withValues(alpha: 0.5),
+        color: TradEtTheme.cardBg.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: HalalEtTheme.divider.withValues(alpha: 0.3)),
+        border: Border.all(color: TradEtTheme.divider.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Text(title,
-                  style: const TextStyle(
-                      fontSize: 18, fontWeight: FontWeight.w700, color: Colors.white)),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
               const SizedBox(width: 8),
-              Text(titleAm,
-                  style: const TextStyle(fontSize: 12, color: HalalEtTheme.textMuted)),
+              Text(
+                titleAm,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: TradEtTheme.textMuted,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 16),
@@ -550,11 +712,15 @@ class _WebSectionCard extends StatelessWidget {
               child: Center(
                 child: Column(
                   children: [
-                    Icon(emptyIcon, size: 36, color: HalalEtTheme.textMuted),
+                    Icon(emptyIcon, size: 36, color: TradEtTheme.textMuted),
                     const SizedBox(height: 8),
-                    Text(emptyText,
-                        style: const TextStyle(
-                            color: HalalEtTheme.textMuted, fontSize: 13)),
+                    Text(
+                      emptyText,
+                      style: const TextStyle(
+                        color: TradEtTheme.textMuted,
+                        fontSize: 13,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -577,7 +743,8 @@ class _PortfolioCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final summary = provider.portfolioSummary;
-    final holdingsValue = (summary?.totalPortfolioValue ?? 0) - (summary?.cashBalance ?? 0);
+    final holdingsValue =
+        (summary?.totalPortfolioValue ?? 0) - (summary?.cashBalance ?? 0);
     final totalPnl = summary?.totalPnl ?? 0;
     final pnlPercent = summary != null && summary.totalInvested > 0
         ? (totalPnl / summary.totalInvested * 100)
@@ -586,9 +753,9 @@ class _PortfolioCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: HalalEtTheme.cardGradient,
+        gradient: TradEtTheme.cardGradient,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: HalalEtTheme.divider.withValues(alpha: 0.4)),
+        border: Border.all(color: TradEtTheme.divider.withValues(alpha: 0.4)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.2),
@@ -604,21 +771,25 @@ class _PortfolioCard extends StatelessWidget {
             children: [
               Text(
                 l.capitalAtRisk,
-                style: const TextStyle(fontSize: 13, color: HalalEtTheme.textSecondary),
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: TradEtTheme.textSecondary,
+                ),
               ),
               const Spacer(),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: HalalEtTheme.positive.withValues(alpha: 0.15),
+                  color: TradEtTheme.positive.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Text(
                   'Halal',
                   style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w700,
-                      color: HalalEtTheme.positive),
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: TradEtTheme.positive,
+                  ),
                 ),
               ),
             ],
@@ -641,8 +812,8 @@ class _PortfolioCard extends StatelessWidget {
                   totalPnl >= 0 ? Icons.trending_up : Icons.trending_down,
                   size: 16,
                   color: totalPnl >= 0
-                      ? HalalEtTheme.positive
-                      : HalalEtTheme.negative,
+                      ? TradEtTheme.positive
+                      : TradEtTheme.negative,
                 ),
                 const SizedBox(width: 4),
                 Text(
@@ -651,8 +822,8 @@ class _PortfolioCard extends StatelessWidget {
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                     color: totalPnl >= 0
-                        ? HalalEtTheme.positive
-                        : HalalEtTheme.negative,
+                        ? TradEtTheme.positive
+                        : TradEtTheme.negative,
                   ),
                 ),
               ],
@@ -667,7 +838,6 @@ class _StatCard extends StatelessWidget {
   final IconData icon;
   final String label;
   final String value;
-  final String? subLabel;
   final Color color;
   final VoidCallback? onTap;
 
@@ -675,7 +845,6 @@ class _StatCard extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.value,
-    this.subLabel,
     required this.color,
     this.onTap,
   });
@@ -689,12 +858,12 @@ class _StatCard extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: HalalEtTheme.cardBg,
+            color: TradEtTheme.cardBg,
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
               color: onTap != null
                   ? color.withValues(alpha: 0.25)
-                  : HalalEtTheme.divider.withValues(alpha: 0.3),
+                  : TradEtTheme.divider.withValues(alpha: 0.3),
             ),
           ),
           child: Column(
@@ -706,31 +875,33 @@ class _StatCard extends StatelessWidget {
                 children: [
                   Icon(icon, size: 20, color: color),
                   if (onTap != null)
-                    Icon(Icons.arrow_forward_ios_rounded, size: 10, color: color.withValues(alpha: 0.5)),
+                    Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      size: 10,
+                      color: color.withValues(alpha: 0.5),
+                    ),
                 ],
               ),
               const SizedBox(height: 10),
               Text(
                 value,
                 style: const TextStyle(
-                    fontSize: 15, fontWeight: FontWeight.w700, color: Colors.white),
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
                 overflow: TextOverflow.ellipsis,
                 maxLines: 1,
               ),
               const SizedBox(height: 2),
               Text(
                 label,
-                style: const TextStyle(fontSize: 11, color: HalalEtTheme.textMuted),
+                style: const TextStyle(
+                  fontSize: 11,
+                  color: TradEtTheme.textMuted,
+                ),
                 overflow: TextOverflow.ellipsis,
               ),
-              if (subLabel != null) ...[
-                const SizedBox(height: 2),
-                Text(
-                  subLabel!,
-                  style: const TextStyle(fontSize: 10, color: HalalEtTheme.warning),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
             ],
           ),
         ),
@@ -739,11 +910,19 @@ class _StatCard extends StatelessWidget {
   }
 }
 
-class _CashBalanceCard extends StatelessWidget {
+// ─── Cash Balance Card ────────────────────────────────────────────────────────
+class _CashBalanceCard extends StatefulWidget {
   final String value;
   final String? subLabel;
 
   const _CashBalanceCard({required this.value, this.subLabel});
+
+  @override
+  State<_CashBalanceCard> createState() => _CashBalanceCardState();
+}
+
+class _CashBalanceCardState extends State<_CashBalanceCard> {
+  bool _visible = true;
 
   @override
   Widget build(BuildContext context) {
@@ -751,9 +930,9 @@ class _CashBalanceCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: HalalEtTheme.cardBg,
+        color: TradEtTheme.cardBg,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: HalalEtTheme.accent.withValues(alpha: 0.25)),
+        border: Border.all(color: TradEtTheme.accent.withValues(alpha: 0.25)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -762,27 +941,45 @@ class _CashBalanceCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Icon(Icons.account_balance_wallet_outlined, size: 20, color: HalalEtTheme.accent),
+              Icon(
+                Icons.account_balance_wallet_outlined,
+                size: 20,
+                color: TradEtTheme.accent,
+              ),
+              GestureDetector(
+                onTap: () => setState(() => _visible = !_visible),
+                child: Icon(
+                  _visible
+                      ? Icons.visibility_outlined
+                      : Icons.visibility_off_outlined,
+                  size: 16,
+                  color: TradEtTheme.textMuted,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 10),
           Text(
-            value,
-            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Colors.white),
+            _visible ? widget.value : '••••••',
+            style: const TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+            ),
             overflow: TextOverflow.ellipsis,
             maxLines: 1,
           ),
           const SizedBox(height: 2),
           Text(
             l.cashBalance,
-            style: const TextStyle(fontSize: 11, color: HalalEtTheme.textMuted),
+            style: const TextStyle(fontSize: 11, color: TradEtTheme.textMuted),
             overflow: TextOverflow.ellipsis,
           ),
-          if (subLabel != null) ...[
+          if (widget.subLabel != null) ...[
             const SizedBox(height: 2),
             Text(
-              subLabel!,
-              style: const TextStyle(fontSize: 10, color: HalalEtTheme.warning),
+              widget.subLabel!,
+              style: const TextStyle(fontSize: 10, color: TradEtTheme.warning),
               overflow: TextOverflow.ellipsis,
             ),
           ],
@@ -797,17 +994,29 @@ class _CashBalanceCard extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 6),
                       decoration: BoxDecoration(
-                        color: HalalEtTheme.positive.withValues(alpha: 0.12),
+                        color: TradEtTheme.positive.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: HalalEtTheme.positive.withValues(alpha: 0.3)),
+                        border: Border.all(
+                          color: TradEtTheme.positive.withValues(alpha: 0.3),
+                        ),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(Icons.add_circle_outline, color: HalalEtTheme.positive, size: 13),
+                          const Icon(
+                            Icons.add_circle_outline,
+                            color: TradEtTheme.positive,
+                            size: 13,
+                          ),
                           const SizedBox(width: 4),
-                          Text(l.deposit,
-                              style: const TextStyle(color: HalalEtTheme.positive, fontWeight: FontWeight.w700, fontSize: 11)),
+                          Text(
+                            l.deposit,
+                            style: const TextStyle(
+                              color: TradEtTheme.positive,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 11,
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -823,17 +1032,29 @@ class _CashBalanceCard extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 6),
                       decoration: BoxDecoration(
-                        color: HalalEtTheme.accent.withValues(alpha: 0.12),
+                        color: TradEtTheme.accent.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: HalalEtTheme.accent.withValues(alpha: 0.3)),
+                        border: Border.all(
+                          color: TradEtTheme.accent.withValues(alpha: 0.3),
+                        ),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(Icons.remove_circle_outline, color: HalalEtTheme.accent, size: 13),
+                          const Icon(
+                            Icons.remove_circle_outline,
+                            color: TradEtTheme.accent,
+                            size: 13,
+                          ),
                           const SizedBox(width: 4),
-                          Text(l.withdraw,
-                              style: const TextStyle(color: HalalEtTheme.accent, fontWeight: FontWeight.w700, fontSize: 11)),
+                          Text(
+                            l.withdraw,
+                            style: const TextStyle(
+                              color: TradEtTheme.accent,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 11,
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -861,9 +1082,21 @@ class _AllocationCard extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(label, style: const TextStyle(fontSize: 11, color: HalalEtTheme.textMuted)),
-            Text('${(pct * 100).toStringAsFixed(1)}%',
-                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: color)),
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 11,
+                color: TradEtTheme.textMuted,
+              ),
+            ),
+            Text(
+              '${(pct * 100).toStringAsFixed(1)}%',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: color,
+              ),
+            ),
           ],
         ),
         const SizedBox(height: 4),
@@ -892,9 +1125,9 @@ class _AllocationCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: HalalEtTheme.cardBg,
+        color: TradEtTheme.cardBg,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: HalalEtTheme.divider.withValues(alpha: 0.3)),
+        border: Border.all(color: TradEtTheme.divider.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -902,17 +1135,24 @@ class _AllocationCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Icon(Icons.donut_small_outlined, size: 15, color: HalalEtTheme.textSecondary),
+              const Icon(
+                Icons.donut_small_outlined,
+                size: 15,
+                color: TradEtTheme.textSecondary,
+              ),
               const SizedBox(width: 6),
-              const Text('Portfolio Split',
-                  style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: HalalEtTheme.textSecondary)),
+              const Text(
+                'Portfolio Split',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: TradEtTheme.textSecondary,
+                ),
+              ),
             ],
           ),
           _bar('Holdings', holdingsPct, const Color(0xFF818CF8)),
-          _bar('Cash', cashPct, HalalEtTheme.accent),
+          _bar('Cash', cashPct, TradEtTheme.accent),
         ],
       ),
     );
@@ -926,9 +1166,14 @@ class _SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(title,
-        style: const TextStyle(
-            fontSize: 18, fontWeight: FontWeight.w700, color: Colors.white));
+    return Text(
+      title,
+      style: const TextStyle(
+        fontSize: 18,
+        fontWeight: FontWeight.w700,
+        color: Colors.white,
+      ),
+    );
   }
 }
 
@@ -937,23 +1182,29 @@ class _TopMoverCard extends StatelessWidget {
   final NumberFormat fmt;
   final bool webMode;
 
-  const _TopMoverCard({required this.asset, required this.fmt, this.webMode = false});
+  const _TopMoverCard({
+    required this.asset,
+    required this.fmt,
+    this.webMode = false,
+  });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => TradeScreen(asset: asset)),
-      ),
+      onTap: () => Navigator.of(
+        context,
+      ).push(appRoute(context, TradeScreen(asset: asset))),
       child: MouseRegion(
         cursor: SystemMouseCursors.click,
         child: Container(
           width: webMode ? null : 140,
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: HalalEtTheme.cardBg,
+            color: TradEtTheme.cardBg,
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: HalalEtTheme.divider.withValues(alpha: 0.3)),
+            border: Border.all(
+              color: TradEtTheme.divider.withValues(alpha: 0.3),
+            ),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -961,12 +1212,18 @@ class _TopMoverCard extends StatelessWidget {
               Text(
                 asset.symbol,
                 style: const TextStyle(
-                    fontWeight: FontWeight.w700, fontSize: 14, color: Colors.white),
+                  fontWeight: FontWeight.w700,
+                  fontSize: 14,
+                  color: Colors.white,
+                ),
                 overflow: TextOverflow.ellipsis,
               ),
               Text(
                 asset.name,
-                style: const TextStyle(fontSize: 10, color: HalalEtTheme.textMuted),
+                style: const TextStyle(
+                  fontSize: 10,
+                  color: TradEtTheme.textMuted,
+                ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -988,7 +1245,10 @@ class _TopMoverCard extends StatelessWidget {
                     child: Text(
                       asset.price != null ? fmt.format(asset.price) : '--',
                       style: const TextStyle(
-                          fontWeight: FontWeight.w700, fontSize: 12, color: Colors.white),
+                        fontWeight: FontWeight.w700,
+                        fontSize: 12,
+                        color: Colors.white,
+                      ),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
@@ -1017,9 +1277,9 @@ class _HoldingTile extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: HalalEtTheme.cardBg,
+        color: TradEtTheme.cardBg,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: HalalEtTheme.divider.withValues(alpha: 0.3)),
+        border: Border.all(color: TradEtTheme.divider.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
@@ -1027,26 +1287,43 @@ class _HoldingTile extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(holding.symbol,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.w700, fontSize: 14, color: Colors.white)),
-                Text('${holding.quantity} ${holding.unit}',
-                    style: const TextStyle(fontSize: 11, color: HalalEtTheme.textMuted)),
+                Text(
+                  holding.symbol,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14,
+                    color: Colors.white,
+                  ),
+                ),
+                Text(
+                  '${holding.quantity} ${holding.unit}',
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: TradEtTheme.textMuted,
+                  ),
+                ),
               ],
             ),
           ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text('${fmt.format(holding.currentValue)} ETB',
-                  style: const TextStyle(
-                      fontWeight: FontWeight.w700, fontSize: 13, color: Colors.white)),
+              Text(
+                '${fmt.format(holding.currentValue)} ETB',
+                style: const TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 13,
+                  color: Colors.white,
+                ),
+              ),
               Text(
                 '${isPositive ? "+" : ""}${fmt.format(holding.pnl)} (${holding.pnlPercentage.toStringAsFixed(1)}%)',
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
-                  color: isPositive ? HalalEtTheme.positive : HalalEtTheme.negative,
+                  color: isPositive
+                      ? TradEtTheme.positive
+                      : TradEtTheme.negative,
                 ),
               ),
             ],
@@ -1067,81 +1344,94 @@ class _OrderTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final isBuy = order.orderType == 'buy';
     final statusColor = switch (order.orderStatus) {
-      'filled' => HalalEtTheme.positive,
-      'pending' => HalalEtTheme.warning,
-      'cancelled' => HalalEtTheme.negative,
-      _ => HalalEtTheme.textMuted,
+      'filled' => TradEtTheme.positive,
+      'pending' => TradEtTheme.warning,
+      'cancelled' => TradEtTheme.negative,
+      _ => TradEtTheme.textMuted,
     };
 
-    final statusLabel = order.orderStatus == 'pending' ? 'OPEN' : order.orderStatus.toString().toUpperCase();
+    final statusLabel = order.orderStatus == 'pending'
+        ? 'OPEN'
+        : order.orderStatus.toString().toUpperCase();
     return GestureDetector(
-      onTap: order.isPending ? () {
-        // Navigate to Orders screen and show action sheet
-        Navigator.of(context).push(MaterialPageRoute(
-          builder: (_) => _WrappedScreen(child: const OrdersScreen()),
-        ));
-      } : null,
+      onTap: order.isPending
+          ? () {
+              // Navigate to Orders screen and show action sheet
+              Navigator.of(context).push(
+                appRoute(context, _WrappedScreen(child: const OrdersScreen())),
+              );
+            }
+          : null,
       child: MouseRegion(
         cursor: order.isPending ? SystemMouseCursors.click : MouseCursor.defer,
         child: Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: HalalEtTheme.cardBg,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: order.isPending
-              ? HalalEtTheme.accent.withValues(alpha: 0.3)
-              : HalalEtTheme.divider.withValues(alpha: 0.3),
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: TradEtTheme.cardBg,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: order.isPending
+                  ? TradEtTheme.accent.withValues(alpha: 0.3)
+                  : TradEtTheme.divider.withValues(alpha: 0.3),
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: (isBuy ? TradEtTheme.positive : TradEtTheme.negative)
+                      .withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  isBuy ? Icons.arrow_downward : Icons.arrow_upward,
+                  size: 16,
+                  color: isBuy ? TradEtTheme.positive : TradEtTheme.negative,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${order.orderType.toString().toUpperCase()} ${order.symbol}',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 13,
+                        color: Colors.white,
+                      ),
+                    ),
+                    Text(
+                      '${order.quantity} @ ${fmt.format(order.price)} ETB',
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: TradEtTheme.textMuted,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: statusColor.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  statusLabel,
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: statusColor,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              color: (isBuy ? HalalEtTheme.positive : HalalEtTheme.negative)
-                  .withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(
-              isBuy ? Icons.arrow_downward : Icons.arrow_upward,
-              size: 16,
-              color: isBuy ? HalalEtTheme.positive : HalalEtTheme.negative,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${order.orderType.toString().toUpperCase()} ${order.symbol}',
-                  style: const TextStyle(
-                      fontWeight: FontWeight.w700, fontSize: 13, color: Colors.white),
-                ),
-                Text(
-                  '${order.quantity} @ ${fmt.format(order.price)} ETB',
-                  style: const TextStyle(fontSize: 11, color: HalalEtTheme.textMuted),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-            decoration: BoxDecoration(
-              color: statusColor.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              statusLabel,
-              style: TextStyle(
-                  fontSize: 10, fontWeight: FontWeight.w700, color: statusColor),
-            ),
-          ),
-        ],
-      ),
-      ),
       ),
     );
   }
@@ -1187,7 +1477,10 @@ class _ExchangeRateTickerState extends State<_ExchangeRateTicker>
     try {
       final rates = await widget.api.getExchangeRates();
       if (mounted) {
-        setState(() { _rates = rates; _loading = false; });
+        setState(() {
+          _rates = rates;
+          _loading = false;
+        });
         // Start auto-scroll after layout
         WidgetsBinding.instance.addPostFrameCallback((_) => _startAutoScroll());
       }
@@ -1257,7 +1550,12 @@ class _ExchangeRateTickerState extends State<_ExchangeRateTicker>
         }),
         child: ShaderMask(
           shaderCallback: (bounds) => const LinearGradient(
-            colors: [Colors.transparent, Colors.white, Colors.white, Colors.transparent],
+            colors: [
+              Colors.transparent,
+              Colors.white,
+              Colors.white,
+              Colors.transparent,
+            ],
             stops: [0.0, 0.02, 0.95, 1.0],
           ).createShader(bounds),
           blendMode: BlendMode.dstIn,
@@ -1294,9 +1592,9 @@ class _ExchangeRateTickerState extends State<_ExchangeRateTicker>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
-        color: HalalEtTheme.cardBg,
+        color: TradEtTheme.cardBg,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: HalalEtTheme.divider.withValues(alpha: 0.3)),
+        border: Border.all(color: TradEtTheme.divider.withValues(alpha: 0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -1304,21 +1602,36 @@ class _ExchangeRateTickerState extends State<_ExchangeRateTicker>
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
             decoration: BoxDecoration(
-              color: HalalEtTheme.accent.withValues(alpha: 0.15),
+              color: TradEtTheme.accent.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(4),
             ),
-            child: Text(entry.key,
-                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700,
-                    color: HalalEtTheme.accent)),
+            child: Text(
+              entry.key,
+              style: const TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: TradEtTheme.accent,
+              ),
+            ),
           ),
           const SizedBox(width: 8),
-          Text(entry.value.buying.toStringAsFixed(2),
-              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600,
-                  color: Colors.white)),
-          Text(' / ${entry.value.selling.toStringAsFixed(2)}',
-              style: const TextStyle(fontSize: 11, color: HalalEtTheme.textMuted)),
+          Text(
+            entry.value.buying.toStringAsFixed(2),
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            ),
+          ),
+          Text(
+            ' / ${entry.value.selling.toStringAsFixed(2)}',
+            style: const TextStyle(fontSize: 11, color: TradEtTheme.textMuted),
+          ),
           const SizedBox(width: 4),
-          const Text('ETB', style: TextStyle(fontSize: 9, color: HalalEtTheme.textMuted)),
+          const Text(
+            'ETB',
+            style: TextStyle(fontSize: 9, color: TradEtTheme.textMuted),
+          ),
         ],
       ),
     );
@@ -1335,38 +1648,52 @@ class _QuickAccessGrid extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(l.quickAccess,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.white)),
+        Text(
+          l.quickAccess,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+            color: Colors.white,
+          ),
+        ),
         const SizedBox(height: 12),
         Row(
           children: [
-            Expanded(child: _QuickAccessCard(
-              icon: Icons.currency_exchange,
-              label: l.exchangeRates,
-              color: const Color(0xFF60A5FA),
-              onTap: () => _pushScreen(context, 7),
-            )),
+            Expanded(
+              child: _QuickAccessCard(
+                icon: Icons.currency_exchange,
+                label: l.exchangeRates,
+                color: const Color(0xFF60A5FA),
+                onTap: () => _pushScreen(context, 7),
+              ),
+            ),
             const SizedBox(width: 10),
-            Expanded(child: _QuickAccessCard(
-              icon: Icons.volunteer_activism,
-              label: l.zakatCalculator,
-              color: HalalEtTheme.accent,
-              onTap: () => _pushScreen(context, 6),
-            )),
+            Expanded(
+              child: _QuickAccessCard(
+                icon: Icons.volunteer_activism,
+                label: l.zakatCalculator,
+                color: TradEtTheme.accent,
+                onTap: () => _pushScreen(context, 6),
+              ),
+            ),
             const SizedBox(width: 10),
-            Expanded(child: _QuickAccessCard(
-              icon: Icons.newspaper,
-              label: l.newsFeed,
-              color: HalalEtTheme.positive,
-              onTap: () => _pushScreen(context, 5),
-            )),
+            Expanded(
+              child: _QuickAccessCard(
+                icon: Icons.newspaper,
+                label: l.newsFeed,
+                color: TradEtTheme.positive,
+                onTap: () => _pushScreen(context, 5),
+              ),
+            ),
             const SizedBox(width: 10),
-            Expanded(child: _QuickAccessCard(
-              icon: Icons.notifications,
-              label: l.priceAlerts,
-              color: const Color(0xFF818CF8),
-              onTap: () => _pushScreen(context, 4),
-            )),
+            Expanded(
+              child: _QuickAccessCard(
+                icon: Icons.notifications,
+                label: l.priceAlerts,
+                color: const Color(0xFF818CF8),
+                onTap: () => _pushScreen(context, 4),
+              ),
+            ),
           ],
         ),
       ],
@@ -1391,15 +1718,50 @@ class _QuickAccessGrid extends StatelessWidget {
       default:
         return;
     }
-    Navigator.of(context).push(MaterialPageRoute(
-      builder: (_) => _WrappedScreen(child: screen),
-    ));
+    Navigator.of(
+      context,
+    ).push(appRoute(context, _WrappedScreen(child: screen)));
+  }
+}
+
+/// Consistent icon button for the dashboard header — same height as LanguageSelector.
+class _HeaderIconButton extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _HeaderIconButton({
+    required this.icon,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            color: TradEtTheme.surfaceLight,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: TradEtTheme.divider.withValues(alpha: 0.3),
+            ),
+          ),
+          child: Icon(icon, size: 16, color: color),
+        ),
+      ),
+    );
   }
 }
 
 class _WrappedScreen extends StatelessWidget {
   final Widget child;
-  const _WrappedScreen({required this.child});
+  final bool showMobileAppBar;
+  const _WrappedScreen({required this.child, this.showMobileAppBar = true});
 
   @override
   Widget build(BuildContext context) {
@@ -1419,7 +1781,7 @@ class _WrappedScreen extends StatelessWidget {
                   await provider.logout();
                   if (context.mounted) {
                     Navigator.of(context).pushAndRemoveUntil(
-                      MaterialPageRoute(builder: (_) => const LoginScreen()),
+                      appRoute(context, const LoginScreen()),
                       (route) => false,
                     );
                   }
@@ -1431,6 +1793,9 @@ class _WrappedScreen extends StatelessWidget {
           ],
         ),
       );
+    }
+    if (!showMobileAppBar) {
+      return Scaffold(backgroundColor: const Color(0xFF0D3B20), body: child);
     }
     return Scaffold(
       backgroundColor: const Color(0xFF0D3B20),
@@ -1476,10 +1841,16 @@ class _QuickAccessCard extends StatelessWidget {
           children: [
             Icon(icon, size: 26, color: color),
             const SizedBox(height: 8),
-            Text(label,
-                style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700,
-                    color: color, height: 1.2),
-                textAlign: TextAlign.center),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+                color: color,
+                height: 1.2,
+              ),
+              textAlign: TextAlign.center,
+            ),
           ],
         ),
       ),
@@ -1496,23 +1867,39 @@ void _showDepositSheet(BuildContext context) {
     context: context,
     backgroundColor: const Color(0xFF1A3D2B),
     builder: (ctx, isDialog) => Padding(
-      padding: EdgeInsets.fromLTRB(24, isDialog ? 20 : 24, 24,
-          isDialog ? 24 : MediaQuery.of(ctx).viewInsets.bottom + 24),
+      padding: EdgeInsets.fromLTRB(
+        24,
+        isDialog ? 20 : 24,
+        24,
+        isDialog ? 24 : MediaQuery.of(ctx).viewInsets.bottom + 24,
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           if (!isDialog)
             Center(
-              child: Container(width: 40, height: 4,
-                  decoration: BoxDecoration(color: const Color(0xFF2D5A3D), borderRadius: BorderRadius.circular(2))),
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF2D5A3D),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
             ),
           if (isDialog)
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Deposit ETB',
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: Colors.white)),
+                const Text(
+                  'Deposit ETB',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
+                ),
                 IconButton(
                   icon: const Icon(Icons.close, color: Colors.white54),
                   onPressed: () => Navigator.pop(ctx),
@@ -1521,21 +1908,37 @@ void _showDepositSheet(BuildContext context) {
             )
           else ...[
             const SizedBox(height: 20),
-            const Text('Deposit ETB',
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: Colors.white)),
+            const Text(
+              'Deposit ETB',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
+            ),
           ],
           const SizedBox(height: 4),
-          const Text('ገንዘብ አስገባ • Funds via secure channel (no interest)',
-              style: TextStyle(fontSize: 13, color: Color(0xFF8BAF97))),
+          const Text(
+            'ገንዘብ አስገባ • Funds via secure channel (no interest)',
+            style: TextStyle(fontSize: 13, color: Color(0xFF8BAF97)),
+          ),
           const SizedBox(height: 20),
           TextField(
             controller: controller,
             keyboardType: TextInputType.number,
             autofocus: true,
-            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: Colors.white),
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+            ),
             decoration: const InputDecoration(
               prefixText: 'ETB  ',
-              prefixStyle: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: Color(0xFF8BAF97)),
+              prefixStyle: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF8BAF97),
+              ),
               hintText: '0.00',
             ),
           ),
@@ -1545,14 +1948,18 @@ void _showDepositSheet(BuildContext context) {
               final amount = double.tryParse(controller.text);
               if (amount != null && amount > 0) {
                 Navigator.pop(ctx);
-                final result = await context.read<AppProvider>().deposit(amount);
+                final result = await context.read<AppProvider>().deposit(
+                  amount,
+                );
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(result['message'] ?? 'Deposit complete'),
                       backgroundColor: const Color(0xFF2E7D52),
                       behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                     ),
                   );
                 }
@@ -1589,144 +1996,242 @@ void _showWithdrawSheet(BuildContext context) {
         // Auto-select primary on first load
         if (selectedMethod == null && methods.isNotEmpty) {
           selectedMethod = methods.firstWhere(
-            (m) => m.isPrimary, orElse: () => methods.first);
+            (m) => m.isPrimary,
+            orElse: () => methods.first,
+          );
         }
 
         return Padding(
-          padding: EdgeInsets.fromLTRB(24, isDialog ? 20 : 24, 24,
-              isDialog ? 24 : MediaQuery.of(ctx).viewInsets.bottom + 24),
+          padding: EdgeInsets.fromLTRB(
+            24,
+            isDialog ? 20 : 24,
+            24,
+            isDialog ? 24 : MediaQuery.of(ctx).viewInsets.bottom + 24,
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               if (!isDialog)
-                Center(child: Container(width: 40, height: 4,
-                    decoration: BoxDecoration(color: const Color(0xFF2D5A3D),
-                        borderRadius: BorderRadius.circular(2)))),
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF2D5A3D),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
               if (isDialog)
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(l.withdrawEtb, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: Colors.white)),
-                    IconButton(icon: const Icon(Icons.close, color: Colors.white54), onPressed: () => Navigator.pop(ctx)),
+                    Text(
+                      l.withdrawEtb,
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close, color: Colors.white54),
+                      onPressed: () => Navigator.pop(ctx),
+                    ),
                   ],
                 )
               else ...[
                 const SizedBox(height: 20),
-                Text(l.withdrawEtb,
-                    style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: Colors.white)),
+                Text(
+                  l.withdrawEtb,
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
+                ),
               ],
               const SizedBox(height: 4),
-              const Text('Riba-free withdrawal to your saved bank account',
-                  style: TextStyle(fontSize: 13, color: HalalEtTheme.textSecondary)),
+              const Text(
+                'Riba-free withdrawal to your saved bank account',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: TradEtTheme.textSecondary,
+                ),
+              ),
               const SizedBox(height: 12),
-              Text('Available: ${available.toStringAsFixed(2)} ETB',
-                  style: const TextStyle(fontSize: 13, color: HalalEtTheme.positive, fontWeight: FontWeight.w600)),
+              Text(
+                'Available: ${available.toStringAsFixed(2)} ETB',
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: TradEtTheme.positive,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
               if (reserved > 0)
-                Text('Reserved in open orders: ${reserved.toStringAsFixed(2)} ETB',
-                    style: const TextStyle(fontSize: 11, color: HalalEtTheme.warning)),
+                Text(
+                  'Reserved in open orders: ${reserved.toStringAsFixed(2)} ETB',
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: TradEtTheme.warning,
+                  ),
+                ),
               const SizedBox(height: 16),
               if (methods.isEmpty) ...[
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: HalalEtTheme.surfaceLight,
+                    color: TradEtTheme.surfaceLight,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: HalalEtTheme.warning.withValues(alpha: 0.4)),
+                    border: Border.all(
+                      color: TradEtTheme.warning.withValues(alpha: 0.4),
+                    ),
                   ),
                   child: const Column(
                     children: [
-                      Icon(Icons.account_balance_outlined, color: HalalEtTheme.warning, size: 32),
+                      Icon(
+                        Icons.account_balance_outlined,
+                        color: TradEtTheme.warning,
+                        size: 32,
+                      ),
                       SizedBox(height: 8),
-                      Text('No payment methods saved.',
-                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                      Text(
+                        'No payment methods saved.',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                       SizedBox(height: 4),
-                      Text('Go to Profile → Payment Methods to add your bank account.',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 12, color: HalalEtTheme.textSecondary)),
+                      Text(
+                        'Go to Profile → Payment Methods to add your bank account.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: TradEtTheme.textSecondary,
+                        ),
+                      ),
                     ],
                   ),
                 ),
               ] else ...[
-                const Text('Select payment method:',
-                    style: TextStyle(fontSize: 12, color: HalalEtTheme.textMuted)),
+                const Text(
+                  'Select payment method:',
+                  style: TextStyle(fontSize: 12, color: TradEtTheme.textMuted),
+                ),
                 const SizedBox(height: 8),
-                ...methods.map((m) => GestureDetector(
-                  onTap: () => setSheetState(() => selectedMethod = m),
-                  child: Container(
-                    margin: const EdgeInsets.only(bottom: 8),
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                    decoration: BoxDecoration(
-                      color: selectedMethod?.id == m.id
-                          ? HalalEtTheme.positive.withValues(alpha: 0.1)
-                          : HalalEtTheme.surfaceLight,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
+                ...methods.map(
+                  (m) => GestureDetector(
+                    onTap: () => setSheetState(() => selectedMethod = m),
+                    child: Container(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 12,
+                      ),
+                      decoration: BoxDecoration(
                         color: selectedMethod?.id == m.id
-                            ? HalalEtTheme.positive.withValues(alpha: 0.5)
-                            : HalalEtTheme.divider.withValues(alpha: 0.2),
+                            ? TradEtTheme.positive.withValues(alpha: 0.1)
+                            : TradEtTheme.surfaceLight,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: selectedMethod?.id == m.id
+                              ? TradEtTheme.positive.withValues(alpha: 0.5)
+                              : TradEtTheme.divider.withValues(alpha: 0.2),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.account_balance_outlined,
+                            size: 18,
+                            color: selectedMethod?.id == m.id
+                                ? TradEtTheme.positive
+                                : TradEtTheme.textMuted,
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  m.bankName,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                                Text(
+                                  '**** ${m.accountNumber.length > 4 ? m.accountNumber.substring(m.accountNumber.length - 4) : m.accountNumber} • ${m.accountName}',
+                                  style: const TextStyle(
+                                    color: TradEtTheme.textMuted,
+                                    fontSize: 11,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          if (m.isPrimary)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: TradEtTheme.positive.withValues(
+                                  alpha: 0.15,
+                                ),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: const Text(
+                                'Primary',
+                                style: TextStyle(
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w600,
+                                  color: TradEtTheme.positive,
+                                ),
+                              ),
+                            ),
+                          const SizedBox(width: 6),
+                          Icon(
+                            selectedMethod?.id == m.id
+                                ? Icons.radio_button_checked
+                                : Icons.radio_button_off,
+                            color: selectedMethod?.id == m.id
+                                ? TradEtTheme.positive
+                                : TradEtTheme.textMuted,
+                            size: 18,
+                          ),
+                        ],
                       ),
                     ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.account_balance_outlined,
-                            size: 18, color: selectedMethod?.id == m.id
-                                ? HalalEtTheme.positive : HalalEtTheme.textMuted),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(m.bankName,
-                                  style: const TextStyle(
-                                      color: Colors.white, fontWeight: FontWeight.w600, fontSize: 13)),
-                              Text('${m.accountNumber} • ${m.accountName}',
-                                  style: const TextStyle(
-                                      color: HalalEtTheme.textMuted, fontSize: 11)),
-                            ],
-                          ),
-                        ),
-                        if (m.isPrimary)
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: HalalEtTheme.positive.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: const Text('Primary',
-                                style: TextStyle(fontSize: 9, fontWeight: FontWeight.w600,
-                                    color: HalalEtTheme.positive)),
-                          ),
-                        const SizedBox(width: 6),
-                        Icon(
-                          selectedMethod?.id == m.id
-                              ? Icons.radio_button_checked
-                              : Icons.radio_button_off,
-                          color: selectedMethod?.id == m.id
-                              ? HalalEtTheme.positive
-                              : HalalEtTheme.textMuted,
-                          size: 18,
-                        ),
-                      ],
-                    ),
                   ),
-                )),
+                ),
                 const SizedBox(height: 8),
                 TextField(
                   controller: amountCtrl,
                   keyboardType: TextInputType.number,
-                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: Colors.white),
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
                   decoration: const InputDecoration(
                     prefixText: 'ETB  ',
-                    prefixStyle: TextStyle(fontSize: 24, fontWeight: FontWeight.w700,
-                        color: HalalEtTheme.textSecondary),
+                    prefixStyle: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w700,
+                      color: TradEtTheme.textSecondary,
+                    ),
                     hintText: '0.00',
                   ),
                 ),
                 const SizedBox(height: 20),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: HalalEtTheme.accent,
+                    backgroundColor: TradEtTheme.accent,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                   ),
                   onPressed: () async {
@@ -1734,12 +2239,18 @@ void _showWithdrawSheet(BuildContext context) {
                     if (amount == null || amount <= 0) return;
                     if (selectedMethod == null) return;
                     if (amount > available) {
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                        content: Text('Insufficient balance. Available: ${available.toStringAsFixed(2)} ETB'),
-                        backgroundColor: HalalEtTheme.negative,
-                        behavior: SnackBarBehavior.floating,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      ));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Insufficient balance. Available: ${available.toStringAsFixed(2)} ETB',
+                          ),
+                          backgroundColor: TradEtTheme.negative,
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      );
                       return;
                     }
                     Navigator.pop(ctx);
@@ -1750,18 +2261,31 @@ void _showWithdrawSheet(BuildContext context) {
                     );
                     if (context.mounted) {
                       final isError = result.containsKey('error');
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                        content: Text(isError
-                            ? (result['error'] ?? 'Withdrawal failed')
-                            : (result['message'] ?? 'Withdrawal complete')),
-                        backgroundColor: isError ? HalalEtTheme.negative : HalalEtTheme.positive,
-                        behavior: SnackBarBehavior.floating,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      ));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            isError
+                                ? (result['error'] ?? 'Withdrawal failed')
+                                : (result['message'] ?? 'Withdrawal complete'),
+                          ),
+                          backgroundColor: isError
+                              ? TradEtTheme.negative
+                              : TradEtTheme.positive,
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      );
                     }
                   },
-                  child: Text(l.withdraw,
-                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
+                  child: Text(
+                    l.withdraw,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15,
+                    ),
+                  ),
                 ),
               ],
             ],
@@ -1783,17 +2307,26 @@ class _ErrorRetryWidget extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: HalalEtTheme.cardBg,
+        color: TradEtTheme.cardBg,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: HalalEtTheme.divider.withValues(alpha: 0.3)),
+        border: Border.all(color: TradEtTheme.divider.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
-          const Icon(Icons.cloud_off_rounded, size: 20, color: HalalEtTheme.textMuted),
+          const Icon(
+            Icons.cloud_off_rounded,
+            size: 20,
+            color: TradEtTheme.textMuted,
+          ),
           const SizedBox(width: 12),
           Expanded(
-            child: Text(message,
-                style: const TextStyle(color: HalalEtTheme.textMuted, fontSize: 12)),
+            child: Text(
+              message,
+              style: const TextStyle(
+                color: TradEtTheme.textMuted,
+                fontSize: 12,
+              ),
+            ),
           ),
           const SizedBox(width: 8),
           GestureDetector(
@@ -1801,14 +2334,17 @@ class _ErrorRetryWidget extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: HalalEtTheme.primaryLight.withValues(alpha: 0.2),
+                color: TradEtTheme.primaryLight.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Text('Retry',
-                  style: TextStyle(
-                      color: HalalEtTheme.positive,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600)),
+              child: const Text(
+                'Retry',
+                style: TextStyle(
+                  color: TradEtTheme.positive,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
           ),
         ],
@@ -1849,7 +2385,7 @@ class _MoversSectionState extends State<_MoversSection> {
               child: Container(
                 padding: const EdgeInsets.all(3),
                 decoration: BoxDecoration(
-                  color: HalalEtTheme.surfaceLight,
+                  color: TradEtTheme.surfaceLight,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
@@ -1866,18 +2402,26 @@ class _MoversSectionState extends State<_MoversSection> {
         const SizedBox(height: 12),
         _showGainers
             ? (widget.webMode
-                ? _webTopMoversSection(widget.provider, widget.fmt, widget.desktop)
-                : _topMoversSection(widget.provider, widget.fmt))
+                  ? _webTopMoversSection(
+                      widget.provider,
+                      widget.fmt,
+                      widget.desktop,
+                    )
+                  : _topMoversSection(widget.provider, widget.fmt))
             : (widget.webMode
-                ? _webTopLosersSection(widget.provider, widget.fmt, widget.desktop)
-                : _topLosersSection(widget.provider, widget.fmt)),
+                  ? _webTopLosersSection(
+                      widget.provider,
+                      widget.fmt,
+                      widget.desktop,
+                    )
+                  : _topLosersSection(widget.provider, widget.fmt)),
       ],
     );
   }
 
   Widget _tab(String label, bool isGainers) {
     final selected = _showGainers == isGainers;
-    final color = isGainers ? HalalEtTheme.positive : HalalEtTheme.negative;
+    final color = isGainers ? TradEtTheme.positive : TradEtTheme.negative;
     return GestureDetector(
       onTap: () => setState(() => _showGainers = isGainers),
       child: AnimatedContainer(
@@ -1886,15 +2430,19 @@ class _MoversSectionState extends State<_MoversSection> {
         decoration: BoxDecoration(
           color: selected ? color.withValues(alpha: 0.2) : Colors.transparent,
           borderRadius: BorderRadius.circular(10),
-          border: selected ? Border.all(color: color.withValues(alpha: 0.4)) : null,
+          border: selected
+              ? Border.all(color: color.withValues(alpha: 0.4))
+              : null,
         ),
         alignment: Alignment.center,
-        child: Text(label,
-            style: TextStyle(
-              fontWeight: FontWeight.w600,
-              fontSize: 13,
-              color: selected ? color : HalalEtTheme.textMuted,
-            )),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 13,
+            color: selected ? color : TradEtTheme.textMuted,
+          ),
+        ),
       ),
     );
   }
