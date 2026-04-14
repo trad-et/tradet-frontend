@@ -12,6 +12,7 @@ import '../widgets/responsive_layout.dart';
 import 'alerts_screen.dart';
 import 'home_screen.dart';
 import 'login_screen.dart';
+import '../widgets/disclaimer_footer.dart';
 
 class TradeScreen extends StatefulWidget {
   final Asset asset;
@@ -38,6 +39,10 @@ class _TradeScreenState extends State<TradeScreen> {
     _sliderValue = widget.asset.minTradeQty;
     _qtyController.text = _sliderValue.toStringAsFixed(
         _sliderValue == _sliderValue.roundToDouble() ? 0 : 1);
+    // Ensure watchlist is loaded so the star icon shows the correct state
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<AppProvider>().loadWatchlist();
+    });
   }
 
   @override
@@ -70,7 +75,7 @@ class _TradeScreenState extends State<TradeScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text('Enter valid quantity and price'),
-          backgroundColor: HalalEtTheme.negative,
+          backgroundColor: TradEtTheme.negative,
         ),
       );
       return;
@@ -78,7 +83,7 @@ class _TradeScreenState extends State<TradeScreen> {
 
     final confirmed = await showResponsiveSheet<bool>(
       context: context,
-      backgroundColor: HalalEtTheme.surfaceLight,
+      backgroundColor: TradEtTheme.surfaceLight,
       builder: (ctx, isDialog) => _ConfirmSheet(
         isBuy: _isBuy,
         asset: widget.asset,
@@ -110,7 +115,7 @@ class _TradeScreenState extends State<TradeScreen> {
           content: Text(isLimit
               ? 'Limit order placed (pending fill)'
               : 'Order filled! Fee: ${_fmt.format(result['fee_amount'])} ETB'),
-          backgroundColor: HalalEtTheme.positive,
+          backgroundColor: TradEtTheme.positive,
         ),
       );
       Navigator.pop(context);
@@ -118,7 +123,7 @@ class _TradeScreenState extends State<TradeScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(result['error'] ?? 'Order failed'),
-          backgroundColor: HalalEtTheme.negative,
+          backgroundColor: TradEtTheme.negative,
         ),
       );
     }
@@ -130,13 +135,13 @@ class _TradeScreenState extends State<TradeScreen> {
     final wide = isWideScreen(context);
 
     final mainContent = Container(
-      decoration: BoxDecoration(gradient: HalalEtTheme.bgGradient),
+      decoration: BoxDecoration(gradient: TradEtTheme.bgGradient),
       child: SafeArea(
         child: Column(
           children: [
             // Top bar
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: wide ? 24 : 8, vertical: 4),
+              padding: EdgeInsets.symmetric(horizontal: wide ? 24 : 12, vertical: 4),
               child: Row(
                 children: [
                   if (!wide)
@@ -144,19 +149,50 @@ class _TradeScreenState extends State<TradeScreen> {
                       icon: const Icon(Icons.arrow_back_ios_new, size: 20, color: Colors.white),
                       onPressed: () => Navigator.pop(context),
                     ),
-                  if (!wide) const SizedBox(width: 4),
-                  Text(asset.symbol,
-                      style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 18, color: Colors.white)),
-                  const SizedBox(width: 8),
-                  ShariaBadge(isCompliant: asset.isShariaCompliant, compact: true),
-                  const Spacer(),
-                  if (asset.isEcxListed) const EcxBadge(),
+                  // Mobile: symbol + full name + category stacked
+                  if (!wide)
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(children: [
+                            Text(asset.symbol,
+                                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16, color: Colors.white)),
+                            const SizedBox(width: 6),
+                            ShariaBadge(isCompliant: asset.isShariaCompliant, compact: true),
+                            if (asset.isEcxListed) ...[const SizedBox(width: 4), const EcxBadge()],
+                          ]),
+                          Text(
+                            asset.categoryName != null
+                                ? '${asset.name} · ${asset.categoryName}'
+                                : asset.name,
+                            style: const TextStyle(fontSize: 11, color: TradEtTheme.textSecondary),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    )
+                  // Web: flat row
+                  else ...[
+                    Text(asset.symbol,
+                        style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 18, color: Colors.white)),
+                    const SizedBox(width: 8),
+                    ShariaBadge(isCompliant: asset.isShariaCompliant, compact: true),
+                    const Spacer(),
+                    if (asset.isEcxListed) const EcxBadge(),
+                  ],
                   Consumer<AppProvider>(
                     builder: (ctx, prov, _) {
-                      final inWatchlist = prov.watchlist.any((a) => a.id == widget.asset.id);
+                      final inWatchlist = prov.watchlist.any(
+                          (a) => a.id == widget.asset.id || a.symbol == widget.asset.symbol);
                       return Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
+                          IconButton(
+                            icon: const Icon(Icons.add_alert_outlined, color: Color(0xFF8BAF97)),
+                            onPressed: () => Navigator.of(ctx).push(
+                                appRoute(ctx, const AlertsScreen())),
+                          ),
                           IconButton(
                             icon: Icon(
                               inWatchlist ? Icons.star_rounded : Icons.star_outline_rounded,
@@ -169,11 +205,6 @@ class _TradeScreenState extends State<TradeScreen> {
                                 await prov.addToWatchlist(widget.asset.id);
                               }
                             },
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.notifications_outlined, color: Color(0xFF8BAF97)),
-                            onPressed: () => Navigator.of(ctx).push(
-                                MaterialPageRoute(builder: (_) => const AlertsScreen())),
                           ),
                         ],
                       );
@@ -205,7 +236,7 @@ class _TradeScreenState extends State<TradeScreen> {
                   await provider.logout();
                   if (mounted) {
                     Navigator.of(context).pushAndRemoveUntil(
-                      MaterialPageRoute(builder: (_) => const LoginScreen()),
+                      appRoute(context, const LoginScreen()),
                       (route) => false,
                     );
                   }
@@ -222,19 +253,65 @@ class _TradeScreenState extends State<TradeScreen> {
     return Scaffold(body: mainContent);
   }
 
-  // ─── Mobile layout (unchanged) ───
+  // ─── Mobile layout: price header + 4 segment tabs ───
   Widget _buildMobileLayout(Asset asset) {
+    return DefaultTabController(
+      length: 4,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Price header — always visible above tabs
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
+            child: _priceHeader(asset),
+          ),
+          // Segment tab bar
+          TabBar(
+            isScrollable: true,
+            tabAlignment: TabAlignment.start,
+            labelColor: TradEtTheme.positive,
+            unselectedLabelColor: TradEtTheme.textMuted,
+            indicatorColor: TradEtTheme.positive,
+            indicatorWeight: 2,
+            dividerColor: TradEtTheme.divider.withValues(alpha: 0.3),
+            labelStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+            unselectedLabelStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+            tabs: const [
+              Tab(text: 'Overview'),
+              Tab(text: 'Financials'),
+              Tab(text: 'News'),
+              Tab(text: 'Order book'),
+            ],
+          ),
+          // Tab content
+          Expanded(
+            child: TabBarView(
+              children: [
+                _overviewTab(asset),
+                _financialsTab(asset),
+                _newsTab(asset),
+                _orderBookTab(asset),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Tab 1: chart + stats + order form
+  Widget _overviewTab(Asset asset) {
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _priceHeader(asset),
           const SizedBox(height: 16),
           CandlestickChart(symbol: asset.symbol, fallbackPrices: asset.sparkline),
           const SizedBox(height: 16),
           _statsRow(asset),
           _sessionStatus(asset),
+          _kycGateBanner(),
           const SizedBox(height: 20),
           _buySelltoggle(),
           const SizedBox(height: 20),
@@ -245,9 +322,192 @@ class _TradeScreenState extends State<TradeScreen> {
           _orderSummary(),
           const SizedBox(height: 20),
           _placeOrderButton(),
+          const SizedBox(height: 20),
+          const DisclaimerFooter(),
           const SizedBox(height: 32),
         ],
       ),
+    );
+  }
+
+  // Tab 2: asset information table
+  Widget _financialsTab(Asset asset) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('Asset Information',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.white)),
+          const SizedBox(height: 12),
+          Container(
+            decoration: BoxDecoration(
+              color: TradEtTheme.cardBg,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Column(
+              children: [
+                _mobileDetailRow('Symbol', asset.symbol, first: true),
+                _mobileDetailRow('Name', asset.name),
+                if (asset.nameAm != null) _mobileDetailRow('Amharic', asset.nameAm!),
+                _mobileDetailRow('Category', asset.categoryName ?? '—'),
+                _mobileDetailRow('Unit', asset.unit),
+                _mobileDetailRow('Min Trade', '${asset.minTradeQty}'),
+                _mobileDetailRow('Max Trade', '${asset.maxTradeQty}'),
+                _mobileDetailRow('24h Volume',
+                    asset.volume24h != null ? _fmt.format(asset.volume24h) : '—'),
+                _mobileDetailRow('Sharia', asset.isShariaCompliant ? 'Compliant' : 'N/A'),
+                _mobileDetailRow('ECX Listed', asset.isEcxListed ? 'Yes' : 'No', last: true),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Tab 3: news (placeholder)
+  Widget _newsTab(Asset asset) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.newspaper_outlined, size: 52,
+              color: TradEtTheme.textMuted.withValues(alpha: 0.4)),
+          const SizedBox(height: 16),
+          Text('News for ${asset.symbol}',
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white)),
+          const SizedBox(height: 6),
+          const Text('Asset-specific news coming soon',
+              style: TextStyle(fontSize: 13, color: TradEtTheme.textSecondary)),
+        ],
+      ),
+    );
+  }
+
+  // Tab 4: this asset's orders
+  Widget _orderBookTab(Asset asset) {
+    return Consumer<AppProvider>(
+      builder: (context, provider, _) {
+        final orders = provider.orders
+            .where((o) => o.symbol == asset.symbol)
+            .toList();
+
+        if (orders.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.receipt_long_outlined, size: 52,
+                    color: TradEtTheme.textMuted.withValues(alpha: 0.4)),
+                const SizedBox(height: 16),
+                Text('No orders for ${asset.symbol}',
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white)),
+                const SizedBox(height: 6),
+                const Text('Your orders for this asset appear here',
+                    style: TextStyle(fontSize: 13, color: TradEtTheme.textSecondary)),
+              ],
+            ),
+          );
+        }
+
+        return ListView.builder(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+          itemCount: orders.length,
+          itemBuilder: (_, i) {
+            final o = orders[i];
+            final isBuy = o.orderType == 'buy';
+            return Container(
+              margin: const EdgeInsets.only(bottom: 10),
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: TradEtTheme.cardBg,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 36, height: 36,
+                    decoration: BoxDecoration(
+                      color: (isBuy ? TradEtTheme.positive : TradEtTheme.negative)
+                          .withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(
+                      isBuy ? Icons.arrow_upward_rounded : Icons.arrow_downward_rounded,
+                      size: 18,
+                      color: isBuy ? TradEtTheme.positive : TradEtTheme.negative,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${isBuy ? 'Buy' : 'Sell'} · ${o.executionType.toUpperCase()}',
+                          style: TextStyle(
+                              fontWeight: FontWeight.w700, fontSize: 13,
+                              color: isBuy ? TradEtTheme.positive : TradEtTheme.negative),
+                        ),
+                        Text('${o.quantity} ${asset.unit} @ ${_fmt.format(o.price)} ETB',
+                            style: const TextStyle(fontSize: 12, color: TradEtTheme.textSecondary)),
+                      ],
+                    ),
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(_fmt.format(o.totalAmount),
+                          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: Colors.white)),
+                      Container(
+                        margin: const EdgeInsets.only(top: 4),
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: o.isPending
+                              ? TradEtTheme.warning.withValues(alpha: 0.15)
+                              : TradEtTheme.positive.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(o.orderStatus.toUpperCase(),
+                            style: TextStyle(
+                                fontSize: 10, fontWeight: FontWeight.w600,
+                                color: o.isPending ? TradEtTheme.warning : TradEtTheme.positive)),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // Mobile-style detail row with dividers
+  Widget _mobileDetailRow(String label, String value, {bool first = false, bool last = false}) {
+    return Column(
+      children: [
+        if (!first)
+          Divider(height: 1, color: TradEtTheme.divider.withValues(alpha: 0.3),
+              indent: 16, endIndent: 16),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(label,
+                  style: const TextStyle(fontSize: 13, color: TradEtTheme.textMuted)),
+              Flexible(
+                child: Text(value,
+                    textAlign: TextAlign.end,
+                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white)),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -288,10 +548,10 @@ class _TradeScreenState extends State<TradeScreen> {
               child: Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: HalalEtTheme.cardBg.withValues(alpha: 0.6),
+                  color: TradEtTheme.cardBg.withValues(alpha: 0.6),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                      color: HalalEtTheme.divider.withValues(alpha: 0.3)),
+                      color: TradEtTheme.divider.withValues(alpha: 0.3)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -301,6 +561,7 @@ class _TradeScreenState extends State<TradeScreen> {
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
                             color: Colors.white)),
+                    _kycGateBanner(),
                     const SizedBox(height: 20),
                     _buySelltoggle(),
                     const SizedBox(height: 20),
@@ -333,7 +594,7 @@ class _TradeScreenState extends State<TradeScreen> {
               ? '${asset.name} / ${asset.nameAm}'
               : asset.name,
           style: const TextStyle(
-              fontSize: 13, color: HalalEtTheme.textSecondary),
+              fontSize: 13, color: TradEtTheme.textSecondary),
         ),
         const SizedBox(height: 8),
         Row(
@@ -368,7 +629,7 @@ class _TradeScreenState extends State<TradeScreen> {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: HalalEtTheme.cardBg,
+        color: TradEtTheme.cardBg,
         borderRadius: BorderRadius.circular(14),
       ),
       child: Row(
@@ -394,8 +655,8 @@ class _TradeScreenState extends State<TradeScreen> {
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             color: asset.tradingSession!['is_open'] == true
-                ? HalalEtTheme.positive.withValues(alpha: 0.1)
-                : HalalEtTheme.warning.withValues(alpha: 0.1),
+                ? TradEtTheme.positive.withValues(alpha: 0.1)
+                : TradEtTheme.warning.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Row(
@@ -406,14 +667,14 @@ class _TradeScreenState extends State<TradeScreen> {
                     : Icons.schedule,
                 size: 16,
                 color: asset.tradingSession!['is_open'] == true
-                    ? HalalEtTheme.positive
-                    : HalalEtTheme.warning,
+                    ? TradEtTheme.positive
+                    : TradEtTheme.warning,
               ),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(asset.tradingSession!['reason'] ?? '',
                     style: const TextStyle(
-                        fontSize: 12, color: HalalEtTheme.textSecondary)),
+                        fontSize: 12, color: TradEtTheme.textSecondary)),
               ),
             ],
           ),
@@ -422,13 +683,70 @@ class _TradeScreenState extends State<TradeScreen> {
     );
   }
 
+  Widget _kycGateBanner() {
+    return Consumer<AppProvider>(
+      builder: (context, provider, _) {
+        final kycStatus = provider.user?.kycStatus ?? 'pending';
+        if (kycStatus == 'verified') return const SizedBox.shrink();
+        return Column(
+          children: [
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: TradEtTheme.warning.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: TradEtTheme.warning.withValues(alpha: 0.4)),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.verified_user_outlined, size: 18, color: TradEtTheme.warning),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Identity Verification Required',
+                            style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: TradEtTheme.warning)),
+                        const SizedBox(height: 4),
+                        const Text(
+                            'Complete KYC verification to start trading. This is required by NBE regulations.',
+                            style: TextStyle(fontSize: 11, color: TradEtTheme.textSecondary)),
+                        const SizedBox(height: 8),
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.of(context).pop();
+                            provider.navigateGlobal(11); // Profile screen
+                          },
+                          child: const Text('Complete Verification →',
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  color: TradEtTheme.warning,
+                                  fontWeight: FontWeight.w600)),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Widget _webAssetDetails(Asset asset) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: HalalEtTheme.cardBg.withValues(alpha: 0.5),
+        color: TradEtTheme.cardBg.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: HalalEtTheme.divider.withValues(alpha: 0.3)),
+        border: Border.all(color: TradEtTheme.divider.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -463,7 +781,7 @@ class _TradeScreenState extends State<TradeScreen> {
         children: [
           Text(label,
               style: const TextStyle(
-                  fontSize: 12, color: HalalEtTheme.textMuted)),
+                  fontSize: 12, color: TradEtTheme.textMuted)),
           Text(value,
               style: const TextStyle(
                   fontSize: 13,
@@ -481,7 +799,7 @@ class _TradeScreenState extends State<TradeScreen> {
         Container(
           padding: const EdgeInsets.all(3),
           decoration: BoxDecoration(
-            color: HalalEtTheme.surfaceLight,
+            color: TradEtTheme.surfaceLight,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Row(
@@ -497,7 +815,7 @@ class _TradeScreenState extends State<TradeScreen> {
         Container(
           padding: const EdgeInsets.all(3),
           decoration: BoxDecoration(
-            color: HalalEtTheme.surfaceLight,
+            color: TradEtTheme.surfaceLight,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Row(
@@ -528,7 +846,7 @@ class _TradeScreenState extends State<TradeScreen> {
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
-            color: selected ? HalalEtTheme.accent : Colors.transparent,
+            color: selected ? TradEtTheme.accent : Colors.transparent,
             borderRadius: BorderRadius.circular(10),
           ),
           alignment: Alignment.center,
@@ -536,7 +854,7 @@ class _TradeScreenState extends State<TradeScreen> {
               style: TextStyle(
                   fontWeight: FontWeight.w600,
                   fontSize: 13,
-                  color: selected ? Colors.white : HalalEtTheme.textMuted)),
+                  color: selected ? Colors.white : TradEtTheme.textMuted)),
         ),
       ),
     );
@@ -560,7 +878,7 @@ class _TradeScreenState extends State<TradeScreen> {
           children: [
             const Text('Quantity / ብዛት',
                 style: TextStyle(
-                    color: HalalEtTheme.textSecondary,
+                    color: TradEtTheme.textSecondary,
                     fontSize: 13,
                     fontWeight: FontWeight.w500)),
             const SizedBox(height: 8),
@@ -573,7 +891,7 @@ class _TradeScreenState extends State<TradeScreen> {
               decoration: InputDecoration(
                 suffixText: asset.unit,
                 suffixStyle: const TextStyle(
-                    color: HalalEtTheme.textMuted, fontSize: 14),
+                    color: TradEtTheme.textMuted, fontSize: 14),
               ),
               onChanged: (v) {
                 final val = double.tryParse(v);
@@ -587,12 +905,12 @@ class _TradeScreenState extends State<TradeScreen> {
             SliderTheme(
               data: SliderThemeData(
                 activeTrackColor:
-                    _isBuy ? HalalEtTheme.positive : HalalEtTheme.negative,
-                inactiveTrackColor: HalalEtTheme.divider,
+                    _isBuy ? TradEtTheme.positive : TradEtTheme.negative,
+                inactiveTrackColor: TradEtTheme.divider,
                 thumbColor:
-                    _isBuy ? HalalEtTheme.positive : HalalEtTheme.negative,
+                    _isBuy ? TradEtTheme.positive : TradEtTheme.negative,
                 overlayColor:
-                    (_isBuy ? HalalEtTheme.positive : HalalEtTheme.negative)
+                    (_isBuy ? TradEtTheme.positive : TradEtTheme.negative)
                         .withValues(alpha: 0.15),
                 trackHeight: 4,
                 thumbShape:
@@ -615,7 +933,7 @@ class _TradeScreenState extends State<TradeScreen> {
                         : 'Holdings: ${holdingQty > 0 ? holdingQty.toStringAsFixed(holdingQty == holdingQty.roundToDouble() ? 0 : 1) : "0"}',
                     style: TextStyle(
                         fontSize: 10,
-                        color: !_isBuy && holdingQty <= 0 ? HalalEtTheme.negative : HalalEtTheme.textMuted)),
+                        color: !_isBuy && holdingQty <= 0 ? TradEtTheme.negative : TradEtTheme.textMuted)),
                 Row(
                   children: _isBuy
                       ? [
@@ -642,31 +960,63 @@ class _TradeScreenState extends State<TradeScreen> {
   }
 
   Widget _priceInput(Asset asset) {
+    final isMarket = !_isLimitOrder;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Price per unit (ETB)',
-            style: TextStyle(
-                color: HalalEtTheme.textSecondary,
-                fontSize: 13,
-                fontWeight: FontWeight.w500)),
+        Row(
+          children: [
+            const Text('Price per unit (ETB)',
+                style: TextStyle(
+                    color: TradEtTheme.textSecondary,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500)),
+            if (isMarket) ...[
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: TradEtTheme.accent.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: const Text('Market price',
+                    style: TextStyle(
+                        color: TradEtTheme.accent,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600)),
+              ),
+            ],
+          ],
+        ),
         const SizedBox(height: 8),
         TextField(
           controller: _priceController,
+          readOnly: isMarket,
           keyboardType:
               const TextInputType.numberWithOptions(decimal: true),
-          style: const TextStyle(
-              color: Colors.white, fontSize: 20, fontWeight: FontWeight.w700),
-          decoration: const InputDecoration(
+          style: TextStyle(
+              color: isMarket
+                  ? TradEtTheme.textSecondary
+                  : Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.w700),
+          decoration: InputDecoration(
             suffixText: 'ETB',
             suffixStyle:
-                TextStyle(color: HalalEtTheme.textMuted, fontSize: 14),
-            prefixIcon: Icon(Icons.payments_outlined, size: 20),
+                const TextStyle(color: TradEtTheme.textMuted, fontSize: 14),
+            prefixIcon: Icon(
+              isMarket ? Icons.lock_outline_rounded : Icons.payments_outlined,
+              size: 20,
+              color: isMarket ? TradEtTheme.textMuted : null,
+            ),
+            helperText: isMarket ? 'Filled at best available market price' : null,
+            helperStyle: const TextStyle(
+                color: TradEtTheme.textMuted, fontSize: 11),
           ),
           onChanged: (_) => setState(() {}),
         ),
-        const SizedBox(height: 8),
-        if (asset.price != null)
+        if (!isMarket && asset.price != null) ...[
+          const SizedBox(height: 8),
           Row(
             children: [
               _quickPriceButton('Bid', asset.bidPrice ?? asset.price!),
@@ -674,6 +1024,7 @@ class _TradeScreenState extends State<TradeScreen> {
               _quickPriceButton('Ask', asset.askPrice ?? asset.price!),
             ],
           ),
+        ],
       ],
     );
   }
@@ -682,7 +1033,7 @@ class _TradeScreenState extends State<TradeScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: HalalEtTheme.cardBg,
+        color: TradEtTheme.cardBg,
         borderRadius: BorderRadius.circular(14),
       ),
       child: Column(
@@ -693,7 +1044,7 @@ class _TradeScreenState extends State<TradeScreen> {
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8),
             child: Divider(
-                color: HalalEtTheme.divider.withValues(alpha: 0.3)),
+                color: TradEtTheme.divider.withValues(alpha: 0.3)),
           ),
           _summaryRow(
             'Total',
@@ -704,7 +1055,7 @@ class _TradeScreenState extends State<TradeScreen> {
           const Text('No interest (Riba-free) — flat commission',
               style: TextStyle(
                   fontSize: 11,
-                  color: HalalEtTheme.positive,
+                  color: TradEtTheme.positive,
                   fontWeight: FontWeight.w500)),
         ],
       ),
@@ -722,11 +1073,25 @@ class _TradeScreenState extends State<TradeScreen> {
         final holdingQty = holding.isNotEmpty ? holding.first.quantity : 0.0;
 
         final l = AppLocalizations.of(context);
+        final bool sessionOpen = widget.asset.tradingSession == null ||
+            widget.asset.tradingSession!['is_open'] == true;
+        final String? sessionReason = sessionOpen
+            ? null
+            : (widget.asset.tradingSession!['reason'] as String?)?.isNotEmpty == true
+                ? widget.asset.tradingSession!['reason'] as String
+                : 'ECX session closed. Trading is only permitted during official ECX sessions.';
+        final bool kycVerified = provider.user?.kycStatus == 'verified';
         final bool canTrade;
         final String? disabledReason;
         if (provider.isLoading) {
           canTrade = false;
           disabledReason = null;
+        } else if (!kycVerified) {
+          canTrade = false;
+          disabledReason = 'Identity verification (KYC) required before trading.';
+        } else if (!sessionOpen) {
+          canTrade = false;
+          disabledReason = sessionReason;
         } else if (_isBuy && orderTotal > cash && qty > 0 && price > 0) {
           canTrade = false;
           disabledReason = l.insufficientBalance;
@@ -748,8 +1113,8 @@ class _TradeScreenState extends State<TradeScreen> {
               onPressed: canTrade ? _placeOrder : null,
               style: ElevatedButton.styleFrom(
                 backgroundColor:
-                    _isBuy ? HalalEtTheme.positive : HalalEtTheme.negative,
-                disabledBackgroundColor: HalalEtTheme.surfaceLight,
+                    _isBuy ? TradEtTheme.positive : TradEtTheme.negative,
+                disabledBackgroundColor: TradEtTheme.surfaceLight,
                 padding: const EdgeInsets.symmetric(vertical: 16),
               ),
               child: provider.isLoading
@@ -765,7 +1130,7 @@ class _TradeScreenState extends State<TradeScreen> {
                       style: TextStyle(
                           fontWeight: FontWeight.w700,
                           fontSize: 16,
-                          color: canTrade ? Colors.white : HalalEtTheme.textMuted)),
+                          color: canTrade ? Colors.white : TradEtTheme.textMuted)),
             ),
             if (disabledReason != null)
               Padding(
@@ -774,7 +1139,7 @@ class _TradeScreenState extends State<TradeScreen> {
                     textAlign: TextAlign.center,
                     style: const TextStyle(
                         fontSize: 12,
-                        color: HalalEtTheme.negative,
+                        color: TradEtTheme.negative,
                         fontWeight: FontWeight.w500)),
               ),
           ],
@@ -785,7 +1150,7 @@ class _TradeScreenState extends State<TradeScreen> {
 
   Widget _toggle(String label, bool isBuy) {
     final selected = _isBuy == isBuy;
-    final color = isBuy ? HalalEtTheme.positive : HalalEtTheme.negative;
+    final color = isBuy ? TradEtTheme.positive : TradEtTheme.negative;
     return GestureDetector(
       onTap: () => setState(() => _isBuy = isBuy),
       child: MouseRegion(
@@ -802,7 +1167,7 @@ class _TradeScreenState extends State<TradeScreen> {
               style: TextStyle(
                   fontWeight: FontWeight.w700,
                   fontSize: 14,
-                  color: selected ? Colors.white : HalalEtTheme.textMuted)),
+                  color: selected ? Colors.white : TradEtTheme.textMuted)),
         ),
       ),
     );
@@ -817,14 +1182,14 @@ class _TradeScreenState extends State<TradeScreen> {
           margin: const EdgeInsets.only(left: 6),
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
           decoration: BoxDecoration(
-            color: HalalEtTheme.cardBg,
+            color: TradEtTheme.cardBg,
             borderRadius: BorderRadius.circular(6),
-            border: Border.all(color: HalalEtTheme.divider),
+            border: Border.all(color: TradEtTheme.divider),
           ),
           child: Text(label,
               style: const TextStyle(
                   fontSize: 11,
-                  color: HalalEtTheme.textSecondary,
+                  color: TradEtTheme.textSecondary,
                   fontWeight: FontWeight.w500)),
         ),
       ),
@@ -844,16 +1209,16 @@ class _TradeScreenState extends State<TradeScreen> {
             margin: const EdgeInsets.only(right: 6),
             padding: const EdgeInsets.symmetric(vertical: 6),
             decoration: BoxDecoration(
-              color: HalalEtTheme.cardBg,
+              color: TradEtTheme.cardBg,
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: HalalEtTheme.divider),
+              border: Border.all(color: TradEtTheme.divider),
             ),
             alignment: Alignment.center,
             child: Text('$label\n${_fmt.format(value)}',
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                     fontSize: 11,
-                    color: HalalEtTheme.textSecondary,
+                    color: TradEtTheme.textSecondary,
                     height: 1.3)),
           ),
         ),
@@ -867,7 +1232,7 @@ class _TradeScreenState extends State<TradeScreen> {
         children: [
           Text(label,
               style: const TextStyle(
-                  fontSize: 10, color: HalalEtTheme.textMuted)),
+                  fontSize: 10, color: TradEtTheme.textMuted)),
           const SizedBox(height: 2),
           Text(value != null ? _fmt.format(value) : '—',
               style: const TextStyle(
@@ -882,7 +1247,7 @@ class _TradeScreenState extends State<TradeScreen> {
   Widget _divider() => Container(
       width: 1,
       height: 28,
-      color: HalalEtTheme.divider.withValues(alpha: 0.3));
+      color: TradEtTheme.divider.withValues(alpha: 0.3));
 
   Widget _summaryRow(String label, String value, {bool bold = false}) {
     return Row(
@@ -890,7 +1255,7 @@ class _TradeScreenState extends State<TradeScreen> {
       children: [
         Text(label,
             style: TextStyle(
-                color: HalalEtTheme.textSecondary,
+                color: TradEtTheme.textSecondary,
                 fontWeight: bold ? FontWeight.w600 : FontWeight.normal,
                 fontSize: 13)),
         Text(value,
@@ -936,7 +1301,7 @@ class _ConfirmSheet extends StatelessWidget {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                    color: HalalEtTheme.divider,
+                    color: TradEtTheme.divider,
                     borderRadius: BorderRadius.circular(2))),
           if (isDialog)
             Row(
@@ -965,7 +1330,7 @@ class _ConfirmSheet extends StatelessWidget {
           _row('Type', isBuy ? AppLocalizations.of(context).buy : AppLocalizations.of(context).sell),
           _row('Quantity', '$qty ${asset.unit}'),
           _row('Price', '${fmt.format(price)} ETB'),
-          Divider(color: HalalEtTheme.divider, height: 24),
+          Divider(color: TradEtTheme.divider, height: 24),
           _row('Subtotal', '${fmt.format(total)} ETB'),
           _row('Fee (1.5%)', '${fmt.format(fee)} ETB'),
           _row('Total', '${fmt.format(total + (isBuy ? fee : -fee))} ETB',
@@ -974,7 +1339,7 @@ class _ConfirmSheet extends StatelessWidget {
           const Text('Riba-free flat commission',
               style: TextStyle(
                   fontSize: 11,
-                  color: HalalEtTheme.positive,
+                  color: TradEtTheme.positive,
                   fontStyle: FontStyle.italic)),
           const SizedBox(height: 24),
           Row(
@@ -984,12 +1349,12 @@ class _ConfirmSheet extends StatelessWidget {
                   onPressed: () => Navigator.pop(context, false),
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    side: const BorderSide(color: HalalEtTheme.divider),
+                    side: const BorderSide(color: TradEtTheme.divider),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12)),
                   ),
                   child: const Text('Cancel',
-                      style: TextStyle(color: HalalEtTheme.textSecondary)),
+                      style: TextStyle(color: TradEtTheme.textSecondary)),
                 ),
               ),
               const SizedBox(width: 12),
@@ -999,8 +1364,8 @@ class _ConfirmSheet extends StatelessWidget {
                   onPressed: () => Navigator.pop(context, true),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: isBuy
-                        ? HalalEtTheme.positive
-                        : HalalEtTheme.negative,
+                        ? TradEtTheme.positive
+                        : TradEtTheme.negative,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                   ),
                   child: Text(isBuy ? AppLocalizations.of(context).confirmBuy : AppLocalizations.of(context).confirmSell),
@@ -1021,7 +1386,7 @@ class _ConfirmSheet extends StatelessWidget {
         children: [
           Text(l,
               style: TextStyle(
-                  color: HalalEtTheme.textSecondary,
+                  color: TradEtTheme.textSecondary,
                   fontWeight: bold ? FontWeight.w600 : FontWeight.normal)),
           Text(v,
               style: TextStyle(
