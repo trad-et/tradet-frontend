@@ -1,6 +1,6 @@
 """Market data and asset routes."""
 
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import jwt_required
 from database import get_db, return_db
 from utils.sharia_screening import screen_asset
@@ -30,46 +30,21 @@ def get_assets():
     category_id = request.args.get("category_id")
     sharia_only = request.args.get("sharia_only", "false").lower() == "true"
     ecx_only = request.args.get("ecx_only", "false").lower() == "true"
+    force_refresh = request.args.get("refresh", "false").lower() == "true"
 
-    conn = get_db()
-    query = """
-        SELECT a.*, ac.name as category_name, ac.category_type,
-               mp.price, mp.bid_price, mp.ask_price, mp.high_24h, mp.low_24h,
-               mp.volume_24h, mp.change_24h, mp.recorded_at as price_updated_at
-        FROM assets a
-        JOIN asset_categories ac ON a.category_id = ac.id
-        LEFT JOIN market_prices mp ON mp.asset_id = a.id
-            AND mp.id = (SELECT MAX(id) FROM market_prices WHERE asset_id = a.id)
-        WHERE a.is_active = 1
-    """
-    params = []
+    if force_refresh:
+        from services.price_updater import update_prices_from_live
 
-    if category_id:
-        query += " AND a.category_id = ?"
-        params.append(int(category_id))
-    if sharia_only:
-        query += " AND a.is_sharia_compliant = 1"
-    if ecx_only:
-        query += " AND a.is_ecx_listed = 1"
+        try:
+            update_prices_from_live(current_app._get_current_object())
+        except Exception:
+            current_app.logger.exception("Manual live price refresh failed")
 
-    query += " ORDER BY a.symbol"
-    assets = conn.execute(query, params).fetchall()
-    return_db(conn)
+    assets = _load_assets(category_id, sharia_only, ecx_only)
+    sparklines = _load_sparklines(assets)
 
-    # Fetch sparkline data (last 15 prices) for all assets in one query
-    sparkline_conn = get_db()
-    sparklines = {}
-    for a in assets:
-        prices_rows = sparkline_conn.execute(
-            "SELECT price FROM market_prices WHERE asset_id = ? ORDER BY id DESC LIMIT 15",
-            (a["id"],),
-        ).fetchall()
-        sparklines[a["id"]] = [r["price"] for r in reversed(prices_rows)]
-    return_db(sparkline_conn)
-
-    # Track which symbols got a live update recently
-    from services.price_updater import _last_live_success
-    live_updated = _last_live_success.copy()
+    from services.price_updater import get_recent_live_symbols
+    live_updated = get_recent_live_symbols()
 
     result = []
     for a in assets:
@@ -103,6 +78,47 @@ def get_assets():
         result.append(asset_dict)
 
     return jsonify(result)
+
+
+def _load_assets(category_id, sharia_only, ecx_only):
+    conn = get_db()
+    query = """
+        SELECT a.*, ac.name as category_name, ac.category_type,
+               mp.price, mp.bid_price, mp.ask_price, mp.high_24h, mp.low_24h,
+               mp.volume_24h, mp.change_24h, mp.recorded_at as price_updated_at
+        FROM assets a
+        JOIN asset_categories ac ON a.category_id = ac.id
+        LEFT JOIN market_prices mp ON mp.asset_id = a.id
+            AND mp.id = (SELECT MAX(id) FROM market_prices WHERE asset_id = a.id)
+        WHERE a.is_active = 1
+    """
+    params = []
+
+    if category_id:
+        query += " AND a.category_id = ?"
+        params.append(int(category_id))
+    if sharia_only:
+        query += " AND a.is_sharia_compliant = 1"
+    if ecx_only:
+        query += " AND a.is_ecx_listed = 1"
+
+    query += " ORDER BY a.symbol"
+    assets = conn.execute(query, params).fetchall()
+    return_db(conn)
+    return assets
+
+
+def _load_sparklines(assets):
+    sparkline_conn = get_db()
+    sparklines = {}
+    for a in assets:
+        prices_rows = sparkline_conn.execute(
+            "SELECT price FROM market_prices WHERE asset_id = ? ORDER BY id DESC LIMIT 15",
+            (a["id"],),
+        ).fetchall()
+        sparklines[a["id"]] = [r["price"] for r in reversed(prices_rows)]
+    return_db(sparkline_conn)
+    return sparklines
 
 
 @market_bp.route("/assets/<int:asset_id>", methods=["GET"])

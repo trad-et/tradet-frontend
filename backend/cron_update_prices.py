@@ -3,7 +3,7 @@
 PythonAnywhere scheduled task — update market prices and exchange rates.
 
 Set up in PythonAnywhere → Tasks tab:
-  Command: /home/atomahmud/HalalEt/backend/.venv/bin/python /home/atomahmud/HalalEt/backend/cron_update_prices.py
+  Command: /home/atomahmud/TradEt/backend/.venv/bin/python /home/atomahmud/TradEt/backend/cron_update_prices.py
   Schedule: Hourly (free tier) or every 5 min (paid)
 
 This script runs outside Flask, directly updating the SQLite database.
@@ -17,7 +17,7 @@ from datetime import datetime
 
 # Add project to path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-os.environ.setdefault('DATABASE_PATH', os.path.join(os.path.dirname(__file__), 'halalet.db'))
+os.environ.setdefault('DATABASE_PATH', os.path.join(os.path.dirname(__file__), 'tradet.db'))
 
 logging.basicConfig(
     level=logging.INFO,
@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 def get_connection():
     """Get a direct SQLite connection (no Flask context needed)."""
     import sqlite3
-    db_path = os.environ.get('DATABASE_PATH', 'halalet.db')
+    db_path = os.environ.get('DATABASE_PATH', 'tradet.db')
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA journal_mode=WAL")
@@ -190,7 +190,7 @@ def simulate_local_prices(conn):
 
 
 def main():
-    logger.info("=== HalalEt Price Update Cron Starting ===")
+    logger.info("=== TradEt Price Update Cron Starting ===")
     conn = get_connection()
 
     # 1. Update exchange rates

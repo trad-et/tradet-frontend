@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: halalet-api
+    name: tradet-api
     runtime: python
     plan: free
     region: oregon
@@ -13,7 +13,7 @@ services:
       - key: JWT_SECRET_KEY
         generateValue: true
       - key: DATABASE_PATH
-        value: /tmp/halalet.db
+        value: /tmp/tradet.db
       - key: PYTHON_VERSION
         value: 3.13.0
     healthCheckPath: /api/health

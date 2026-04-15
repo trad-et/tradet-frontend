@@ -82,6 +82,14 @@ def init_pool():
     _pool = ConnectionPool(Config.DATABASE_PATH, pool_size=5)
 
 
+def close_pool():
+    """Close and reset the global connection pool."""
+    global _pool
+    if _pool is not None:
+        _pool.close_all()
+        _pool = None
+
+
 def get_db():
     """Get a database connection from the pool."""
     global _pool
@@ -180,6 +188,14 @@ def init_db():
             currency TEXT DEFAULT 'ETB',
             recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (asset_id) REFERENCES assets(id)
+        )
+    """)
+
+    # Persist successful live-feed refreshes so status survives process restarts
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS live_update_status (
+            symbol TEXT PRIMARY KEY,
+            updated_at TIMESTAMP NOT NULL
         )
     """)
 

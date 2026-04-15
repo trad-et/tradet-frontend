@@ -1,4 +1,4 @@
-"""Automated tests for HalalEt API endpoints."""
+"""Automated tests for TradEt API endpoints."""
 
 import json
 import os
@@ -11,23 +11,28 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 from app import create_app
 from config import Config
+from database import close_pool
 
 
 @pytest.fixture
 def app():
     """Create test app with temporary database."""
     db_fd, db_path = tempfile.mkstemp(suffix='.db')
+    close_pool()
     Config.DATABASE_PATH = db_path
 
     # Disable rate limiting in tests
     os.environ['RATELIMIT_ENABLED'] = 'false'
+    os.environ['DISABLE_PRICE_UPDATER'] = 'true'
 
     app = create_app()
     app.config['TESTING'] = True
 
     yield app
 
+    close_pool()
     os.environ.pop('RATELIMIT_ENABLED', None)
+    os.environ.pop('DISABLE_PRICE_UPDATER', None)
     os.close(db_fd)
     os.unlink(db_path)
 
@@ -200,6 +205,32 @@ class TestMarket:
         data = json.loads(resp.data)
         assert isinstance(data, list)
         assert len(data) > 0
+
+    def test_get_assets_refresh_updates_live_status(self, client, monkeypatch):
+        from services import live_prices
+
+        def fake_fetch_live_prices():
+            return {
+                'AAPL': {
+                    'price': 13000.0,
+                    'bid_price': 12990.0,
+                    'ask_price': 13010.0,
+                    'high_24h': 13100.0,
+                    'low_24h': 12900.0,
+                    'volume_24h': 1234,
+                    'change_24h': 2.5,
+                    'updated_at': '2026-04-15T10:30:00',
+                }
+            }
+
+        monkeypatch.setattr(live_prices, 'fetch_live_prices', fake_fetch_live_prices)
+
+        resp = client.get('/api/market/assets?refresh=true')
+        assert resp.status_code == 200
+        data = json.loads(resp.data)
+        aapl = next(asset for asset in data if asset['symbol'] == 'AAPL')
+        assert aapl['data_source'] == 'live'
+        assert aapl['price'] == 13000.0
 
     def test_get_asset_detail(self, client, auth_headers):
         resp = client.get('/api/market/assets/1', headers=auth_headers)

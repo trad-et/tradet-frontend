@@ -4,7 +4,7 @@ import threading
 import time
 import random
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 
 logger = logging.getLogger(__name__)
 
@@ -54,7 +54,14 @@ def update_prices_from_live(app):
                          price_data["ask_price"], price_data["high_24h"], price_data["low_24h"],
                          price_data["volume_24h"], price_data["change_24h"]),
                     )
-                    _last_live_success[symbol] = datetime.utcnow().isoformat()
+                    updated_at = price_data.get("updated_at") or datetime.utcnow().isoformat()
+                    _last_live_success[symbol] = updated_at
+                    conn.execute(
+                        """INSERT INTO live_update_status (symbol, updated_at)
+                           VALUES (?, ?)
+                           ON CONFLICT(symbol) DO UPDATE SET updated_at = excluded.updated_at""",
+                        (symbol, updated_at),
+                    )
                     updated += 1
             conn.commit()
             return_db(conn)
@@ -122,6 +129,58 @@ def update_exchange_rates(app):
     except Exception as e:
         logger.error(f"Exchange rate update failed: {e}")
         return {}
+
+
+def get_recent_live_symbols(max_age_seconds=None):
+    """Return symbols refreshed from a live feed within the freshness window."""
+    from database import get_db, return_db
+
+    freshness = max_age_seconds or (LIVE_UPDATE_INTERVAL * 3)
+    cutoff = datetime.utcnow() - timedelta(seconds=freshness)
+    recent = {
+        symbol
+        for symbol, updated_at in _last_live_success.items()
+        if _parse_timestamp(updated_at) >= cutoff
+    }
+
+    conn = None
+    try:
+        conn = get_db()
+        rows = conn.execute(
+            "SELECT symbol, updated_at FROM live_update_status"
+        ).fetchall()
+        for row in rows:
+            if _parse_timestamp(row["updated_at"]) >= cutoff:
+                recent.add(row["symbol"])
+    except Exception as e:
+        logger.debug(f"Unable to load persisted live status: {e}")
+    finally:
+        if conn is not None:
+            return_db(conn)
+
+    return recent
+
+
+def _parse_timestamp(value):
+    """Parse timestamps emitted by SQLite or Python code."""
+    if isinstance(value, datetime):
+        return value
+    if not value:
+        return datetime.min
+
+    normalized = str(value).replace("Z", "+00:00")
+    try:
+        parsed = datetime.fromisoformat(normalized)
+        return parsed.replace(tzinfo=None) if parsed.tzinfo else parsed
+    except ValueError:
+        pass
+
+    for fmt in ("%Y-%m-%d %H:%M:%S", "%Y-%m-%d %H:%M:%S.%f"):
+        try:
+            return datetime.strptime(str(value), fmt)
+        except ValueError:
+            continue
+    return datetime.min
 
 
 def _background_updater(app):

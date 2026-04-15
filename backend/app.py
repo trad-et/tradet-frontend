@@ -1,4 +1,4 @@
-"""HalalEt Backend API — Sharia & Ethiopian Trade Compliant."""
+"""TradEt Backend API — Sharia & Ethiopian Trade Compliant."""
 
 import os
 import logging
@@ -24,7 +24,7 @@ logging.basicConfig(
 )
 
 # Path to Flutter web build
-WEB_BUILD_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'halalet_app', 'build', 'web')
+WEB_BUILD_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'tradet_app', 'build', 'web')
 
 
 def create_app():
@@ -87,7 +87,7 @@ def create_app():
             pass
         return jsonify({
             "status": "healthy" if db_ok else "degraded",
-            "app": "HalalEt API",
+            "app": "TradEt API",
             "version": "3.1.0",
             "database": "ok" if db_ok else "error",
             "compliance": ["sharia", "ethiopian_trade_law", "ecx", "nbe"],

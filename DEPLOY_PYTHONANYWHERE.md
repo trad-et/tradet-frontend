@@ -1,4 +1,4 @@
-# Deploy HalalEt to PythonAnywhere (Free Tier)
+# Deploy TradEt to PythonAnywhere (Free Tier)
 
 ## Step 1: Create Account
 1. Go to https://www.pythonanywhere.com/registration/register/beginner/
@@ -9,12 +9,12 @@
 1. Go to **Consoles** tab → Start a **Bash** console
 2. Run:
 ```bash
-git clone https://github.com/mahmud-m-ali/HalalEt.git ~/HalalEt
+git clone https://github.com/mahmud-m-ali/TradEt.git ~/TradEt
 ```
 
 ## Step 3: Set Up Python Environment
 ```bash
-cd ~/HalalEt/backend
+cd ~/TradEt/backend
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
@@ -22,18 +22,18 @@ pip install -r requirements.txt
 
 ## Step 4: Initialize the Database
 ```bash
-cd ~/HalalEt/backend
+cd ~/TradEt/backend
 source venv/bin/activate
 python database.py
 ```
 
 ## Step 5: Build & Upload Flutter Web (from your Mac)
 On your local machine, the web build is already at:
-`/Users/mahmud/Desktop/HalalEt/halalet_app/build/web/`
+`/Users/mahmud/Desktop/TradEt/tradet_app/build/web/`
 
 Upload it to PythonAnywhere:
 1. Go to **Files** tab on PythonAnywhere
-2. Navigate to `/home/<username>/HalalEt/halalet_app/build/`
+2. Navigate to `/home/<username>/TradEt/tradet_app/build/`
 3. Create `web/` directory if it doesn't exist
 4. Upload all files from your local `build/web/` directory
 
@@ -46,13 +46,13 @@ Upload it to PythonAnywhere:
 **Easiest method** — zip and upload:
 ```bash
 # On your Mac, run:
-cd /Users/mahmud/Desktop/HalalEt/halalet_app/build
-zip -r ~/Desktop/halalet_web.zip web/
+cd /Users/mahmud/Desktop/TradEt/tradet_app/build
+zip -r ~/Desktop/tradet_web.zip web/
 
-# Then upload halalet_web.zip via PythonAnywhere Files tab to ~/HalalEt/halalet_app/build/
+# Then upload tradet_web.zip via PythonAnywhere Files tab to ~/TradEt/tradet_app/build/
 # Then in PythonAnywhere Bash console:
-cd ~/HalalEt/halalet_app/build
-unzip halalet_web.zip
+cd ~/TradEt/tradet_app/build
+unzip tradet_web.zip
 ```
 
 ## Step 6: Create Web App
@@ -71,11 +71,11 @@ unzip halalet_web.zip
 import sys
 import os
 
-project_home = '/home/<username>/HalalEt/backend'
+project_home = '/home/<username>/TradEt/backend'
 if project_home not in sys.path:
     sys.path.insert(0, project_home)
 
-os.environ['DATABASE_PATH'] = '/home/<username>/HalalEt/backend/halalet.db'
+os.environ['DATABASE_PATH'] = '/home/<username>/TradEt/backend/tradet.db'
 os.environ['SECRET_KEY'] = 'pick-a-strong-random-secret-key-here'
 os.environ['JWT_SECRET_KEY'] = 'pick-another-strong-random-secret-here'
 
@@ -88,7 +88,7 @@ application = create_app()
 ## Step 8: Set Virtualenv Path
 In the Web tab, under **Virtualenv**, enter:
 ```
-/home/<username>/HalalEt/backend/venv
+/home/<username>/TradEt/backend/venv
 ```
 
 ## Step 9: Configure Static Files
@@ -96,7 +96,7 @@ In the Web tab, under **Static files**, add:
 
 | URL | Directory |
 |-----|-----------|
-| `/static` | `/home/<username>/HalalEt/halalet_app/build/web` |
+| `/static` | `/home/<username>/TradEt/tradet_app/build/web` |
 
 ## Step 10: Reload
 Click the green **"Reload"** button in the Web tab.
@@ -107,12 +107,12 @@ Click the green **"Reload"** button in the Web tab.
 
 ## Maintenance
 - **Monthly renewal**: Log in every ~3 weeks and click "Run until 3 months from today" on the Web tab
-- **Update code**: In Bash console, `cd ~/HalalEt && git pull`
+- **Update code**: In Bash console, `cd ~/TradEt && git pull`
 - **Update web build**: Re-upload the `build/web/` directory after rebuilding locally
 
 ## Update Flutter App Default URL
 After deployment, update your Flutter app to use the PythonAnywhere URL:
-In `halalet_app/lib/services/api_service.dart`, change:
+In `tradet_app/lib/services/api_service.dart`, change:
 ```dart
 static const String _defaultTunnelUrl = 'https://<username>.pythonanywhere.com/api';
 ```

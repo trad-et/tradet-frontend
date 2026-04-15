@@ -28,7 +28,7 @@ def retry_with_backoff(max_retries=3, base_delay=2.0, max_delay=30.0):
         return wrapper
     return decorator
 
-# Map HalalEt symbols to Yahoo Finance tickers
+# Map TradEt symbols to Yahoo Finance tickers
 SYMBOL_TO_YAHOO = {
     # Global Halal Equities
     "AAPL": "AAPL",
@@ -159,7 +159,7 @@ def fetch_exchange_rates():
         resp = requests.get(
             "https://open.er-api.com/v6/latest/USD",
             timeout=15,
-            headers={"User-Agent": "HalalEt/1.0"},
+            headers={"User-Agent": "TradEt/1.0"},
         )
         if resp.status_code == 200:
             data = resp.json()
@@ -241,7 +241,7 @@ def fetch_ecx_prices():
         resp = requests.get(
             "https://www.ecx.com.et/",
             timeout=10,
-            headers={"User-Agent": "HalalEt/1.0"},
+            headers={"User-Agent": "TradEt/1.0"},
         )
         if resp.status_code == 200:
             soup = BeautifulSoup(resp.text, "html.parser")

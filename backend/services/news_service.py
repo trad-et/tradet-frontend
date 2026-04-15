@@ -63,7 +63,7 @@ def fetch_rss_feed(url, timeout=10):
         return []
 
     try:
-        resp = requests.get(url, timeout=timeout, headers={"User-Agent": "HalalEt/1.0"})
+        resp = requests.get(url, timeout=timeout, headers={"User-Agent": "TradEt/1.0"})
         if resp.status_code != 200:
             return []
 
@@ -115,7 +115,7 @@ def fetch_rss_feed(url, timeout=10):
 
 
 def is_relevant(article):
-    """Check if article is relevant to HalalEt users."""
+    """Check if article is relevant to TradEt users."""
     text = (article.get("title", "") + " " + article.get("description", "")).lower()
     return any(kw in text for kw in RELEVANCE_KEYWORDS)
 

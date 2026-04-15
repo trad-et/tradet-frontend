@@ -5,9 +5,9 @@ load_dotenv()
 
 
 class Config:
-    SECRET_KEY = os.getenv("SECRET_KEY", "halalet-dev-secret-key-change-in-production")
-    JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "halalet-jwt-secret-change-in-production")
-    DATABASE_PATH = os.getenv("DATABASE_PATH", os.path.join(os.path.dirname(__file__), "halalet.db"))
+    SECRET_KEY = os.getenv("SECRET_KEY", "tradet-dev-secret-key-change-in-production")
+    JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "tradet-jwt-secret-change-in-production")
+    DATABASE_PATH = os.getenv("DATABASE_PATH", os.path.join(os.path.dirname(__file__), "tradet.db"))
     JWT_ACCESS_TOKEN_EXPIRES = 3600  # 1 hour
     JWT_REFRESH_TOKEN_EXPIRES = 86400 * 30  # 30 days
     RATE_LIMIT_DEFAULT = "100/hour"

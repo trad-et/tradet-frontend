@@ -1,9 +1,9 @@
 #!/bin/bash
-# HalalEt - Sharia & Ethiopian Trade Compliant Trading Platform
+# TradEt - Sharia & Ethiopian Trade Compliant Trading Platform
 # Start script for development
 
 echo "========================================="
-echo "  HalalEt - Halal Trading Platform"
+echo "  TradEt - Trading Platform"
 echo "  Sharia & Ethiopian Trade Compliant"
 echo "========================================="
 echo ""
@@ -26,7 +26,7 @@ sleep 2
 # Start Flutter web app
 echo ""
 echo "[2/2] Starting Flutter Web App..."
-cd "$(dirname "$0")/halalet_app"
+cd "$(dirname "$0")/tradet_app"
 flutter run -d chrome --web-port 3000 &
 FLUTTER_PID=$!
 echo "Flutter web app starting (PID: $FLUTTER_PID)"
