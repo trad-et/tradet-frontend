@@ -60,15 +60,17 @@ class DashboardScreen extends StatelessWidget {
             HeaderIconButton(
               icon: Icons.bar_chart_rounded,
               color: TradEtTheme.primaryLight,
-              onTap: () => Navigator.of(context).push(
-                appRoute(
-                  context,
-                  WrappedScreen(
-                    child: const AnalyticsScreen(),
-                    showMobileAppBar: false,
-                  ),
-                ),
-              ),
+              onTap: onNavigateTo != null
+                  ? () => onNavigateTo(9)
+                  : () => Navigator.of(context).push(
+                        appRoute(
+                          context,
+                          WrappedScreen(
+                            child: const AnalyticsScreen(),
+                            showMobileAppBar: false,
+                          ),
+                        ),
+                      ),
             ),
           ],
         ),
