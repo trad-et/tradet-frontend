@@ -102,13 +102,6 @@ class _LoginScreenState extends State<LoginScreen> {
         child: SafeArea(
           child: Stack(
             children: [
-              // Language selector - top right
-              const Positioned(
-                top: 12,
-                right: 16,
-                child: LanguageSelector(),
-              ),
-
               // Centered login card
               Center(
                 child: SingleChildScrollView(
@@ -370,6 +363,13 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                 ),
+              ),
+
+              // Language selector on top — must be last in Stack to receive touches
+              const Positioned(
+                top: 12,
+                right: 16,
+                child: LanguageSelector(),
               ),
             ],
           ),
