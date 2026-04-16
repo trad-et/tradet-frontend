@@ -65,6 +65,9 @@ class ShariaBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Permissible assets show no badge — only Halal and Non-Compliant are labelled
+    if (_level == 'permissible') return const SizedBox.shrink();
+
     if (compact) {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
