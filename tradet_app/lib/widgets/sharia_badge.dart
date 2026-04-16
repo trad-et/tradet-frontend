@@ -1,8 +1,13 @@
+/// Reusable compliance badge widgets for Sharia and ECX status indicators.
 import 'package:flutter/material.dart';
 import '../theme.dart';
 
+/// Displays a colour-coded Sharia compliance label for an asset.
+/// Permissible assets render nothing; only `halal` and `non_compliant` show a badge.
 class ShariaBadge extends StatelessWidget {
+  /// Falls back to [complianceLevel] when provided; otherwise derived from [isCompliant].
   final bool isCompliant;
+  /// When true, renders a compact pill without an icon.
   final bool compact;
   /// If provided, overrides isCompliant: 'halal' | 'permissible' | 'non_compliant'
   final String? complianceLevel;
@@ -103,6 +108,7 @@ class ShariaBadge extends StatelessWidget {
   }
 }
 
+/// Small blue pill shown on assets that are listed on the ECX (Ethiopian Commodity Exchange).
 class EcxBadge extends StatelessWidget {
   const EcxBadge({super.key});
 

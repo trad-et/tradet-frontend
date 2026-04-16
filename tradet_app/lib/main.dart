@@ -1,3 +1,4 @@
+/// App entry point — bootstraps Flutter, sets status bar style, and launches TradEtApp.
 import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -17,6 +18,7 @@ import 'theme.dart';
 /// For others, we fall back to English material strings.
 const _materialSupportedLangs = {'en', 'am'}; // only en, am have Flutter material support
 
+/// Initializes system UI chrome and starts the app.
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setSystemUIOverlayStyle(
@@ -28,6 +30,8 @@ void main() {
   runApp(const TradEtApp());
 }
 
+/// Root widget — provides [AppProvider] and builds the [MaterialApp] with theme
+/// and locale resolved from persisted user preferences.
 class TradEtApp extends StatelessWidget {
   const TradEtApp({super.key});
 
@@ -67,6 +71,8 @@ class TradEtApp extends StatelessWidget {
   }
 }
 
+/// Decides whether to show [LoginScreen] or [HomeScreen] based on stored token.
+/// Displays an animated splash while the auth check is in progress.
 class AuthGate extends StatefulWidget {
   const AuthGate({super.key});
 
@@ -194,6 +200,7 @@ class _InactivityWrapper extends StatefulWidget {
 }
 
 class _InactivityWrapperState extends State<_InactivityWrapper> {
+  /// Session timeout duration enforced per INSA CSMS §8a.
   static const _timeoutDuration = Duration(minutes: 10);
   Timer? _timer;
 
@@ -209,11 +216,13 @@ class _InactivityWrapperState extends State<_InactivityWrapper> {
     super.dispose();
   }
 
+  /// Restarts the inactivity countdown on each user interaction.
   void _resetTimer() {
     _timer?.cancel();
     _timer = Timer(_timeoutDuration, _onTimeout);
   }
 
+  /// Logs the user out and navigates to [LoginScreen] after timeout.
   Future<void> _onTimeout() async {
     if (!mounted) return;
     final provider = context.read<AppProvider>();
@@ -256,6 +265,7 @@ class _AppLockWrapper extends StatefulWidget {
 
 class _AppLockWrapperState extends State<_AppLockWrapper>
     with WidgetsBindingObserver {
+  /// Minimum background time before the lock screen is required.
   static const _backgroundThreshold = Duration(seconds: 60);
   DateTime? _backgroundedAt;
   bool _locked = false;

@@ -1,5 +1,6 @@
-// Data models for the TradEt app
+/// Domain model classes for the TradEt platform — users, assets, orders, wallet, and more.
 
+/// Authenticated platform user with KYC state and wallet balance.
 class User {
   final int id;
   final String email;
@@ -17,6 +18,7 @@ class User {
     this.walletBalance = 0,
   });
 
+  /// Deserialises a [User] from the `/auth/profile` API response.
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
       id: json['id'],
@@ -31,6 +33,7 @@ class User {
   bool get isKycVerified => kycStatus == 'verified';
 }
 
+/// Tradeable commodity asset with live market data and Sharia compliance metadata.
 class Asset {
   final int id;
   final String symbol;
@@ -45,6 +48,7 @@ class Asset {
   final bool isEcxListed;
   final bool isShariaCompliant;
   final bool isHaram;
+  /// Sharia ruling for this asset: `'halal'`, `'permissible'`, or `'non_compliant'`.
   final String complianceLevel; // 'halal' | 'permissible' | 'non_compliant'
   final double? price;
   final double? bidPrice;
@@ -88,6 +92,7 @@ class Asset {
     this.dataSourceLabel,
   });
 
+  /// Deserialises an [Asset] from the `/market/assets` API response.
   factory Asset.fromJson(Map<String, dynamic> json) {
     return Asset(
       id: json['id'],
@@ -127,6 +132,7 @@ class Asset {
   bool get isSimulated => dataSource == 'simulated';
 }
 
+/// A single commodity position held by the user, including P&L and compliance status.
 class PortfolioHolding {
   final int assetId;
   final String symbol;
@@ -181,6 +187,7 @@ class PortfolioHolding {
   }
 }
 
+/// Aggregated financial snapshot of the user's full portfolio including cash.
 class PortfolioSummary {
   final double totalHoldingsValue;
   final double totalInvested;
@@ -207,6 +214,7 @@ class PortfolioSummary {
   }
 }
 
+/// A buy or sell order placed by the user, with execution type and fee details.
 class Order {
   final int id;
   final String symbol;
@@ -254,6 +262,7 @@ class Order {
   bool get isLimit => executionType == 'limit';
 }
 
+/// User-defined price alert that fires when an asset crosses a target threshold.
 class PriceAlert {
   final int id;
   final int assetId;
@@ -301,6 +310,7 @@ class PriceAlert {
   }
 }
 
+/// A news article fetched from the market/news feed.
 class NewsArticle {
   final String title;
   final String description;
@@ -330,6 +340,7 @@ class NewsArticle {
   }
 }
 
+/// NBE (National Bank of Ethiopia) exchange rate for a single currency pair.
 class ExchangeRate {
   final String currency;
   final double buying;
@@ -343,6 +354,7 @@ class ExchangeRate {
     required this.mid,
   });
 
+  /// Deserialises from a rates map entry keyed by [currency] code.
   factory ExchangeRate.fromJson(String currency, Map<String, dynamic> json) {
     return ExchangeRate(
       currency: currency,
@@ -353,6 +365,7 @@ class ExchangeRate {
   }
 }
 
+/// A wallet ledger entry — deposit, withdrawal, trade buy/sell, or refund.
 class Transaction {
   final int id;
   final String transactionType;
@@ -381,9 +394,11 @@ class Transaction {
     );
   }
 
+  /// True when this transaction adds funds to the wallet (deposit, sell, refund).
   bool get isCredit => transactionType == 'deposit' || transactionType == 'trade_sell' || transactionType == 'refund';
 }
 
+/// Audit-trail event for a single order lifecycle step (placed, filled, cancelled, etc.).
 class OrderEvent {
   final int id;
   final int orderId;
@@ -428,6 +443,7 @@ class OrderEvent {
   }
 }
 
+/// A linked bank account used for withdrawals.
 class PaymentMethod {
   final int id;
   final String bankName;

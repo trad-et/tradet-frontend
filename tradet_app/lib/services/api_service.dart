@@ -1,3 +1,4 @@
+/// HTTP client for all TradEt backend endpoints — auth, market, trading, wallet, and more.
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
@@ -5,7 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/models.dart';
 import 'cache_service.dart';
 
-/// User-friendly error messages
+/// Typed exception carrying both a developer message and an optional user-facing string.
 class ApiException implements Exception {
   final String message;
   final String? userMessage;
@@ -19,6 +20,7 @@ class ApiException implements Exception {
   String toString() => 'ApiException: $message (status: $statusCode)';
 }
 
+/// Maps low-level network errors to human-readable strings shown in the UI.
 String _friendlyError(dynamic error) {
   if (error is SocketException) {
     return 'No internet connection. Please check your network.';
@@ -36,8 +38,11 @@ String _friendlyError(dynamic error) {
   return 'Something went wrong. Please try again.';
 }
 
+/// Stateless HTTP service that handles auth tokens, caching, and error mapping
+/// for every TradEt API call.
 class ApiService {
   // Default fallback URLs
+  /// Production API base URL (tradet.amber.et backend).
   static const String _defaultTunnelUrl =
       'https://tradet.amber.et/api';
   // ignore: unused_field
@@ -46,6 +51,7 @@ class ApiService {
   // Cached custom URL from SharedPreferences
   static String? _customBaseUrl;
 
+  /// Returns the active API base URL — custom override or the production default.
   static String get baseUrl {
     if (_customBaseUrl != null) return _customBaseUrl!;
     return _defaultTunnelUrl;
@@ -69,6 +75,7 @@ class ApiService {
     await prefs.setString('server_url', url);
   }
 
+  /// Returns the server URL without the `/api` suffix for display in settings.
   static String get currentServerDisplay {
     final url = _customBaseUrl ?? _defaultTunnelUrl;
     if (url.endsWith('/api')) return url.substring(0, url.length - 4);
@@ -95,6 +102,7 @@ class ApiService {
     }
   }
 
+  /// Removes both access and refresh tokens from storage (called on logout).
   Future<void> clearToken() async {
     _token = null;
     final prefs = await SharedPreferences.getInstance();
@@ -177,7 +185,7 @@ class ApiService {
     }
   }
 
-  /// Handle API response errors
+  /// Throws an [ApiException] for common HTTP error codes (401, 429, 5xx).
   void _checkResponse(http.Response response, String context) {
     if (response.statusCode == 401) {
       // Token refresh is handled by the provider layer
@@ -205,6 +213,7 @@ class ApiService {
 
   // === AUTH ===
 
+  /// Registers a new user and persists the returned JWT on success.
   Future<Map<String, dynamic>> register({
     required String email,
     required String phone,
@@ -229,6 +238,7 @@ class ApiService {
     return data;
   }
 
+  /// Authenticates with email/password and persists the returned JWT.
   Future<Map<String, dynamic>> login({
     required String email,
     required String password,
@@ -244,6 +254,7 @@ class ApiService {
     return data;
   }
 
+  /// Submits KYC identity data; returns the server response map.
   Future<Map<String, dynamic>> submitKyc({
     required String idType,
     required String idNumber,
@@ -272,6 +283,7 @@ class ApiService {
 
   // === MARKET ===
 
+  /// Fetches the live asset list; falls back to stale cache if the request fails.
   Future<List<Asset>> getAssets({
     int? categoryId,
     bool shariaOnly = false,
@@ -316,6 +328,7 @@ class ApiService {
 
   // === TRADING ===
 
+  /// Submits a buy or sell order to the trading engine.
   Future<Map<String, dynamic>> placeOrder({
     required int assetId,
     required String orderType,
@@ -579,6 +592,8 @@ class ApiService {
 
   // === ZAKAT ===
 
+  /// Calculates Zakat due based on portfolio and additional asset values.
+  /// [nisabMethod] determines whether the gold or silver nisab threshold is used.
   Future<Map<String, dynamic>> calculateZakat({
     double otherSavings = 0,
     double goldValue = 0,
@@ -603,6 +618,7 @@ class ApiService {
     return jsonDecode(response.body);
   }
 
+  /// Returns the current Nisab threshold values (gold and silver) from the server.
   Future<Map<String, dynamic>> getNisab() async {
     final response = await _get('/zakat/nisab');
     if (response.statusCode != 200) throw ApiException('Failed to load Nisab');
@@ -611,6 +627,7 @@ class ApiService {
 
   // === EXCHANGE RATES ===
 
+  /// Fetches NBE exchange rates, cached for one hour with stale fallback.
   Future<Map<String, ExchangeRate>> getExchangeRates() async {
     try {
       final response = await _get('/exchange-rates');
@@ -654,6 +671,7 @@ class ApiService {
 
   // === CANDLESTICK HISTORY ===
 
+  /// Retrieves OHLCV candle history for [symbol]; returns empty list on failure.
   Future<List<Map<String, dynamic>>> getChartHistory(
     String symbol, {
     String period = '1mo',

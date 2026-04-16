@@ -1,7 +1,10 @@
+/// Centralised theme constants, color tokens, gradients, and [ThemeData] presets for TradEt.
 import 'package:flutter/material.dart';
 
+/// Provides all design tokens and pre-built [ThemeData] for light and dark modes.
 class TradEtTheme {
   // Brand colors — rich green palette, easy on the eyes
+  /// Primary brand green.
   static const Color primary = Color(0xFF1B8A5A);
   static const Color primaryDark = Color(0xFF0F4C30);
   static const Color primaryLight = Color(0xFF27AE60);
@@ -14,29 +17,36 @@ class TradEtTheme {
   static const Color textPrimary = Color(0xFFFFFFFF);
   static const Color textSecondary = Color(0xFFA8D5BA);
   static const Color textMuted = Color(0xFF6DAF87);
+  /// Green used for price gains and Halal indicators.
   static const Color positive = Color(0xFF4ADE80);
+  /// Red used for price drops and non-compliant indicators.
   static const Color negative = Color(0xFFFF6B6B);
+  /// Amber used for warnings and permissible-level compliance.
   static const Color warning = Color(0xFFFBBF24);
   static const Color divider = Color(0xFF1F6B42);
 
+  /// Full-screen vertical gradient for dark mode scaffold backgrounds.
   static LinearGradient get bgGradient => const LinearGradient(
         colors: [Color(0xFF0D3B20), Color(0xFF134A2C), Color(0xFF1A5C38)],
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
       );
 
+  /// Gradient applied to card surfaces in dark mode.
   static LinearGradient get cardGradient => const LinearGradient(
         colors: [Color(0xFF1A5C38), Color(0xFF22704A)],
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
       );
 
+  /// Diagonal gradient for hero banners and primary action areas.
   static LinearGradient get heroGradient => const LinearGradient(
         colors: [Color(0xFF27AE60), Color(0xFF1B8A5A), Color(0xFF0F6B3C)],
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
       );
 
+  /// Standard drop shadow applied beneath elevated cards.
   static BoxShadow get cardShadow => BoxShadow(
         color: Colors.black.withValues(alpha: 0.2),
         blurRadius: 12,
@@ -51,18 +61,21 @@ class TradEtTheme {
   static const Color lightTextMuted = Color(0xFF8A9E95);
   static const Color lightDivider = Color(0xFFDDE8E2);
 
+  /// Full-screen gradient for light mode scaffold backgrounds.
   static LinearGradient get lightBgGradient => const LinearGradient(
         colors: [Color(0xFFEFF6F2), Color(0xFFF5F9F7), Color(0xFFFAFCFB)],
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
       );
 
+  /// Gradient applied to card surfaces in light mode.
   static LinearGradient get lightCardGradient => const LinearGradient(
         colors: [Color(0xFFFFFFFF), Color(0xFFF8FBF9)],
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
       );
 
+  /// Deep-green dark [ThemeData] — primary theme for the app.
   static ThemeData get darkTheme => ThemeData(
         useMaterial3: true,
         brightness: Brightness.dark,
@@ -153,6 +166,7 @@ class TradEtTheme {
         ),
       );
 
+  /// Clean light [ThemeData] using the same brand green palette.
   static ThemeData get lightTheme => ThemeData(
         useMaterial3: true,
         brightness: Brightness.light,

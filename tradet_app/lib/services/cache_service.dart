@@ -1,11 +1,14 @@
+/// SharedPreferences-backed cache with TTL support for offline fallback.
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Simple local cache for offline support.
 /// Stores JSON data with TTL (time-to-live) in SharedPreferences.
 class CacheService {
+  /// Default expiry used when callers don't specify a TTL.
   static const Duration defaultTtl = Duration(minutes: 30);
 
+  /// Serialises [data] to JSON and stores it under [key] with an expiry timestamp.
   static Future<void> set(String key, dynamic data, {Duration? ttl}) async {
     final prefs = await SharedPreferences.getInstance();
     final entry = {
@@ -16,6 +19,8 @@ class CacheService {
     await prefs.setString('cache_$key', jsonEncode(entry));
   }
 
+  /// Returns the cached value for [key], or `null` if missing or expired.
+  /// Pass [ignoreExpiry] to retrieve stale data for offline fallback.
   static Future<dynamic> get(String key, {bool ignoreExpiry = false}) async {
     final prefs = await SharedPreferences.getInstance();
     final raw = prefs.getString('cache_$key');
@@ -38,11 +43,13 @@ class CacheService {
     return get(key, ignoreExpiry: true);
   }
 
+  /// Removes a single cache entry by [key].
   static Future<void> remove(String key) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('cache_$key');
   }
 
+  /// Deletes all `cache_*` entries from SharedPreferences (called on logout).
   static Future<void> clearAll() async {
     final prefs = await SharedPreferences.getInstance();
     final keys = prefs.getKeys().where((k) => k.startsWith('cache_'));

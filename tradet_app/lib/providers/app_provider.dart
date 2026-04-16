@@ -1,3 +1,4 @@
+/// Global state provider — manages auth, market data, portfolio, orders, and preferences.
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/models.dart';
@@ -5,6 +6,7 @@ import '../services/api_service.dart';
 import '../services/cache_service.dart';
 import '../services/security_log_service.dart';
 
+/// Central [ChangeNotifier] that drives all app state via the Provider package.
 class AppProvider extends ChangeNotifier {
   final ApiService _api = ApiService();
 
@@ -18,6 +20,7 @@ class AppProvider extends ChangeNotifier {
   Locale get locale => _locale;
   String get langCode => _locale.languageCode;
 
+  /// Loads both theme mode and locale from persistent storage.
   Future<void> loadPreferences() async {
     final prefs = await SharedPreferences.getInstance();
     final mode = prefs.getString('theme_mode') ?? 'dark';
@@ -31,6 +34,7 @@ class AppProvider extends ChangeNotifier {
     await loadPreferences();
   }
 
+  /// Toggles between dark and light mode and persists the selection.
   Future<void> toggleTheme() async {
     _themeMode = _themeMode == ThemeMode.dark
         ? ThemeMode.light
@@ -43,6 +47,7 @@ class AppProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Sets the active locale and persists it for subsequent launches.
   Future<void> setLocale(String langCode) async {
     _locale = Locale(langCode);
     final prefs = await SharedPreferences.getInstance();
@@ -113,10 +118,14 @@ class AppProvider extends ChangeNotifier {
 
   // Global navigation callback (set by HomeScreen, used by detail screens)
   Function(int)? _globalNavCallback;
+
+  /// Registers the bottom-nav callback from [HomeScreen] so detail screens can
+  /// switch tabs without holding a direct reference.
   void setGlobalNav(Function(int)? fn) {
     _globalNavCallback = fn;
   }
 
+  /// Triggers a bottom-nav tab switch from anywhere in the widget tree.
   void navigateGlobal(int index) {
     _globalNavCallback?.call(index);
   }
@@ -133,6 +142,7 @@ class AppProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Checks for a stored token, refreshes it if expired, and hydrates [user].
   Future<void> checkAuthStatus() async {
     _isLoggedIn = await _api.isLoggedIn;
     if (_isLoggedIn) {
@@ -157,6 +167,7 @@ class AppProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Creates a new account and signs the user in on success.
   Future<bool> register({
     required String email,
     required String phone,
@@ -195,6 +206,7 @@ class AppProvider extends ChangeNotifier {
     }
   }
 
+  /// Authenticates the user and records a security audit event.
   Future<bool> login({required String email, required String password}) async {
     _isLoading = true;
     _error = null;
@@ -306,6 +318,7 @@ class AppProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Clears token, purges all cached data, and resets in-memory state.
   Future<void> logout() async {
     final uid = _user?.email ?? '';
     await _api.clearToken();
@@ -323,6 +336,7 @@ class AppProvider extends ChangeNotifier {
     SecurityLogService.record(SecurityEvent.logout, userId: uid);
   }
 
+  /// Submits KYC identity documents and refreshes the user profile on success.
   Future<bool> submitKyc({
     required String idType,
     required String idNumber,
@@ -352,6 +366,7 @@ class AppProvider extends ChangeNotifier {
     }
   }
 
+  /// Fetches tradeable assets; pass [refresh] to bypass the server-side cache.
   Future<void> loadAssets({
     bool shariaOnly = false,
     bool ecxOnly = false,
@@ -374,6 +389,7 @@ class AppProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Fetches holdings and summary from the portfolio endpoint.
   Future<void> loadPortfolio() async {
     _portfolioLoading = true;
     _portfolioError = null;
@@ -423,6 +439,7 @@ class AppProvider extends ChangeNotifier {
     ]);
   }
 
+  /// Places a buy or sell order and refreshes portfolio and order state on success.
   Future<Map<String, dynamic>> placeOrder({
     required int assetId,
     required String orderType,
@@ -459,6 +476,7 @@ class AppProvider extends ChangeNotifier {
     }
   }
 
+  /// Cancels a pending order and logs the security event.
   Future<Map<String, dynamic>> cancelOrder(int orderId) async {
     _isLoading = true;
     notifyListeners();
@@ -559,6 +577,7 @@ class AppProvider extends ChangeNotifier {
     } catch (_) {}
   }
 
+  /// Credits [amount] to the wallet and refreshes user profile and portfolio.
   Future<Map<String, dynamic>> deposit(double amount) async {
     _isLoading = true;
     notifyListeners();
@@ -581,6 +600,7 @@ class AppProvider extends ChangeNotifier {
     }
   }
 
+  /// Initiates a bank withdrawal and refreshes user profile and portfolio.
   Future<Map<String, dynamic>> withdraw({
     required double amount,
     required String bankName,
