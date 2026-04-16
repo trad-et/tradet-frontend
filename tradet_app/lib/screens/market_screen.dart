@@ -322,19 +322,13 @@ class _MarketScreenState extends State<MarketScreen> {
                   ),
                 ),
                 SizedBox(
-                  width: 80,
+                  width: 110,
                   child: Align(
                     alignment: Alignment.centerRight,
                     child: _TableHeader('24h Change'),
                   ),
                 ),
-                SizedBox(
-                  width: 80,
-                  child: Align(
-                    alignment: Alignment.center,
-                    child: _TableHeader('Compliance'),
-                  ),
-                ),
+                SizedBox(width: 64), // _QuickActions space
               ],
             ),
           ),
@@ -616,6 +610,16 @@ class _WebAssetRowState extends State<_WebAssetRow> {
                           ),
                         ),
                         const SizedBox(width: 4),
+                        ShariaBadge(
+                          isCompliant: asset.isShariaCompliant,
+                          complianceLevel: asset.complianceLevel,
+                          compact: true,
+                        ),
+                        if (asset.isEcxListed) ...[
+                          const SizedBox(width: 3),
+                          const EcxBadge(),
+                        ],
+                        const SizedBox(width: 4),
                         DataSourceBadge(dataSource: asset.dataSource),
                       ],
                     ),
@@ -689,7 +693,7 @@ class _WebAssetRowState extends State<_WebAssetRow> {
               ),
               // 24h Change
               SizedBox(
-                width: 80,
+                width: 110,
                 child: Align(
                   alignment: Alignment.centerRight,
                   child: asset.change24h != null
@@ -701,24 +705,6 @@ class _WebAssetRowState extends State<_WebAssetRow> {
                             fontSize: 11,
                           ),
                         ),
-                ),
-              ),
-              // Compliance badges
-              SizedBox(
-                width: 80,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    ShariaBadge(
-                      isCompliant: asset.isShariaCompliant,
-                      complianceLevel: asset.complianceLevel,
-                      compact: true,
-                    ),
-                    if (asset.isEcxListed) ...[
-                      const SizedBox(width: 3),
-                      const EcxBadge(),
-                    ],
-                  ],
                 ),
               ),
               // Quick actions: watchlist + alert
