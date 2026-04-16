@@ -249,6 +249,20 @@ class AppLocalizations {
   String get appLock => _t({'en': 'App Lock', 'am': 'የመተግበሪያ ቀንዲል', 'ti': 'ቀጽሪ ኣፕ', 'om': 'Cufaa Appii', 'so': 'Kilida App-ka', 'gur': 'የመተግበሪያ ቀጸላ'});
   String get sessionExpired => _t({'en': 'Session expired. Please sign in again.', 'am': 'ክፍለ ጊዜ አልቋል። እንደገና ይግቡ።', 'ti': 'ክፍለ-ጊዜ ጠቅሊሉ። ደጊምካ እቶ።', 'om': "Seeshiniin dhumate. Irra deebi'ii seeni.", 'so': 'Waqtigii session-ku dhacay. Mar kale gal.', 'gur': 'ክፍለ ጊዜ አልቋል። ደጊም ግባ።'});
 
+  // ─── Analytics ───────────────────────────────────
+  String get performance => _t({'en': 'Performance', 'am': 'አፈጻጸም', 'ti': 'ኣፈጻጽማ', 'om': 'Raawwii', 'so': 'Waxqabadka', 'gur': 'አፈጻጸም'});
+  String get noPortfolioData => _t({'en': 'No portfolio data', 'am': 'የፖርትፎሊዮ ውሂብ የለም', 'ti': 'ዳታ ፖርትፎሊዮ የለን', 'om': 'Daataa poortfooliyoo hin jiru', 'so': 'Xog portfolio ma jirto', 'gur': 'የፖርትፎሊዮ ሓበሬታ የለም'});
+  String get unrealised => _t({'en': 'Unrealised', 'am': 'ያልተሳካ', 'ti': 'ዘይተጸልአ', 'om': 'Hojirra ooluu dha', 'so': 'Aan la gaarin', 'gur': 'ያልተሳካ'});
+  String get realised => _t({'en': 'Realised', 'am': 'የተሳካ', 'ti': 'ዝተጸልአ', 'om': 'Hojirra oolee', 'so': 'La garay', 'gur': 'የተሳካ'});
+  String get allocation => _t({'en': 'Allocation', 'am': 'ክፍፍል', 'ti': 'ምምቃል', 'om': 'Ramadiinsa', 'so': 'Qeybsiga', 'gur': 'ክፍፍል'});
+  String get largestHolding => _t({'en': 'Largest Holding', 'am': 'ትልቁ ይዞታ', 'ti': 'ዝዓቢ ንብረት', 'om': 'Qabeenya guddaa', 'so': 'Hantida ugu weyn', 'gur': 'ትልቁ ንብረት'});
+  String get totalReturn => _t({'en': 'Total return on invested capital', 'am': 'ጠቅላላ ትርፍ', 'ti': 'ጠቕላላ ትርፊ', 'om': "Waliigala bu'aa", 'so': "Waxsoosaarka guud", 'gur': 'ድምር ትርፍ'});
+  String get pnlBreakdown => _t({'en': 'P&L Breakdown', 'am': 'ትርፍ/ኪሳራ ዝርዝር', 'ti': 'ዝርዝር ትርፊ/ክሳራ', 'om': "Bu'aa/Kasaaraa caqasa", 'so': "Faahfaahin Faa'iido/Khasaare", 'gur': 'ትርፍ/ኪሳራ ዝርዝር'});
+
+  // ─── Transactions ────────────────────────────────
+  String get allTransactions => _t({'en': 'All Transactions', 'am': 'ሁሉም ግብይቶች', 'ti': 'ኩሉ ምትሕልላፍ', 'om': 'Hojii Mallaqa hunda', 'so': 'Dhammaan macaamilaadaha', 'gur': 'ሁሉም ግብይቶች'});
+  String get noTransactionsYet => _t({'en': 'No transactions yet', 'am': 'ገና ግብይት የለም', 'ti': 'ገና ምትሕልላፍ የለን', 'om': 'Hanga ammaatti hojiin mallaqa hin jiru', 'so': 'Wali macaamiil ma jiraan', 'gur': 'ገና ግብይት የለም'});
+
   /// Multi-language translation helper.
   String _t(Map<String, String> translations) {
     return translations[locale.languageCode] ?? translations['en']!;

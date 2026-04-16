@@ -4,6 +4,7 @@ import '../l10n/app_localizations.dart';
 import '../providers/app_provider.dart';
 import '../theme.dart';
 import '../widgets/responsive_layout.dart';
+import '../widgets/language_selector.dart';
 import 'home_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -104,6 +105,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           size: 20, color: Colors.white),
                       onPressed: () => Navigator.pop(context),
                     ),
+                    const Spacer(),
+                    const LanguageSelector(),
+                    const SizedBox(width: 8),
                   ],
                 ),
               ),

@@ -332,7 +332,7 @@ class _TradeScreenState extends State<TradeScreen> {
     );
   }
 
-  // Tab 2: asset information table
+  // Tab 2: asset information table + AAOIFI sharia detail
   Widget _financialsTab(Asset asset) {
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
@@ -363,8 +363,144 @@ class _TradeScreenState extends State<TradeScreen> {
               ],
             ),
           ),
+          const SizedBox(height: 20),
+          _shariaScreeningCard(asset),
         ],
       ),
+    );
+  }
+
+  Widget _shariaScreeningCard(Asset asset) {
+    final screening = asset.shariaScreening;
+    final color = asset.complianceLevel == 'halal'
+        ? TradEtTheme.positive
+        : asset.complianceLevel == 'permissible'
+            ? TradEtTheme.warning
+            : TradEtTheme.negative;
+    final debtRatio = screening?['debt_to_assets_ratio'];
+    final haramRevenue = screening?['haram_revenue_ratio'];
+    final ruling = screening?['ruling'] ?? asset.complianceLevel;
+
+    return Theme(
+      data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+      child: Container(
+        decoration: BoxDecoration(
+          color: TradEtTheme.cardBg,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: color.withValues(alpha: 0.3)),
+        ),
+        child: ExpansionTile(
+          tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          leading: Container(
+            width: 36, height: 36,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(Icons.verified_rounded, color: color, size: 18),
+          ),
+          title: const Text('AAOIFI Sharia Screening',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Colors.white)),
+          subtitle: Text(
+            ruling.toString().toUpperCase(),
+            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: color),
+          ),
+          iconColor: TradEtTheme.textMuted,
+          collapsedIconColor: TradEtTheme.textMuted,
+          children: [
+            const Divider(height: 1, color: Color(0xFF2D5A3D)),
+            const SizedBox(height: 12),
+            // Debt ratio bar
+            _screeningMetric(
+              label: 'Debt-to-Assets Ratio',
+              threshold: '< 30% (AAOIFI)',
+              value: debtRatio != null ? (debtRatio as num).toDouble() : null,
+              thresholdValue: 0.30,
+            ),
+            const SizedBox(height: 10),
+            // Haram revenue bar
+            _screeningMetric(
+              label: 'Haram Revenue Ratio',
+              threshold: '< 5% (AAOIFI)',
+              value: haramRevenue != null ? (haramRevenue as num).toDouble() : null,
+              thresholdValue: 0.05,
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: TradEtTheme.positive.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Text(
+                'Screened in accordance with AAOIFI Sharia Standard No. 21 — '
+                'Financial Paper (Shares and Bonds). ECX & NBE regulated.',
+                style: TextStyle(fontSize: 10, color: TradEtTheme.textSecondary, height: 1.5),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _screeningMetric({
+    required String label,
+    required String threshold,
+    double? value,
+    required double thresholdValue,
+  }) {
+    final bool pass = value == null || value <= thresholdValue;
+    final color = pass ? TradEtTheme.positive : TradEtTheme.negative;
+    final displayValue = value != null ? '${(value * 100).toStringAsFixed(1)}%' : 'N/A';
+    final barValue = value != null ? (value / (thresholdValue * 2)).clamp(0.0, 1.0) : 0.0;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(label,
+                style: const TextStyle(fontSize: 12, color: TradEtTheme.textSecondary)),
+            Row(
+              children: [
+                Text(displayValue,
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: color)),
+                const SizedBox(width: 6),
+                Icon(pass ? Icons.check_circle_outline : Icons.cancel_outlined,
+                    size: 14, color: color),
+              ],
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Stack(
+          children: [
+            Container(
+              height: 4, width: double.infinity,
+              decoration: BoxDecoration(
+                color: TradEtTheme.divider.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            FractionallySizedBox(
+              widthFactor: barValue,
+              child: Container(
+                height: 4,
+                decoration: BoxDecoration(
+                  color: color,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 2),
+        Text(threshold,
+            style: const TextStyle(fontSize: 10, color: TradEtTheme.textMuted)),
+      ],
     );
   }
 

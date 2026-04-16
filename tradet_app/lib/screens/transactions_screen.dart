@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import '../l10n/app_localizations.dart';
 import '../providers/app_provider.dart';
 import '../models/models.dart';
 import '../theme.dart';
@@ -50,6 +51,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final fmt = NumberFormat('#,##0.00', 'en');
     final wide = isWideScreen(context);
 
@@ -66,18 +68,18 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                 padding: EdgeInsets.fromLTRB(wide ? 32 : 20, wide ? 24 : 16, wide ? 32 : 20, 0),
                 child: Row(
                   children: [
-                    const Expanded(
+                    Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Transactions',
-                              style: TextStyle(
+                          Text(l.transactions,
+                              style: const TextStyle(
                                   fontSize: 24,
                                   fontWeight: FontWeight.w800,
                                   color: Colors.white,
                                   letterSpacing: -0.5)),
-                          Text('ግብይቶች • Cash ledger',
-                              style: TextStyle(
+                          Text(l.cashBalance,
+                              style: const TextStyle(
                                   fontSize: 13,
                                   color: TradEtTheme.textSecondary)),
                         ],
@@ -150,7 +152,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Total Cash Balance',
+                                Text(l.cashBalance,
                                     style: TextStyle(
                                         color: Colors.white.withValues(alpha: 0.7),
                                         fontSize: 12)),
@@ -236,12 +238,12 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                 size: 48, color: TradEtTheme.textMuted),
           ),
           const SizedBox(height: 16),
-          const Text('No transactions yet',
-              style: TextStyle(fontWeight: FontWeight.w600,
+          Text(AppLocalizations.of(context).noTransactionsYet,
+              style: const TextStyle(fontWeight: FontWeight.w600,
                   fontSize: 16, color: Colors.white)),
           const SizedBox(height: 4),
-          const Text('Deposit funds to get started',
-              style: TextStyle(color: TradEtTheme.textMuted, fontSize: 13)),
+          Text(AppLocalizations.of(context).depositEtb,
+              style: const TextStyle(color: TradEtTheme.textMuted, fontSize: 13)),
         ],
       ),
     );

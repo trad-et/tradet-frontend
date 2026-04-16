@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:fl_chart/fl_chart.dart';
+import '../l10n/app_localizations.dart';
 import '../providers/app_provider.dart';
 import '../theme.dart';
 import '../widgets/responsive_layout.dart';
@@ -37,6 +38,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final fmt = NumberFormat('#,##0.00', 'en');
     final wide = isWideScreen(context);
     final hPad = wide ? 32.0 : 20.0;
@@ -87,9 +89,9 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                       const Icon(Icons.bar_chart_rounded,
                           color: TradEtTheme.primaryLight, size: 26),
                       const SizedBox(width: 10),
-                      const Text(
-                        'Analytics',
-                        style: TextStyle(
+                      Text(
+                        l.analytics,
+                        style: const TextStyle(
                           fontSize: 26,
                           fontWeight: FontWeight.w800,
                           color: Colors.white,
@@ -105,8 +107,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Total Portfolio Value',
-                            style: TextStyle(
+                        Text(l.totalPortfolioValue,
+                            style: const TextStyle(
                                 fontSize: 13, color: TradEtTheme.textSecondary)),
                         const SizedBox(height: 6),
                         Text(
@@ -202,11 +204,11 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                             ),
                           )
                         else if (spots.isEmpty)
-                          const SizedBox(
+                          SizedBox(
                             height: 140,
                             child: Center(
-                              child: Text('No portfolio data',
-                                  style: TextStyle(
+                              child: Text(l.noPortfolioData,
+                                  style: const TextStyle(
                                       color: TradEtTheme.textMuted,
                                       fontSize: 13)),
                             ),
@@ -272,21 +274,21 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Expanded(child: _performanceCard(fmt, perfPct, totalPnl, totalInvested)),
+                          Expanded(child: _performanceCard(l, fmt, perfPct, totalPnl, totalInvested)),
                           const SizedBox(width: 14),
-                          Expanded(child: _pnlCard(fmt, unrealisedPnl, realisedPnl)),
+                          Expanded(child: _pnlCard(l, fmt, unrealisedPnl, realisedPnl)),
                         ],
                       ),
                     )
                   else ...[
-                    _performanceCard(fmt, perfPct, totalPnl, totalInvested),
+                    _performanceCard(l, fmt, perfPct, totalPnl, totalInvested),
                     const SizedBox(height: 14),
-                    _pnlCard(fmt, unrealisedPnl, realisedPnl),
+                    _pnlCard(l, fmt, unrealisedPnl, realisedPnl),
                   ],
                   const SizedBox(height: 14),
 
                   // ── Allocation ──
-                  _allocationCard(provider, fmt),
+                  _allocationCard(l, provider, fmt),
                   const SizedBox(height: 24),
                   const DisclaimerFooter(),
                   const SizedBox(height: 8),
@@ -299,7 +301,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     );
   }
 
-  Widget _performanceCard(NumberFormat fmt, double perfPct, double totalPnl, double totalInvested) {
+  Widget _performanceCard(AppLocalizations l, NumberFormat fmt, double perfPct, double totalPnl, double totalInvested) {
     final isPositive = perfPct >= 0;
     return _SectionCard(
       child: Column(
@@ -322,8 +324,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                 ),
               ),
               const SizedBox(width: 10),
-              const Text('Performance',
-                  style: TextStyle(
+              Text(l.performance,
+                  style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                       color: Colors.white)),
@@ -341,16 +343,16 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           ),
           const SizedBox(height: 4),
           Text(
-            'Total return on invested capital',
+            l.totalReturn,
             style: const TextStyle(fontSize: 12, color: TradEtTheme.textMuted),
           ),
           const SizedBox(height: 12),
           _MetricRow(
-            label: 'Total Invested',
+            label: l.totalInvested,
             value: '${fmt.format(totalInvested)} ETB',
           ),
           _MetricRow(
-            label: 'Total Return',
+            label: l.returnLabel,
             value: '${totalPnl >= 0 ? "+" : ""}${fmt.format(totalPnl)} ETB',
             valueColor: isPositive ? TradEtTheme.positive : TradEtTheme.negative,
           ),
@@ -359,7 +361,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     );
   }
 
-  Widget _pnlCard(NumberFormat fmt, double unrealised, double realised) {
+  Widget _pnlCard(AppLocalizations l, NumberFormat fmt, double unrealised, double realised) {
     final totalPnl = unrealised + realised;
     return _SectionCard(
       child: Column(
@@ -378,8 +380,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                     size: 18, color: Color(0xFF22D3EE)),
               ),
               const SizedBox(width: 10),
-              const Text('P&L',
-                  style: TextStyle(
+              Text(l.pnl,
+                  style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                       color: Colors.white)),
@@ -407,7 +409,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               children: [
                 Expanded(
                   child: _PnlBlock(
-                    label: 'Unrealised',
+                    label: l.unrealised,
                     value: fmt.format(unrealised),
                     isPositive: unrealised >= 0,
                   ),
@@ -418,7 +420,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                     color: TradEtTheme.divider.withValues(alpha: 0.4)),
                 Expanded(
                   child: _PnlBlock(
-                    label: 'Realised',
+                    label: l.realised,
                     value: fmt.format(realised),
                     isPositive: realised >= 0,
                   ),
@@ -431,14 +433,14 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     );
   }
 
-  Widget _allocationCard(AppProvider provider, NumberFormat fmt) {
+  Widget _allocationCard(AppLocalizations l, AppProvider provider, NumberFormat fmt) {
     if (provider.holdings.isEmpty) {
       return _SectionCard(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Allocation',
-                style: TextStyle(
+            Text(l.allocation,
+                style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
                     color: Colors.white)),
@@ -450,8 +452,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                       size: 48,
                       color: TradEtTheme.textMuted.withValues(alpha: 0.5)),
                   const SizedBox(height: 12),
-                  const Text('No holdings yet',
-                      style: TextStyle(
+                  Text(l.noHoldingsYet,
+                      style: const TextStyle(
                           fontSize: 14, color: TradEtTheme.textMuted)),
                 ],
               ),
@@ -484,14 +486,14 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Allocation',
-              style: TextStyle(
+          Text(l.allocation,
+              style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
                   color: Colors.white)),
           const SizedBox(height: 4),
           Text(
-            '${sorted.length} assets',
+            '${sorted.length} ${l.assetsTracked}',
             style: const TextStyle(
                 fontSize: 12, color: TradEtTheme.textSecondary),
           ),
@@ -531,8 +533,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                     children: [
                       Row(
                         children: [
-                          const Text('Largest Holding',
-                              style: TextStyle(
+                          Text(l.largestHolding,
+                              style: const TextStyle(
                                   fontSize: 11,
                                   color: TradEtTheme.textSecondary)),
                           const Spacer(),
