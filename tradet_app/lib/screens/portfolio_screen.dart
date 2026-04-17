@@ -239,6 +239,15 @@ class PortfolioScreen extends StatelessWidget {
     );
   }
 
+  Future<double> _fetchUsdRate(AppProvider provider) async {
+    try {
+      final rates = await provider.api.getExchangeRates();
+      return rates['USD']?.selling ?? 0.0;
+    } catch (_) {
+      return 0.0;
+    }
+  }
+
   Widget _balanceCard(BuildContext context, dynamic summary, NumberFormat fmt) {
     final l = AppLocalizations.of(context);
     final provider = context.read<AppProvider>();
@@ -298,11 +307,10 @@ class PortfolioScreen extends StatelessWidget {
             ),
           ),
           // USD equivalent using NBE selling rate
-          FutureBuilder<Map<String, dynamic>>(
-            future: provider.api.getExchangeRates().then((r) =>
-                {'selling': r['USD']?.selling ?? 0.0}).catchError((_) => {'selling': 0.0}),
+          FutureBuilder<double>(
+            future: _fetchUsdRate(provider),
             builder: (_, snap) {
-              final selling = (snap.data?['selling'] as double?) ?? 0.0;
+              final selling = snap.data ?? 0.0;
               if (selling <= 0) return const SizedBox.shrink();
               final usd = totalEtb / selling;
               final usdFmt = NumberFormat('#,##0.00', 'en');
@@ -313,7 +321,7 @@ class PortfolioScreen extends StatelessWidget {
                     Text(
                       '≈ USD ${usdFmt.format(usd)}',
                       style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.6),
+                        color: Colors.white.withValues(alpha: 0.65),
                         fontSize: 13,
                         fontWeight: FontWeight.w500,
                       ),
@@ -610,10 +618,7 @@ class PortfolioScreen extends StatelessWidget {
     NumberFormat fmt,
   ) {
     return FutureBuilder<double>(
-      future: provider.api
-          .getExchangeRates()
-          .then((r) => r['USD']?.selling ?? 0.0)
-          .catchError((_) => 0.0),
+      future: _fetchUsdRate(provider),
       builder: (_, snap) =>
           _webHoldingsTableInner(context, provider, fmt, snap.data ?? 0.0),
     );
