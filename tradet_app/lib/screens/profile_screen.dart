@@ -1747,6 +1747,7 @@ class _SecurityLogSectionState extends State<_SecurityLogSection> {
 
   @override
   Widget build(BuildContext context) {
+    final wide = isWideScreen(context);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -1756,6 +1757,7 @@ class _SecurityLogSectionState extends State<_SecurityLogSection> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // ── Header ──
           Row(
             children: [
               const Icon(Icons.security, size: 18, color: TradEtTheme.accent),
@@ -1767,8 +1769,14 @@ class _SecurityLogSectionState extends State<_SecurityLogSection> {
                         fontWeight: FontWeight.w600,
                         fontSize: 15)),
               ),
+              if (!_loading)
+                Text('${_entries.length} events',
+                    style: const TextStyle(
+                        color: TradEtTheme.textMuted, fontSize: 11)),
+              const SizedBox(width: 8),
               IconButton(
-                icon: const Icon(Icons.refresh, size: 18, color: TradEtTheme.textSecondary),
+                icon: const Icon(Icons.refresh, size: 18,
+                    color: TradEtTheme.textSecondary),
                 tooltip: 'Refresh',
                 onPressed: _load,
                 visualDensity: VisualDensity.compact,
@@ -1777,6 +1785,7 @@ class _SecurityLogSectionState extends State<_SecurityLogSection> {
             ],
           ),
           const SizedBox(height: 12),
+
           if (_loading)
             const Center(
               child: Padding(
@@ -1790,53 +1799,157 @@ class _SecurityLogSectionState extends State<_SecurityLogSection> {
               padding: EdgeInsets.symmetric(vertical: 16),
               child: Center(
                 child: Text('No security events recorded',
-                    style: TextStyle(color: TradEtTheme.textSecondary, fontSize: 13)),
+                    style: TextStyle(
+                        color: TradEtTheme.textSecondary, fontSize: 13)),
               ),
             )
+          // ── Wide: 2-column grid ──
+          else if (wide)
+            _buildGrid()
+          // ── Mobile: compact timeline ──
           else
-            ...List.generate(_entries.length, (i) {
-              final e = _entries[i];
-              final color = _colorFor(e.event);
-              // Timestamp is ISO 8601 string; show first 16 chars (YYYY-MM-DD HH:MM)
-              final tsLabel = e.timestamp.length >= 16
-                  ? e.timestamp.substring(0, 16).replaceFirst('T', ' ')
-                  : e.timestamp;
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Row(
+            _buildTimeline(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGrid() {
+    // Pair entries into rows of 2
+    final rows = <List<SecurityLogEntry>>[];
+    for (var i = 0; i < _entries.length; i += 2) {
+      rows.add([
+        _entries[i],
+        if (i + 1 < _entries.length) _entries[i + 1],
+      ]);
+    }
+    return Column(
+      children: rows.map((pair) {
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 6),
+          child: Row(
+            children: [
+              Expanded(child: _gridCell(pair[0])),
+              const SizedBox(width: 6),
+              if (pair.length > 1)
+                Expanded(child: _gridCell(pair[1]))
+              else
+                const Expanded(child: SizedBox()),
+            ],
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _gridCell(SecurityLogEntry e) {
+    final color = _colorFor(e.event);
+    final tsLabel = e.timestamp.length >= 16
+        ? e.timestamp.substring(0, 16).replaceFirst('T', ' ')
+        : e.timestamp;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withValues(alpha: 0.18)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 28, height: 28,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(7),
+            ),
+            child: Icon(_iconFor(e.event), size: 14, color: color),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(e.event,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                        color: color,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.2)),
+                Text(tsLabel,
+                    style: const TextStyle(
+                        color: TradEtTheme.textMuted, fontSize: 10)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTimeline() {
+    return Column(
+      children: List.generate(_entries.length, (i) {
+        final e = _entries[i];
+        final color = _colorFor(e.event);
+        final tsLabel = e.timestamp.length >= 16
+            ? e.timestamp.substring(0, 16).replaceFirst('T', ' ')
+            : e.timestamp;
+        final isLast = i == _entries.length - 1;
+        return IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Timeline spine
+              SizedBox(
+                width: 28,
+                child: Column(
                   children: [
-                    Icon(_iconFor(e.event), size: 16, color: color),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(e.event,
-                              style: TextStyle(
-                                  color: color,
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w500)),
-                          Text(tsLabel,
-                              style: const TextStyle(
-                                  color: TradEtTheme.textSecondary,
-                                  fontSize: 11)),
-                        ],
+                    Container(
+                      width: 24, height: 24,
+                      decoration: BoxDecoration(
+                        color: color.withValues(alpha: 0.12),
+                        shape: BoxShape.circle,
                       ),
+                      child: Icon(_iconFor(e.event), size: 12, color: color),
                     ),
-                    if (e.userId.isNotEmpty)
-                      Text(
-                        e.userId.length > 8
-                            ? '${e.userId.substring(0, 8)}…'
-                            : e.userId,
-                        style: const TextStyle(
-                            color: TradEtTheme.textSecondary, fontSize: 11),
+                    if (!isLast)
+                      Expanded(
+                        child: Container(
+                          width: 1.5,
+                          margin: const EdgeInsets.symmetric(vertical: 2),
+                          color: TradEtTheme.divider.withValues(alpha: 0.3),
+                        ),
                       ),
                   ],
                 ),
-              );
-            }),
-        ],
-      ),
+              ),
+              const SizedBox(width: 8),
+              // Content
+              Expanded(
+                child: Padding(
+                  padding: EdgeInsets.only(bottom: isLast ? 0 : 10),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(e.event,
+                            style: TextStyle(
+                                color: color,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600)),
+                      ),
+                      Text(tsLabel,
+                          style: const TextStyle(
+                              color: TradEtTheme.textMuted, fontSize: 10)),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      }),
     );
   }
 }
