@@ -1695,12 +1695,11 @@ class TopOpportunitiesSection extends StatefulWidget {
 }
 
 class _TopOpportunitiesSectionState extends State<TopOpportunitiesSection> {
-  int _tab = 0; // 0=Top Volume, 1=Trending, 2=ECX Listed
+  int _tab = 0; // 0=Top Volume, 1=Trending
 
   static const _tabs = [
     (Icons.bar_chart_rounded, 'Top Volume'),
     (Icons.trending_up_rounded, 'Trending'),
-    (Icons.verified_rounded, 'ECX Listed'),
   ];
 
   List<Asset> get _tabAssets {
@@ -1711,18 +1710,13 @@ class _TopOpportunitiesSectionState extends State<TopOpportunitiesSection> {
       case 0:
         return ([...all]
               ..sort((a, b) => (b.volume24h ?? 0).compareTo(a.volume24h ?? 0)))
-            .take(5)
+            .take(3)
             .toList();
       case 1:
         return ([...all]..sort(
                 (a, b) => (b.change24h ?? 0).compareTo(a.change24h ?? 0)))
             .where((a) => (a.change24h ?? 0) > 0)
-            .take(5)
-            .toList();
-      case 2:
-        return ([...all.where((a) => a.isEcxListed)]
-              ..sort((a, b) => (b.volume24h ?? 0).compareTo(a.volume24h ?? 0)))
-            .take(5)
+            .take(3)
             .toList();
       default:
         return [];
@@ -1745,11 +1739,6 @@ class _TopOpportunitiesSectionState extends State<TopOpportunitiesSection> {
             .where((a) => (a.change24h ?? 0) > 0)
             .take(5)
             .toList();
-      case 2:
-        return ([...all.where((a) => a.isEcxListed)]
-              ..sort((a, b) => (b.volume24h ?? 0).compareTo(a.volume24h ?? 0)))
-            .take(5)
-            .toList();
       default:
         return [];
     }
@@ -1758,14 +1747,13 @@ class _TopOpportunitiesSectionState extends State<TopOpportunitiesSection> {
   static const _tabColors = [
     TradEtTheme.primaryLight,
     TradEtTheme.positive,
-    TradEtTheme.accent,
   ];
 
   Widget _buildDesktopLayout() {
     return IntrinsicHeight(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: List.generate(3, (i) {
+        children: List.generate(2, (i) {
           final assets = _assetsForTab(i);
           final color = _tabColors[i];
           return Expanded(
@@ -1827,11 +1815,7 @@ class _TopOpportunitiesSectionState extends State<TopOpportunitiesSection> {
     if (wide) return _buildDesktopLayout();
 
     final assets = _tabAssets;
-    final tabColor = [
-      TradEtTheme.primaryLight,
-      TradEtTheme.positive,
-      TradEtTheme.accent,
-    ][_tab];
+    final tabColor = _tabColors[_tab];
 
     return Container(
       decoration: BoxDecoration(
@@ -1842,18 +1826,19 @@ class _TopOpportunitiesSectionState extends State<TopOpportunitiesSection> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header + tab row
           Padding(
-            padding: const EdgeInsets.fromLTRB(14, 14, 14, 0),
-            child: Row(
+            padding: const EdgeInsets.fromLTRB(14, 14, 14, 10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Title on its own row
                 const Text('Top Opportunities',
                     style: TextStyle(
-                        fontSize: 14,
+                        fontSize: 15,
                         fontWeight: FontWeight.w700,
                         color: Colors.white)),
-                const Spacer(),
-                // Tab pills
+                const SizedBox(height: 10),
+                // Tab pills row
                 Container(
                   padding: const EdgeInsets.all(3),
                   decoration: BoxDecoration(
@@ -1864,11 +1849,7 @@ class _TopOpportunitiesSectionState extends State<TopOpportunitiesSection> {
                     mainAxisSize: MainAxisSize.min,
                     children: List.generate(_tabs.length, (i) {
                       final sel = _tab == i;
-                      final color = [
-                        TradEtTheme.primaryLight,
-                        TradEtTheme.positive,
-                        TradEtTheme.accent,
-                      ][i];
+                      final color = _tabColors[i];
                       return GestureDetector(
                         onTap: () => setState(() => _tab = i),
                         child: MouseRegion(
@@ -1876,33 +1857,30 @@ class _TopOpportunitiesSectionState extends State<TopOpportunitiesSection> {
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 160),
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 5),
+                                horizontal: 14, vertical: 7),
                             decoration: BoxDecoration(
                               color: sel
                                   ? color.withValues(alpha: 0.18)
                                   : Colors.transparent,
                               borderRadius: BorderRadius.circular(7),
                               border: sel
-                                  ? Border.all(
-                                      color: color.withValues(alpha: 0.4))
+                                  ? Border.all(color: color.withValues(alpha: 0.4))
                                   : null,
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Icon(_tabs[i].$1,
-                                    size: 12,
+                                    size: 13,
                                     color: sel ? color : TradEtTheme.textMuted),
-                                const SizedBox(width: 4),
+                                const SizedBox(width: 5),
                                 Text(_tabs[i].$2,
                                     style: TextStyle(
-                                        fontSize: 10,
+                                        fontSize: 11,
                                         fontWeight: sel
                                             ? FontWeight.w700
                                             : FontWeight.w500,
-                                        color: sel
-                                            ? color
-                                            : TradEtTheme.textMuted)),
+                                        color: sel ? color : TradEtTheme.textMuted)),
                               ],
                             ),
                           ),
@@ -1914,7 +1892,6 @@ class _TopOpportunitiesSectionState extends State<TopOpportunitiesSection> {
               ],
             ),
           ),
-          const SizedBox(height: 8),
           Divider(height: 1, color: TradEtTheme.divider.withValues(alpha: 0.3)),
           // Asset rows
           if (assets.isEmpty)
@@ -2001,7 +1978,7 @@ class _OpportunityRow extends StatelessWidget {
                     ),
                 ],
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 16),
               // Buy button
               GestureDetector(
                 onTap: () => Navigator.of(context)
@@ -2010,14 +1987,14 @@ class _OpportunityRow extends StatelessWidget {
                   cursor: SystemMouseCursors.click,
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 6),
+                        horizontal: 18, vertical: 9),
                     decoration: BoxDecoration(
                       gradient: TradEtTheme.heroGradient,
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(10),
                     ),
                     child: const Text('Buy',
                         style: TextStyle(
-                            fontSize: 11,
+                            fontSize: 13,
                             fontWeight: FontWeight.w700,
                             color: Colors.white)),
                   ),
@@ -2143,12 +2120,32 @@ Widget _mobileMoversGrid(List<dynamic> assets) {
     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
       crossAxisCount: 4,
       crossAxisSpacing: 10,
-      mainAxisSpacing: 12,
-      childAspectRatio: 0.82,
+      mainAxisSpacing: 14,
+      childAspectRatio: 0.72,
     ),
     itemCount: assets.length,
     itemBuilder: (context, i) => _MoverGridItem(asset: assets[i]),
   );
+}
+
+String _assetEmoji(String symbol, String? categoryName) {
+  final s = symbol.toUpperCase();
+  if (s.contains('COFFEE')) return '☕';
+  if (s.contains('MAIZE') || s.contains('CORN')) return '🌽';
+  if (s.contains('BEAN')) return '🫘';
+  if (s.contains('SESAME')) return '🌾';
+  if (s.contains('SOY')) return '🌱';
+  if (s.contains('CHICKPEA')) return '🥜';
+  if (s.contains('WHEAT') || s.contains('SORGHUM')) return '🌾';
+  if (s.contains('SUKUK') || s.contains('GOV')) return '📜';
+  if (s.contains('GOLD')) return '🥇';
+  if (s.contains('HALAL') || s.contains('FOOD')) return '🍃';
+  final cat = categoryName?.toLowerCase() ?? '';
+  if (cat.contains('bank') || cat.contains('islamic')) return '🏦';
+  if (cat.contains('insurance') || cat.contains('takaful')) return '🛡️';
+  if (cat.contains('sukuk')) return '📜';
+  if (cat.contains('equity') || cat.contains('equities')) return '📈';
+  return '🌿';
 }
 
 Widget topMoversSection(AppProvider provider, NumberFormat fmt) {
@@ -2191,7 +2188,7 @@ class _MoverGridItem extends StatelessWidget {
     final change = asset.change24h;
     final isUp = (change ?? 0) >= 0;
     final symbol = (asset.symbol as String);
-    final initials = symbol.length >= 2 ? symbol.substring(0, 2) : symbol;
+    final emoji = _assetEmoji(symbol, asset.categoryName as String?);
 
     return GestureDetector(
       onTap: () => Navigator.of(context).push(appRoute(context, TradeScreen(asset: asset))),
@@ -2201,21 +2198,17 @@ class _MoverGridItem extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 56,
-              height: 56,
+              width: 68,
+              height: 68,
               decoration: BoxDecoration(
-                color: _bgColor.withValues(alpha: 0.15),
+                color: _bgColor.withValues(alpha: 0.18),
                 shape: BoxShape.circle,
-                border: Border.all(color: _bgColor.withValues(alpha: 0.35), width: 1.5),
+                border: Border.all(color: _bgColor.withValues(alpha: 0.4), width: 1.5),
               ),
               alignment: Alignment.center,
-              child: Text(initials,
-                  style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w800,
-                      color: _bgColor)),
+              child: Text(emoji, style: const TextStyle(fontSize: 26)),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 7),
             Text(symbol,
                 style: const TextStyle(
                     fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white),
