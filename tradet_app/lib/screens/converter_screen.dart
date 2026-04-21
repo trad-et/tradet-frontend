@@ -28,26 +28,36 @@ class _ConverterScreenState extends State<ConverterScreen> {
 
   final _currencies = ['ETB', 'USD', 'EUR', 'GBP', 'SAR', 'AED', 'KES',
       'CAD', 'CHF', 'CNY', 'INR', 'JPY'];
-  final _currencyNames = {
-    'ETB': 'Ethiopian Birr',
-    'USD': 'US Dollar',
-    'EUR': 'Euro',
-    'GBP': 'British Pound',
-    'SAR': 'Saudi Riyal',
-    'AED': 'UAE Dirham',
-    'KES': 'Kenyan Shilling',
-    'CAD': 'Canadian Dollar',
-    'CHF': 'Swiss Franc',
-    'CNY': 'Chinese Yuan',
-    'INR': 'Indian Rupee',
-    'JPY': 'Japanese Yen',
+
+  static const _allNames = {
+    'ETB': 'Ethiopian Birr',  'USD': 'US Dollar',
+    'EUR': 'Euro',            'GBP': 'British Pound',
+    'SAR': 'Saudi Riyal',     'AED': 'UAE Dirham',
+    'KES': 'Kenyan Shilling', 'CAD': 'Canadian Dollar',
+    'CHF': 'Swiss Franc',     'CNY': 'Chinese Yuan',
+    'INR': 'Indian Rupee',    'JPY': 'Japanese Yen',
+    'TRY': 'Turkish Lira',    'ZAR': 'South African Rand',
+    'EGP': 'Egyptian Pound',  'QAR': 'Qatari Riyal',
+    'KWD': 'Kuwaiti Dinar',   'SGD': 'Singapore Dollar',
+    'DKK': 'Danish Krone',    'NOK': 'Norwegian Krone',
+    'SEK': 'Swedish Krona',   'AUD': 'Australian Dollar',
+    'HKD': 'Hong Kong Dollar','MYR': 'Malaysian Ringgit',
+    'RUB': 'Russian Ruble',   'BHD': 'Bahraini Dinar',
+    'OMR': 'Omani Rial',      'DZD': 'Algerian Dinar',
+    'MAD': 'Moroccan Dirham', 'TZS': 'Tanzanian Shilling',
+    'UGX': 'Ugandan Shilling','SDG': 'Sudanese Pound',
   };
+  Map<String, String> get _currencyNames => _allNames;
+
   static const _allFlags = {
     'ETB': '🇪🇹', 'USD': '🇺🇸', 'EUR': '🇪🇺', 'GBP': '🇬🇧',
     'SAR': '🇸🇦', 'AED': '🇦🇪', 'KES': '🇰🇪', 'CAD': '🇨🇦',
     'CHF': '🇨🇭', 'CNY': '🇨🇳', 'INR': '🇮🇳', 'JPY': '🇯🇵',
     'TRY': '🇹🇷', 'ZAR': '🇿🇦', 'EGP': '🇪🇬', 'QAR': '🇶🇦',
-    'KWD': '🇰🇼', 'SGD': '🇸🇬',
+    'KWD': '🇰🇼', 'SGD': '🇸🇬', 'DKK': '🇩🇰', 'NOK': '🇳🇴',
+    'SEK': '🇸🇪', 'AUD': '🇦🇺', 'HKD': '🇭🇰', 'MYR': '🇲🇾',
+    'BHD': '🇧🇭', 'OMR': '🇴🇲', 'MAD': '🇲🇦', 'TZS': '🇹🇿',
+    'UGX': '🇺🇬', 'SDG': '🇸🇩',
   };
   Map<String, String> get _currencyFlags => _allFlags;
 
