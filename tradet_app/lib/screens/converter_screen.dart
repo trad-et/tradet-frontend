@@ -6,6 +6,7 @@ import '../models/models.dart';
 import '../providers/app_provider.dart';
 import '../theme.dart';
 import '../widgets/responsive_layout.dart';
+import '../widgets/dashboard_widgets.dart' show ExchangeRateTicker;
 
 class ConverterScreen extends StatefulWidget {
   const ConverterScreen({super.key});
@@ -98,7 +99,12 @@ class _ConverterScreenState extends State<ConverterScreen> {
                     color: Colors.white, letterSpacing: -0.5)),
             const Text('የምንዛሬ መቀየሪያ • NBE Exchange Rates',
                 style: TextStyle(fontSize: 13, color: TradEtTheme.textSecondary)),
-            const SizedBox(height: 24),
+            const SizedBox(height: 14),
+            // Live exchange rate ticker
+            Consumer<AppProvider>(
+              builder: (_, prov, __) => ExchangeRateTicker(api: prov.api),
+            ),
+            const SizedBox(height: 14),
 
             // Converter card
             Container(

@@ -2578,8 +2578,9 @@ void showWithdrawSheet(BuildContext context) {
   );
 }
 
-// ─── Yahoo Finance-style Market Strip ─────────────────────────────────────────
-// Category tabs + horizontal asset row. Replaces ExchangeRateTicker on dashboard.
+// ─── Market Strip ─────────────────────────────────────────────────────────────
+// Dropdown category filter + paginated asset row with prev/next arrows.
+// Only shows ECX-listed (Ethiopian) Sharia-compliant assets.
 
 class MarketStrip extends StatefulWidget {
   final AppProvider provider;
@@ -2593,185 +2594,262 @@ class MarketStrip extends StatefulWidget {
 
 class _MarketStripState extends State<MarketStrip> {
   String _category = 'all';
+  int _page = 0;
 
   static const _categories = [
     ('all', 'All'),
     ('commodity', 'Commodities'),
     ('equity', 'Equities'),
     ('sukuk', 'Sukuk'),
+    ('metal', 'Metals'),
   ];
 
+  // Only Ethiopian ECX-listed assets, no foreign equities
   List<Asset> get _assets {
-    final src = widget.provider.assets.where((a) => a.isShariaCompliant).toList();
+    final src = widget.provider.assets
+        .where((a) => a.isShariaCompliant && a.isEcxListed)
+        .toList();
     if (_category == 'all') return src;
     return src.where((a) => a.categoryType == _category).toList();
+  }
+
+  int _pageSize(bool wide) => wide ? 6 : 3;
+
+  List<Asset> _pageAssets(bool wide) {
+    final all = _assets;
+    if (all.isEmpty) return [];
+    final size = _pageSize(wide);
+    final start = (_page * size).clamp(0, all.length);
+    final end = (start + size).clamp(0, all.length);
+    return all.sublist(start, end);
+  }
+
+  int _maxPage(bool wide) {
+    final total = _assets.length;
+    if (total == 0) return 0;
+    return ((total - 1) / _pageSize(wide)).floor();
+  }
+
+  void _setCategory(String cat) {
+    setState(() {
+      _category = cat;
+      _page = 0;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final wide = isWideScreen(context);
+
     if (widget.provider.assetsLoading && widget.provider.assets.isEmpty) {
-      return const SizedBox(height: 60,
+      return const SizedBox(height: 70,
           child: Center(child: CircularProgressIndicator(
               strokeWidth: 2, color: TradEtTheme.positive)));
     }
     if (widget.provider.assets.isEmpty) return const SizedBox.shrink();
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Section header
-        Row(
-          children: [
-            const Icon(Icons.show_chart_rounded, size: 14, color: TradEtTheme.primaryLight),
-            const SizedBox(width: 6),
-            const Text('Market',
-                style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white)),
-            const Spacer(),
-            GestureDetector(
-              onTap: () => widget.onNavigateTo?.call(1),
-              child: const Text('View All →',
-                  style: TextStyle(fontSize: 11, color: TradEtTheme.primaryLight)),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        // Category pills
-        SizedBox(
-          height: 28,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            children: _categories.map((c) {
-              final selected = _category == c.$1;
-              return GestureDetector(
-                onTap: () => setState(() => _category = c.$1),
-                child: MouseRegion(
-                  cursor: SystemMouseCursors.click,
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 180),
-                    margin: const EdgeInsets.only(right: 8),
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: selected
-                          ? TradEtTheme.positive.withValues(alpha: 0.18)
-                          : TradEtTheme.surfaceLight,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: selected
-                            ? TradEtTheme.positive.withValues(alpha: 0.5)
-                            : TradEtTheme.divider.withValues(alpha: 0.3),
-                      ),
-                    ),
-                    child: Text(c.$2,
-                        style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                            color: selected ? TradEtTheme.positive : TradEtTheme.textSecondary)),
-                  ),
-                ),
-              );
-            }).toList(),
+    final visible = _pageAssets(wide);
+    final maxPage = _maxPage(wide);
+    final hasPrev = _page > 0;
+    final hasNext = _page < maxPage;
+
+    // Derive available category keys from actual asset data
+    final availableTypes = widget.provider.assets
+        .where((a) => a.isShariaCompliant && a.isEcxListed)
+        .map((a) => a.categoryType)
+        .whereType<String>()
+        .toSet();
+    final dropdownItems = _categories
+        .where((c) => c.$1 == 'all' || availableTypes.contains(c.$1))
+        .toList();
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: TradEtTheme.cardBg,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: TradEtTheme.divider.withValues(alpha: 0.25)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // Category dropdown
+          _CategoryDropdown(
+            value: _category,
+            items: dropdownItems,
+            onChanged: _setCategory,
           ),
-        ),
-        const SizedBox(height: 10),
-        // Asset row
-        SizedBox(
-          height: 80,
-          child: ScrollConfiguration(
-            behavior: ScrollConfiguration.of(context).copyWith(
-              dragDevices: {PointerDeviceKind.touch, PointerDeviceKind.mouse},
-            ),
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemCount: _assets.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 10),
-              itemBuilder: (context, i) {
-                final a = _assets[i];
-                final isUp = (a.change24h ?? 0) >= 0;
-                return GestureDetector(
-                  onTap: () => Navigator.of(context).push(appRoute(context, TradeScreen(asset: a))),
-                  child: MouseRegion(
-                    cursor: SystemMouseCursors.click,
-                    child: Container(
-                      width: wide ? 160 : 130,
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: TradEtTheme.cardBg,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
-                          color: TradEtTheme.divider.withValues(alpha: 0.25)),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(a.symbol,
-                                    overflow: TextOverflow.ellipsis,
+          const SizedBox(width: 10),
+          // Asset cards — fill remaining space equally
+          Expanded(
+            child: Row(
+              children: visible.isEmpty
+                  ? [const Expanded(
+                      child: Text('No assets',
+                          style: TextStyle(
+                              fontSize: 11, color: TradEtTheme.textMuted)))]
+                  : visible.map((a) {
+                      final isUp = (a.change24h ?? 0) >= 0;
+                      return Expanded(
+                        child: GestureDetector(
+                          onTap: () => Navigator.of(context)
+                              .push(appRoute(context, TradeScreen(asset: a))),
+                          child: MouseRegion(
+                            cursor: SystemMouseCursors.click,
+                            child: Container(
+                              margin: const EdgeInsets.only(right: 8),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: TradEtTheme.surfaceLight,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: TradEtTheme.divider
+                                      .withValues(alpha: 0.2)),
+                              ),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(a.symbol,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: const TextStyle(
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.w700,
+                                                color: Colors.white)),
+                                      ),
+                                      if (a.sparkline.length >= 2)
+                                        MiniSparkline(
+                                            data: a.sparkline,
+                                            height: 20,
+                                            width: 32),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    a.price != null
+                                        ? widget.fmt.format(a.price)
+                                        : '--',
                                     style: const TextStyle(
                                         fontSize: 12,
-                                        fontWeight: FontWeight.w700,
-                                        color: Colors.white)),
-                              ),
-                              if (a.change24h != null)
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 4, vertical: 1),
-                                  decoration: BoxDecoration(
-                                    color: (isUp ? TradEtTheme.positive : TradEtTheme.negative)
-                                        .withValues(alpha: 0.15),
-                                    borderRadius: BorderRadius.circular(4),
+                                        fontWeight: FontWeight.w800,
+                                        color: Colors.white),
+                                    overflow: TextOverflow.ellipsis,
                                   ),
-                                  child: Text(
-                                    '${isUp ? "+" : ""}${a.change24h!.toStringAsFixed(2)}%',
-                                    style: TextStyle(
-                                        fontSize: 9,
-                                        fontWeight: FontWeight.w700,
-                                        color: isUp
-                                            ? TradEtTheme.positive
-                                            : TradEtTheme.negative),
-                                  ),
-                                ),
-                            ],
-                          ),
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  a.price != null
-                                      ? widget.fmt.format(a.price)
-                                      : '--',
-                                  style: const TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w800,
-                                      color: Colors.white),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
+                                  if (a.change24h != null)
+                                    Text(
+                                      '${isUp ? "+" : ""}${a.change24h!.toStringAsFixed(2)}%',
+                                      style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w600,
+                                          color: isUp
+                                              ? TradEtTheme.positive
+                                              : TradEtTheme.negative),
+                                    ),
+                                ],
                               ),
-                              if (a.sparkline.length >= 2)
-                                MiniSparkline(
-                                  data: a.sparkline,
-                                  height: 24,
-                                  width: 40,
-                                ),
-                            ],
+                            ),
                           ),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              },
+                        ),
+                      );
+                    }).toList(),
             ),
           ),
+          // Prev / Next arrows
+          _ArrowBtn(
+            icon: Icons.chevron_left_rounded,
+            enabled: hasPrev,
+            onTap: () => setState(() => _page--),
+          ),
+          const SizedBox(width: 2),
+          _ArrowBtn(
+            icon: Icons.chevron_right_rounded,
+            enabled: hasNext,
+            onTap: () => setState(() => _page++),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CategoryDropdown extends StatelessWidget {
+  final String value;
+  final List<(String, String)> items;
+  final void Function(String) onChanged;
+  const _CategoryDropdown(
+      {required this.value, required this.items, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: TradEtTheme.surfaceLight,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+            color: TradEtTheme.positive.withValues(alpha: 0.35)),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: value,
+          isDense: true,
+          icon: const Icon(Icons.keyboard_arrow_down_rounded,
+              size: 14, color: TradEtTheme.positive),
+          dropdownColor: const Color(0xFF1A3A25),
+          style: const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: TradEtTheme.positive),
+          items: items
+              .map((c) => DropdownMenuItem(
+                    value: c.$1,
+                    child: Text(c.$2),
+                  ))
+              .toList(),
+          onChanged: (v) { if (v != null) onChanged(v); },
         ),
-      ],
+      ),
+    );
+  }
+}
+
+class _ArrowBtn extends StatelessWidget {
+  final IconData icon;
+  final bool enabled;
+  final VoidCallback onTap;
+  const _ArrowBtn(
+      {required this.icon, required this.enabled, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: enabled ? onTap : null,
+      child: MouseRegion(
+        cursor:
+            enabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
+        child: Container(
+          width: 28,
+          height: 28,
+          decoration: BoxDecoration(
+            color: enabled
+                ? TradEtTheme.surfaceLight
+                : TradEtTheme.surfaceLight.withValues(alpha: 0.4),
+            borderRadius: BorderRadius.circular(7),
+            border: Border.all(
+                color: TradEtTheme.divider.withValues(
+                    alpha: enabled ? 0.4 : 0.15)),
+          ),
+          child: Icon(icon,
+              size: 18,
+              color: enabled
+                  ? TradEtTheme.primaryLight
+                  : TradEtTheme.textMuted.withValues(alpha: 0.4)),
+        ),
+      ),
     );
   }
 }
