@@ -2995,16 +2995,11 @@ class _ArrowBtn extends StatelessWidget {
           width: 28,
           height: 28,
           decoration: BoxDecoration(
-            color: TradEtTheme.surfaceLight,
+            color: TradEtTheme.primaryLight.withValues(alpha: 0.15),
             borderRadius: BorderRadius.circular(7),
-            border: Border.all(
-                color: TradEtTheme.divider.withValues(alpha: 0.35)),
+            border: Border.all(color: TradEtTheme.primaryLight.withValues(alpha: 0.5)),
           ),
-          child: Icon(icon,
-              size: 18,
-              color: enabled
-                  ? TradEtTheme.primaryLight
-                  : TradEtTheme.textMuted),
+          child: Icon(icon, size: 18, color: Colors.white),
         ),
       ),
     );
