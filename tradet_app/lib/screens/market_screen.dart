@@ -330,7 +330,7 @@ class _MarketScreenState extends State<MarketScreen> {
                     child: _TableHeader('24h Change'),
                   ),
                 ),
-                SizedBox(width: 64), // _QuickActions space
+                SizedBox(width: 160), // Buy/Sell + star + bell
               ],
             ),
           ),
@@ -751,6 +751,36 @@ class _WebAssetRowState extends State<_WebAssetRow> {
   }
 }
 
+// ─── Compact trade button used in market list ───
+class _MktBtn extends StatelessWidget {
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+  const _MktBtn(this.label, this.color, this.onTap);
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(7),
+            border: Border.all(color: color.withValues(alpha: 0.4)),
+          ),
+          child: Text(label,
+              style: TextStyle(
+                  fontSize: 11, fontWeight: FontWeight.w700, color: color)),
+        ),
+      ),
+    );
+  }
+}
+
 // ─── Mobile: Asset Card (fixed layout — no overlap) ───
 class _AssetCard extends StatelessWidget {
   final Asset asset;
@@ -827,23 +857,53 @@ class _AssetCard extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 8),
-            // Price + change (right side)
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  asset.price != null ? fmt.format(asset.price) : '—',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 14,
-                    color: Colors.white,
-                  ),
-                ),
-                if (asset.change24h != null) ...[
-                  const SizedBox(height: 4),
-                  PriceChange(change: asset.change24h!, fontSize: 11),
-                ],
-              ],
+            // Price + change + buy/sell
+            Consumer<AppProvider>(
+              builder: (ctx, prov, _) {
+                final hasCash = prov.availableCashBalance > 0;
+                final hasHolding = prov.holdings.any(
+                    (h) => h.assetId == asset.id || h.symbol == asset.symbol);
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      asset.price != null ? fmt.format(asset.price) : '—',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 14,
+                        color: Colors.white,
+                      ),
+                    ),
+                    if (asset.change24h != null) ...[
+                      const SizedBox(height: 2),
+                      PriceChange(change: asset.change24h!, fontSize: 11),
+                    ],
+                    if (hasCash || hasHolding) ...[
+                      const SizedBox(height: 6),
+                      GestureDetector(
+                        onTap: () {},
+                        behavior: HitTestBehavior.opaque,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (hasCash) ...[
+                              _MktBtn('Buy', TradEtTheme.positive,
+                                  () => Navigator.of(ctx).push(
+                                      appRoute(ctx, TradeScreen(asset: asset)))),
+                            ],
+                            if (hasCash && hasHolding)
+                              const SizedBox(width: 6),
+                            if (hasHolding)
+                              _MktBtn('Sell', TradEtTheme.negative,
+                                  () => Navigator.of(ctx).push(
+                                      appRoute(ctx, TradeScreen(asset: asset)))),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ],
+                );
+              },
             ),
           ],
         ),
@@ -1084,23 +1144,26 @@ class _QuickActions extends StatelessWidget {
             (a) => a.id == asset.id || a.symbol == asset.symbol,
           );
 
+          final hasCash = provider.availableCashBalance > 0;
+          final hasHolding = provider.holdings.any(
+              (h) => h.assetId == asset.id || h.symbol == asset.symbol);
           return Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Trade button
-              MouseRegion(
-                cursor: SystemMouseCursors.click,
-                child: GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () => Navigator.of(context).push(
-                    appRoute(context, TradeScreen(asset: asset))),
-                  child: Padding(
-                    padding: EdgeInsets.all(padding),
-                    child: const Icon(Icons.swap_horiz_rounded,
-                        size: iconSize, color: TradEtTheme.positive),
-                  ),
-                ),
-              ),
+              // Buy button
+              if (hasCash) ...[
+                _MktBtn('Buy', TradEtTheme.positive,
+                    () => Navigator.of(context).push(
+                        appRoute(context, TradeScreen(asset: asset)))),
+                const SizedBox(width: 6),
+              ],
+              // Sell button
+              if (hasHolding) ...[
+                _MktBtn('Sell', TradEtTheme.negative,
+                    () => Navigator.of(context).push(
+                        appRoute(context, TradeScreen(asset: asset)))),
+                const SizedBox(width: 4),
+              ],
               // Watchlist star toggle — uses Listener to stop parent tap
               MouseRegion(
                 cursor: SystemMouseCursors.click,
