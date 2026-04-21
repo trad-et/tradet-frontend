@@ -117,7 +117,7 @@ class _MarketScreenState extends State<MarketScreen> {
             const SizedBox(height: 12),
 
             if (!wide) ...[
-              // Mobile filter pills
+              // Mobile filter pills — trailing SizedBox ensures last item is fully visible
               SizedBox(
                 height: 36,
                 child: ListView(
@@ -130,6 +130,7 @@ class _MarketScreenState extends State<MarketScreen> {
                     _filterPill('Equities', 'equity'),
                     const SizedBox(width: 8),
                     _halalToggle(),
+                    const SizedBox(width: 20),
                   ],
                 ),
               ),
@@ -514,6 +515,27 @@ class _MarketScreenState extends State<MarketScreen> {
   }
 }
 
+// ─── Shared emoji logo helper ───
+String _assetEmoji(String symbol, String? categoryName) {
+  final s = symbol.toUpperCase();
+  if (s.contains('COFFEE')) return '☕';
+  if (s.contains('MAIZE') || s.contains('CORN')) return '🌽';
+  if (s.contains('BEAN')) return '🫘';
+  if (s.contains('SESAME')) return '🌾';
+  if (s.contains('SOY')) return '🌱';
+  if (s.contains('CHICKPEA')) return '🥜';
+  if (s.contains('WHEAT') || s.contains('SORGHUM')) return '🌾';
+  if (s.contains('SUKUK') || s.contains('GOV')) return '📜';
+  if (s.contains('GOLD')) return '🥇';
+  if (s.contains('HALAL') || s.contains('FOOD')) return '🍃';
+  final cat = categoryName?.toLowerCase() ?? '';
+  if (cat.contains('bank') || cat.contains('islamic')) return '🏦';
+  if (cat.contains('insurance') || cat.contains('takaful')) return '🛡️';
+  if (cat.contains('sukuk')) return '📜';
+  if (cat.contains('equity') || cat.contains('equities')) return '📈';
+  return '🌿';
+}
+
 // ─── Table header text ───
 class _TableHeader extends StatelessWidget {
   final String text;
@@ -580,18 +602,20 @@ class _WebAssetRowState extends State<_WebAssetRow> {
           ),
           child: Row(
             children: [
-              // Category icon
+              // Emoji logo circle
               Container(
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
                   color: _categoryColor(asset).withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(12),
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                      color: _categoryColor(asset).withValues(alpha: 0.35)),
                 ),
-                child: Icon(
-                  _categoryIcon(asset),
-                  color: _categoryColor(asset),
-                  size: 20,
+                alignment: Alignment.center,
+                child: Text(
+                  _assetEmoji(asset.symbol, asset.categoryName),
+                  style: const TextStyle(fontSize: 22),
                 ),
               ),
               const SizedBox(width: 12),
@@ -803,18 +827,24 @@ class _AssetCard extends StatelessWidget {
         ),
         child: Row(
           children: [
-            // Category icon
+            // Emoji logo circle
+            // Emoji logo circle
             Container(
               width: 44,
               height: 44,
               decoration: BoxDecoration(
                 color: _categoryColor.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(12),
+                shape: BoxShape.circle,
+                border: Border.all(color: _categoryColor.withValues(alpha: 0.35)),
               ),
-              child: Icon(_categoryIcon, color: _categoryColor, size: 20),
+              alignment: Alignment.center,
+              child: Text(
+                _assetEmoji(asset.symbol, asset.categoryName),
+                style: const TextStyle(fontSize: 22),
+              ),
             ),
             const SizedBox(width: 10),
-            // Name + badges (separate rows to avoid overlap)
+            // Name + badges
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -838,72 +868,46 @@ class _AssetCard extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 5),
-                  // Badges on their own row
-                  Row(
-                    children: [
-                      ShariaBadge(
-                        isCompliant: asset.isShariaCompliant,
-                        complianceLevel: asset.complianceLevel,
-                        compact: true,
-                      ),
-                      if (asset.isEcxListed) ...[
-                        const SizedBox(width: 3),
-                        const EcxBadge(),
-                      ],
-                    ],
-                  ),
                 ],
               ),
             ),
             const SizedBox(width: 8),
-            // Price + change + buy/sell
-            Consumer<AppProvider>(
-              builder: (ctx, prov, _) {
-                final hasCash = prov.availableCashBalance > 0;
-                final hasHolding = prov.holdings.any(
-                    (h) => h.assetId == asset.id || h.symbol == asset.symbol);
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      asset.price != null ? fmt.format(asset.price) : '—',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 14,
-                        color: Colors.white,
-                      ),
-                    ),
-                    if (asset.change24h != null) ...[
-                      const SizedBox(height: 2),
-                      PriceChange(change: asset.change24h!, fontSize: 11),
-                    ],
-                    if (hasCash || hasHolding) ...[
-                      const SizedBox(height: 6),
-                      GestureDetector(
-                        onTap: () {},
-                        behavior: HitTestBehavior.opaque,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            if (hasCash) ...[
-                              _MktBtn('Buy', TradEtTheme.positive,
-                                  () => Navigator.of(ctx).push(
-                                      appRoute(ctx, TradeScreen(asset: asset)))),
-                            ],
-                            if (hasCash && hasHolding)
-                              const SizedBox(width: 6),
-                            if (hasHolding)
-                              _MktBtn('Sell', TradEtTheme.negative,
-                                  () => Navigator.of(ctx).push(
-                                      appRoute(ctx, TradeScreen(asset: asset)))),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ],
-                );
-              },
+            // Price + change
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  asset.price != null ? fmt.format(asset.price) : '—',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14,
+                    color: Colors.white,
+                  ),
+                ),
+                if (asset.change24h != null) ...[
+                  const SizedBox(height: 3),
+                  PriceChange(change: asset.change24h!, fontSize: 11),
+                ],
+              ],
+            ),
+            const SizedBox(width: 10),
+            // Trade icon button
+            GestureDetector(
+              onTap: () => Navigator.of(context)
+                  .push(appRoute(context, TradeScreen(asset: asset))),
+              behavior: HitTestBehavior.opaque,
+              child: Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: TradEtTheme.primaryLight.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                      color: TradEtTheme.primaryLight.withValues(alpha: 0.35)),
+                ),
+                child: const Icon(Icons.swap_horiz_rounded,
+                    size: 18, color: TradEtTheme.primaryLight),
+              ),
             ),
           ],
         ),
@@ -1152,16 +1156,16 @@ class _QuickActions extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                // Buy button
-                if (hasCash) ...[
-                  _MktBtn('Buy', TradEtTheme.positive,
+                // Sell button first
+                if (hasHolding) ...[
+                  _MktBtn('Sell', TradEtTheme.negative,
                       () => Navigator.of(context).push(
                           appRoute(context, TradeScreen(asset: asset)))),
                   const SizedBox(width: 6),
                 ],
-                // Sell button
-                if (hasHolding) ...[
-                  _MktBtn('Sell', TradEtTheme.negative,
+                // Buy button after
+                if (hasCash) ...[
+                  _MktBtn('Buy', TradEtTheme.positive,
                       () => Navigator.of(context).push(
                           appRoute(context, TradeScreen(asset: asset)))),
                   const SizedBox(width: 4),

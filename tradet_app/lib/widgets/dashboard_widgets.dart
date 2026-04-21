@@ -2132,10 +2132,10 @@ Widget _mobileMoversGrid(List<dynamic> assets) {
     shrinkWrap: true,
     physics: const NeverScrollableScrollPhysics(),
     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-      crossAxisCount: 4,
-      crossAxisSpacing: 10,
-      mainAxisSpacing: 14,
-      childAspectRatio: 0.72,
+      crossAxisCount: 3,
+      crossAxisSpacing: 14,
+      mainAxisSpacing: 18,
+      childAspectRatio: 0.78,
     ),
     itemCount: assets.length,
     itemBuilder: (context, i) => _MoverGridItem(asset: assets[i]),
@@ -2212,8 +2212,8 @@ class _MoverGridItem extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 68,
-              height: 68,
+              width: 80,
+              height: 80,
               decoration: BoxDecoration(
                 color: _bgColor.withValues(alpha: 0.18),
                 shape: BoxShape.circle,
@@ -2268,7 +2268,7 @@ Widget webTopMoversSection(
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: crossAxisCount,
         crossAxisSpacing: 14,
-        mainAxisSpacing: 14,
+        mainAxisSpacing: 18,
         childAspectRatio: 1.5,
       ),
       itemCount: movers.length,
@@ -2321,7 +2321,7 @@ Widget webTopLosersSection(
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: crossAxisCount,
         crossAxisSpacing: 14,
-        mainAxisSpacing: 14,
+        mainAxisSpacing: 18,
         childAspectRatio: 1.5,
       ),
       itemCount: losers.length,

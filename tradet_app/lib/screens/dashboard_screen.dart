@@ -205,8 +205,27 @@ class DashboardScreen extends StatelessWidget {
               provider: provider, fmt: fmt, onNavigateTo: onNavigateTo),
         const SizedBox(height: 28),
 
-        // Top Opportunities
-        TopOpportunitiesSection(provider: provider, fmt: fmt),
+        // Top Opportunities + Watchlist side by side on desktop
+        if (desktop)
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(
+                  flex: 3,
+                  child: TopOpportunitiesSection(provider: provider, fmt: fmt),
+                ),
+                const SizedBox(width: 20),
+                Expanded(
+                  flex: 2,
+                  child: WatchlistMiniSection(
+                      provider: provider, fmt: fmt, onNavigateTo: onNavigateTo),
+                ),
+              ],
+            ),
+          )
+        else
+          TopOpportunitiesSection(provider: provider, fmt: fmt),
         const SizedBox(height: 28),
 
         // Top Movers / Losers segmented
