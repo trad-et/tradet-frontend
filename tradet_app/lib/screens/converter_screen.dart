@@ -26,7 +26,8 @@ class _ConverterScreenState extends State<ConverterScreen> {
   double? _convertedAmount;
   double? _rate;
 
-  final _currencies = ['ETB', 'USD', 'EUR', 'GBP', 'SAR', 'AED', 'KES'];
+  final _currencies = ['ETB', 'USD', 'EUR', 'GBP', 'SAR', 'AED', 'KES',
+      'CAD', 'CHF', 'CNY', 'INR', 'JPY'];
   final _currencyNames = {
     'ETB': 'Ethiopian Birr',
     'USD': 'US Dollar',
@@ -35,11 +36,20 @@ class _ConverterScreenState extends State<ConverterScreen> {
     'SAR': 'Saudi Riyal',
     'AED': 'UAE Dirham',
     'KES': 'Kenyan Shilling',
+    'CAD': 'Canadian Dollar',
+    'CHF': 'Swiss Franc',
+    'CNY': 'Chinese Yuan',
+    'INR': 'Indian Rupee',
+    'JPY': 'Japanese Yen',
   };
-  final _currencyFlags = {
+  static const _allFlags = {
     'ETB': '🇪🇹', 'USD': '🇺🇸', 'EUR': '🇪🇺', 'GBP': '🇬🇧',
-    'SAR': '🇸🇦', 'AED': '🇦🇪', 'KES': '🇰🇪',
+    'SAR': '🇸🇦', 'AED': '🇦🇪', 'KES': '🇰🇪', 'CAD': '🇨🇦',
+    'CHF': '🇨🇭', 'CNY': '🇨🇳', 'INR': '🇮🇳', 'JPY': '🇯🇵',
+    'TRY': '🇹🇷', 'ZAR': '🇿🇦', 'EGP': '🇪🇬', 'QAR': '🇶🇦',
+    'KWD': '🇰🇼', 'SGD': '🇸🇬',
   };
+  Map<String, String> get _currencyFlags => _allFlags;
 
   @override
   void initState() {

@@ -1326,9 +1326,18 @@ class _ExchangeRateTickerState extends State<ExchangeRateTicker>
     );
   }
 
+  static const _flags = {
+    'USD': '🇺🇸', 'EUR': '🇪🇺', 'GBP': '🇬🇧', 'SAR': '🇸🇦',
+    'AED': '🇦🇪', 'KES': '🇰🇪', 'ETB': '🇪🇹', 'CAD': '🇨🇦',
+    'CHF': '🇨🇭', 'CNY': '🇨🇳', 'INR': '🇮🇳', 'JPY': '🇯🇵',
+    'TRY': '🇹🇷', 'ZAR': '🇿🇦', 'EGP': '🇪🇬', 'QAR': '🇶🇦',
+    'KWD': '🇰🇼', 'SGD': '🇸🇬',
+  };
+
   Widget _rateChip(MapEntry<String, ExchangeRate> entry) {
+    final flag = _flags[entry.key] ?? '';
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: TradEtTheme.cardBg,
         borderRadius: BorderRadius.circular(12),
@@ -1337,8 +1346,12 @@ class _ExchangeRateTickerState extends State<ExchangeRateTicker>
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
+          if (flag.isNotEmpty) ...[
+            Text(flag, style: const TextStyle(fontSize: 14)),
+            const SizedBox(width: 6),
+          ],
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
             decoration: BoxDecoration(
               color: TradEtTheme.accent.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(4),
@@ -1669,7 +1682,9 @@ class TopOpportunitiesSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final assets = provider.assets.where((a) => a.isShariaCompliant).toList();
+    final assets = provider.assets
+        .where((a) => a.isShariaCompliant && _isLocal(a))
+        .toList();
     if (assets.isEmpty) return const SizedBox.shrink();
 
     // Top Volume — highest volume24h
@@ -2129,14 +2144,22 @@ Widget webTopLosersSection(
   return const SizedBox.shrink();
 }
 
+/// Returns true for Ethiopian market assets (excludes foreign/global equities).
+bool _isLocal(dynamic a) =>
+    a.categoryName?.toLowerCase().contains('global') != true;
+
 List<dynamic> getTopMovers(AppProvider provider) {
-  final gainers = provider.assets.where((a) => (a.change24h ?? 0) > 0).toList()
+  final gainers = provider.assets
+      .where((a) => _isLocal(a) && (a.change24h ?? 0) > 0)
+      .toList()
     ..sort((a, b) => (b.change24h ?? 0).compareTo(a.change24h ?? 0));
   return gainers.take(6).toList();
 }
 
 List<dynamic> getTopLosers(AppProvider provider) {
-  final losers = provider.assets.where((a) => (a.change24h ?? 0) < 0).toList()
+  final losers = provider.assets
+      .where((a) => _isLocal(a) && (a.change24h ?? 0) < 0)
+      .toList()
     ..sort((a, b) => (a.change24h ?? 0).compareTo(b.change24h ?? 0));
   return losers.take(6).toList();
 }
@@ -2604,10 +2627,10 @@ class _MarketStripState extends State<MarketStrip> {
     ('metal', 'Metals'),
   ];
 
-  // Only Ethiopian ECX-listed assets, no foreign equities
+  // Only local Ethiopian assets (ECX listed or non-global), no foreign equities
   List<Asset> get _assets {
     final src = widget.provider.assets
-        .where((a) => a.isShariaCompliant && a.isEcxListed)
+        .where((a) => a.isShariaCompliant && _isLocal(a))
         .toList();
     if (_category == 'all') return src;
     return src.where((a) => a.categoryType == _category).toList();
@@ -2653,16 +2676,6 @@ class _MarketStripState extends State<MarketStrip> {
     final hasPrev = _page > 0;
     final hasNext = _page < maxPage;
 
-    // Derive available category keys from actual asset data
-    final availableTypes = widget.provider.assets
-        .where((a) => a.isShariaCompliant && a.isEcxListed)
-        .map((a) => a.categoryType)
-        .whereType<String>()
-        .toSet();
-    final dropdownItems = _categories
-        .where((c) => c.$1 == 'all' || availableTypes.contains(c.$1))
-        .toList();
-
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
@@ -2670,33 +2683,42 @@ class _MarketStripState extends State<MarketStrip> {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: TradEtTheme.divider.withValues(alpha: 0.25)),
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          // Category dropdown
-          _CategoryDropdown(
-            value: _category,
-            items: dropdownItems,
-            onChanged: _setCategory,
-          ),
-          const SizedBox(width: 10),
-          // Asset cards — fill remaining space equally
-          Expanded(
-            child: Row(
-              children: visible.isEmpty
-                  ? [const Expanded(
-                      child: Text('No assets',
-                          style: TextStyle(
-                              fontSize: 11, color: TradEtTheme.textMuted)))]
-                  : visible.map((a) {
-                      final isUp = (a.change24h ?? 0) >= 0;
-                      return Expanded(
-                        child: GestureDetector(
+      child: LayoutBuilder(builder: (context, constraints) {
+        // Compute card width: total width minus dropdown (~108), arrows (66), gaps
+        const dropdownW = 108.0;
+        const arrowsW = 66.0; // 2×28px + spacing
+        const outerGap = 10.0 + 4.0; // gap after dropdown + gap before arrows
+        final ps = _pageSize(wide);
+        final cardGaps = (ps - 1) * 8.0;
+        final cardsAreaW = constraints.maxWidth - dropdownW - arrowsW - outerGap;
+        final cardW = ((cardsAreaW - cardGaps) / ps).clamp(60.0, 260.0);
+
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Category dropdown — always show all categories
+            _CategoryDropdown(
+              value: _category,
+              items: _categories.toList(),
+              onChanged: _setCategory,
+            ),
+            const SizedBox(width: 10),
+            // Asset cards — fixed width, aligned left (no expansion when fewer items)
+            Expanded(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: visible.isEmpty
+                    ? [const Text('No assets',
+                        style: TextStyle(fontSize: 11, color: TradEtTheme.textMuted))]
+                    : visible.map((a) {
+                        final isUp = (a.change24h ?? 0) >= 0;
+                        return GestureDetector(
                           onTap: () => Navigator.of(context)
                               .push(appRoute(context, TradeScreen(asset: a))),
                           child: MouseRegion(
                             cursor: SystemMouseCursors.click,
                             child: Container(
+                              width: cardW,
                               margin: const EdgeInsets.only(right: 8),
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 8, vertical: 6),
@@ -2704,8 +2726,7 @@ class _MarketStripState extends State<MarketStrip> {
                                 color: TradEtTheme.surfaceLight,
                                 borderRadius: BorderRadius.circular(8),
                                 border: Border.all(
-                                  color: TradEtTheme.divider
-                                      .withValues(alpha: 0.2)),
+                                  color: TradEtTheme.divider.withValues(alpha: 0.2)),
                               ),
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
@@ -2725,14 +2746,12 @@ class _MarketStripState extends State<MarketStrip> {
                                         MiniSparkline(
                                             data: a.sparkline,
                                             height: 20,
-                                            width: 32),
+                                            width: 30),
                                     ],
                                   ),
                                   const SizedBox(height: 2),
                                   Text(
-                                    a.price != null
-                                        ? widget.fmt.format(a.price)
-                                        : '--',
+                                    a.price != null ? widget.fmt.format(a.price) : '--',
                                     style: const TextStyle(
                                         fontSize: 12,
                                         fontWeight: FontWeight.w800,
@@ -2753,25 +2772,26 @@ class _MarketStripState extends State<MarketStrip> {
                               ),
                             ),
                           ),
-                        ),
-                      );
-                    }).toList(),
+                        );
+                      }).toList(),
+              ),
             ),
-          ),
-          // Prev / Next arrows
-          _ArrowBtn(
-            icon: Icons.chevron_left_rounded,
-            enabled: hasPrev,
-            onTap: () => setState(() => _page--),
-          ),
-          const SizedBox(width: 2),
-          _ArrowBtn(
-            icon: Icons.chevron_right_rounded,
-            enabled: hasNext,
-            onTap: () => setState(() => _page++),
-          ),
-        ],
-      ),
+            const SizedBox(width: 4),
+            // Prev / Next arrows
+            _ArrowBtn(
+              icon: Icons.chevron_left_rounded,
+              enabled: hasPrev,
+              onTap: () => setState(() => _page--),
+            ),
+            const SizedBox(width: 2),
+            _ArrowBtn(
+              icon: Icons.chevron_right_rounded,
+              enabled: hasNext,
+              onTap: () => setState(() => _page++),
+            ),
+          ],
+        );
+      }),
     );
   }
 }
@@ -2835,19 +2855,16 @@ class _ArrowBtn extends StatelessWidget {
           width: 28,
           height: 28,
           decoration: BoxDecoration(
-            color: enabled
-                ? TradEtTheme.surfaceLight
-                : TradEtTheme.surfaceLight.withValues(alpha: 0.4),
+            color: TradEtTheme.surfaceLight,
             borderRadius: BorderRadius.circular(7),
             border: Border.all(
-                color: TradEtTheme.divider.withValues(
-                    alpha: enabled ? 0.4 : 0.15)),
+                color: TradEtTheme.divider.withValues(alpha: 0.35)),
           ),
           child: Icon(icon,
               size: 18,
               color: enabled
                   ? TradEtTheme.primaryLight
-                  : TradEtTheme.textMuted.withValues(alpha: 0.4)),
+                  : TradEtTheme.textMuted),
         ),
       ),
     );

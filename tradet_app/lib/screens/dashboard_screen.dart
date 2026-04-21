@@ -245,11 +245,6 @@ class DashboardScreen extends StatelessWidget {
   // ─── Shared widgets ───
 
   Widget _greeting(AppProvider provider, AppLocalizations l) {
-    final pnl = provider.portfolioSummary?.totalPnl ?? 0;
-    final hasPnl = provider.portfolioSummary != null;
-    final pnlColor = pnl >= 0 ? TradEtTheme.positive : TradEtTheme.negative;
-    final fmt = NumberFormat('#,##0.00', 'en');
-
     return Row(
       children: [
         Expanded(
@@ -273,27 +268,6 @@ class DashboardScreen extends StatelessWidget {
                     letterSpacing: -0.5,
                   ),
                 ),
-              if (hasPnl) ...[
-                const SizedBox(height: 2),
-                Row(
-                  children: [
-                    Icon(
-                      pnl >= 0 ? Icons.trending_up_rounded : Icons.trending_down_rounded,
-                      size: 12,
-                      color: pnlColor,
-                    ),
-                    const SizedBox(width: 3),
-                    Text(
-                      '${pnl >= 0 ? "+" : ""}${fmt.format(pnl)} ETB today',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: pnlColor,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
             ],
           ),
         ),

@@ -42,6 +42,8 @@ class _MarketScreenState extends State<MarketScreen> {
 
   List<Asset> _filteredAssets(AppProvider provider) {
     return provider.assets.where((a) {
+      // Hide foreign/global equities (frontend-only filter)
+      if (a.categoryName?.toLowerCase().contains('global') == true) return false;
       if (_filter != 'all' && a.categoryType != _filter) return false;
       if (_searchQuery.isNotEmpty) {
         return a.symbol.toLowerCase().contains(_searchQuery) ||
@@ -1085,6 +1087,20 @@ class _QuickActions extends StatelessWidget {
           return Row(
             mainAxisSize: MainAxisSize.min,
             children: [
+              // Trade button
+              MouseRegion(
+                cursor: SystemMouseCursors.click,
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => Navigator.of(context).push(
+                    appRoute(context, TradeScreen(asset: asset))),
+                  child: Padding(
+                    padding: EdgeInsets.all(padding),
+                    child: const Icon(Icons.swap_horiz_rounded,
+                        size: iconSize, color: TradEtTheme.positive),
+                  ),
+                ),
+              ),
               // Watchlist star toggle — uses Listener to stop parent tap
               MouseRegion(
                 cursor: SystemMouseCursors.click,
