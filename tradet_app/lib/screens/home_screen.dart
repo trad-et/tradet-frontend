@@ -430,18 +430,28 @@ class AppWebSidebar extends StatelessWidget {
             ),
           ),
 
-          // User info
+          // User info — tapping navigates to Profile
           Consumer<AppProvider>(
             builder: (context, provider, _) {
               final user = provider.user;
               if (user == null) return const SizedBox.shrink();
               return Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: Container(
+                child: MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                  child: GestureDetector(
+                    onTap: () => onTap(11),
+                    child: Container(
                   padding: EdgeInsets.all(isExpanded ? 12 : 8),
                   decoration: BoxDecoration(
-                    color: TradEtTheme.surface,
+                    color: currentIndex == 11
+                        ? TradEtTheme.primaryLight.withValues(alpha: 0.15)
+                        : TradEtTheme.surface,
                     borderRadius: BorderRadius.circular(12),
+                    border: currentIndex == 11
+                        ? Border.all(
+                            color: TradEtTheme.primaryLight.withValues(alpha: 0.2))
+                        : null,
                   ),
                   child: Row(
                     children: [
@@ -486,8 +496,10 @@ class AppWebSidebar extends StatelessWidget {
                       ],
                     ],
                   ),
-                ),
-              );
+                ),       // Container
+              ),         // GestureDetector
+            ),           // MouseRegion
+          );
             },
           ),
           const SizedBox(height: 8),

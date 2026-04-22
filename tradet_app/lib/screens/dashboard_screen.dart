@@ -10,6 +10,7 @@ import '../widgets/language_selector.dart';
 import '../widgets/dashboard_widgets.dart';
 import 'analytics_screen.dart';
 import 'transactions_screen.dart';
+import 'profile_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
   final void Function(int index)? onNavigateTo;
@@ -73,6 +74,16 @@ class DashboardScreen extends StatelessWidget {
                               ),
                             ),
                           ),
+                ),
+                const SizedBox(width: 8),
+                _ProfileAvatar(
+                  user: provider.user,
+                  onTap: () => onNavigateTo != null
+                      ? onNavigateTo(11)
+                      : Navigator.of(context).push(
+                          appRoute(context,
+                              const WrappedScreen(child: ProfileScreen(), showMobileAppBar: false)),
+                        ),
                 ),
               ],
             ),
@@ -169,6 +180,17 @@ class DashboardScreen extends StatelessWidget {
                     color: TradEtTheme.textSecondary,
                     onTap: () => provider.loadAllData(),
                   ),
+            const SizedBox(width: 8),
+            // Profile avatar
+            _ProfileAvatar(
+              user: provider.user,
+              onTap: () => onNavigateTo != null
+                  ? onNavigateTo(11)
+                  : Navigator.of(context).push(
+                      appRoute(context,
+                          const WrappedScreen(child: ProfileScreen(), showMobileAppBar: false)),
+                    ),
+            ),
           ],
         ),
         const SizedBox(height: 16),
@@ -810,6 +832,98 @@ class _ShariaComplianceScoreCard extends StatelessWidget {
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ─── Profile Avatar button ────────────────────────────────────────────────────
+
+class _ProfileAvatar extends StatefulWidget {
+  final dynamic user;
+  final VoidCallback onTap;
+  const _ProfileAvatar({required this.user, required this.onTap});
+
+  @override
+  State<_ProfileAvatar> createState() => _ProfileAvatarState();
+}
+
+class _ProfileAvatarState extends State<_ProfileAvatar> {
+  bool _hovering = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final name = widget.user?.fullName ?? '';
+    final initial = name.isNotEmpty ? name[0].toUpperCase() : '?';
+    final isVerified = widget.user?.kycStatus == 'verified';
+
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _hovering = true),
+      onExit: (_) => setState(() => _hovering = false),
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          width: 38,
+          height: 38,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: LinearGradient(
+              colors: [
+                TradEtTheme.primary,
+                TradEtTheme.primaryLight,
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            border: Border.all(
+              color: _hovering
+                  ? TradEtTheme.positive
+                  : TradEtTheme.primaryLight.withValues(alpha: 0.5),
+              width: 2,
+            ),
+            boxShadow: _hovering
+                ? [
+                    BoxShadow(
+                      color: TradEtTheme.primary.withValues(alpha: 0.4),
+                      blurRadius: 10,
+                      offset: const Offset(0, 3),
+                    )
+                  ]
+                : [],
+          ),
+          child: Stack(
+            children: [
+              Center(
+                child: Text(
+                  initial,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 15,
+                  ),
+                ),
+              ),
+              // KYC verified dot
+              if (isVerified)
+                Positioned(
+                  bottom: 1,
+                  right: 1,
+                  child: Container(
+                    width: 10,
+                    height: 10,
+                    decoration: BoxDecoration(
+                      color: TradEtTheme.positive,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                          color: TradEtTheme.primaryDark, width: 1.5),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
       ),
     );
   }
