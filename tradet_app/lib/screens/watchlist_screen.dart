@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../l10n/app_localizations.dart';
 import '../providers/app_provider.dart';
 import '../theme.dart';
+import '../utils/asset_emoji.dart';
 import '../widgets/price_change.dart';
 import '../widgets/responsive_layout.dart';
 import 'trade_screen.dart';
@@ -133,23 +134,19 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
                             ),
                             child: Row(
                               children: [
-                                // Symbol badge
+                                // Emoji logo
                                 Container(
                                   width: 44,
                                   height: 44,
                                   decoration: BoxDecoration(
                                     color: TradEtTheme.surfaceLight,
-                                    borderRadius: BorderRadius.circular(12),
+                                    shape: BoxShape.circle,
                                   ),
                                   alignment: Alignment.center,
                                   child: Text(
-                                    asset.symbol.substring(
-                                        0,
-                                        asset.symbol.length.clamp(0, 2)),
-                                    style: const TextStyle(
-                                        fontWeight: FontWeight.w800,
-                                        fontSize: 14,
-                                        color: Colors.white),
+                                    assetEmoji(asset.symbol,
+                                        asset.categoryName),
+                                    style: const TextStyle(fontSize: 20),
                                   ),
                                 ),
                                 const SizedBox(width: 12),

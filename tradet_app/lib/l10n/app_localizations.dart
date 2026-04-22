@@ -79,7 +79,7 @@ class AppLocalizations {
   String get openOrders => _t({'en': 'Open Orders', 'am': 'ክፍት ትዕዛዞች', 'ti': 'ክፉት ትእዛዛት', 'om': 'Ajaja banaa', 'so': 'Dalabyo furan', 'gur': 'ክፍት ትእዛዛት'});
   String get holdings => _t({'en': 'Holdings', 'am': 'ይዞታዎች', 'ti': 'ዘለካ', 'om': 'Qabeenya', 'so': 'Hantida', 'gur': 'ንብረቶች'});
   String get kycStatus => _t({'en': 'KYC Status', 'am': 'KYC ሁኔታ', 'ti': 'KYC ኩነታ', 'om': 'Haala KYC', 'so': 'Xaalada KYC', 'gur': 'KYC ሁኔታ'});
-  String get topMovers => _t({'en': 'Top Movers', 'am': 'ምርጥ ተንቀሳቃሾች', 'ti': 'ዝለዓሉ ተንቀሳቐስቲ', 'om': "Socho'ota olaanaa", 'so': 'Kuwa ugu sarreeya', 'gur': 'ከፍ ያሉ ተንቀሳቃሾች'});
+  String get topMovers => _t({'en': 'Top Gainers', 'am': 'ምርጥ ጨራሾች', 'ti': 'ዝለዓሉ ሃሳቢ', 'om': "Socho'ota olaanaa", 'so': 'Kuwa ugu sarreeya', 'gur': 'ከፍ ያሉ ጨራሾች'});
   String get topLosers => _t({'en': 'Top Losers', 'am': 'ከፍተኛ ቅናሾች', 'ti': 'ዝለዓሉ ተሸናፍቲ', 'om': "Mo'atota olaanaa", 'so': 'Kuwa ugu liita', 'gur': 'ከፍ ያሉ ወራጆች'});
   String get yourHoldings => _t({'en': 'Your Holdings', 'am': 'የእርስዎ ንብረቶች', 'ti': 'ናትካ ንብረት', 'om': 'Qabeenya kee', 'so': 'Hantidaada', 'gur': 'ያንተ ንብረቶች'});
   String get noHoldingsYet => _t({'en': 'No holdings yet', 'am': 'ገና ይዞታ የለም', 'ti': 'ገና ንብረት የለን', 'om': 'Hanga ammaatti qabeenya hin jiru', 'so': 'Wali hanti ma jirto', 'gur': 'ገና ንብረት የለም'});
@@ -248,6 +248,12 @@ class AppLocalizations {
   String get shariaComplianceScore => _t({'en': 'Sharia Compliance Score', 'am': 'የሸሪዓ ተከታይ ውጤት', 'ti': 'ነጥቢ ምትሕሓዝ ሸሪዓ', 'om': 'Qabxii hordoffii Shari\'aa', 'so': 'Dhibcaha u hoggaansamida Sharciga', 'gur': 'የሸሪዓ ተከታዩ ነጥብ'});
   String get appLock => _t({'en': 'App Lock', 'am': 'የመተግበሪያ ቀንዲል', 'ti': 'ቀጽሪ ኣፕ', 'om': 'Cufaa Appii', 'so': 'Kilida App-ka', 'gur': 'የመተግበሪያ ቀጸላ'});
   String get sessionExpired => _t({'en': 'Session expired. Please sign in again.', 'am': 'ክፍለ ጊዜ አልቋል። እንደገና ይግቡ።', 'ti': 'ክፍለ-ጊዜ ጠቅሊሉ። ደጊምካ እቶ።', 'om': "Seeshiniin dhumate. Irra deebi'ii seeni.", 'so': 'Waqtigii session-ku dhacay. Mar kale gal.', 'gur': 'ክፍለ ጊዜ አልቋል። ደጊም ግባ።'});
+  String get wealthProtection => _t({'en': 'Wealth Protection', 'am': 'የሀብት ጥበቃ', 'ti': 'ሓለዋ ሃብቲ', 'om': 'Eegumsa qabeenyaa', 'so': 'Ilaalinta hantida', 'gur': 'የሀብት ጥበቃ'});
+  String get authRequired => _t({'en': 'Authentication Required', 'am': 'ማረጋገጫ ያስፈልጋል', 'ti': 'ምርግጋጽ የድሊ', 'om': 'Mirkaneessuu barbaachisaa dha', 'so': 'Xaqiijinta ayaa loo baahan yahay', 'gur': 'ማረጋገጫ ያስፈልጋል'});
+  String get authFailed => _t({'en': 'Authentication failed. Action cancelled.', 'am': 'ማረጋገጫ አልተሳካም። ተሰርዟል።', 'ti': 'ምርግጋጽ ኣይተዓወተን። ተሰሪዙ።', 'om': 'Mirkaneessuu hin milkoofne. Hojiin haqame.', 'so': 'Xaqiijintu way fashilantay. Howshu waa la joojiyay.', 'gur': 'ማረጋገጫ ሳይሳካ። ሰርዟል።'});
+  String get authRequiredPayment => _t({'en': 'Authentication required to add a payment method.', 'am': 'የክፍያ ዘዴ ለማከል ማረጋገጫ ያስፈልጋል።', 'ti': 'ንምውሳኽ ኣገባብ ክፍሊት ምርግጋጽ የድሊ።', 'om': 'Mala kaffaltii dabaluu mirkaneessuu barbaachisa.', 'so': 'Si aad u darto habka lacag bixinta, xaqiijin ayaa loo baahan yahay.', 'gur': 'ክፍያ ዘዴ ለመጨመር ማረጋገጫ ያስፈልጋል።'});
+  String get authRequiredOrder => _t({'en': 'Authentication required to place order.', 'am': 'ትዕዛዝ ለመስጠት ማረጋገጫ ያስፈልጋል።', 'ti': 'ትዕዛዝ ንምምሃዝ ምርግጋጽ የድሊ።', 'om': 'Ajaja kennuu mirkaneessuu barbaachisa.', 'so': 'Si aad u gasho amarku, xaqiijin ayaa loo baahan yahay.', 'gur': 'ትዕዛዝ ለመስጠት ማረጋገጫ ያስፈልጋል།'});
+  String get authRequiredWithdraw => _t({'en': 'Authentication required for withdrawals over 5,000 ETB.', 'am': 'ከ5,000 ብር በላይ ለሚሆን ወጪ ማረጋገጫ ያስፈልጋል።', 'ti': 'ካብ 5,000 ብር ንላዕሊ ንዝኾነ ምውጻእ ምርግጋጽ የድሊ።', 'om': 'Ka baasuu 5,000 ETBn ol ta\'eef mirkaneessuu barbaachisa.', 'so': 'Lacag-bixinta ka badan 5,000 ETB, xaqiijin ayaa loo baahan yahay.', 'gur': 'ከ5,000 ብር በላይ ለሚሆን ክፍያ ማረጋገጫ ያስፈልጋል።'});
 
   // ─── Analytics ───────────────────────────────────
   String get performance => _t({'en': 'Performance', 'am': 'አፈጻጸም', 'ti': 'ኣፈጻጽማ', 'om': 'Raawwii', 'so': 'Waxqabadka', 'gur': 'አፈጻጸም'});

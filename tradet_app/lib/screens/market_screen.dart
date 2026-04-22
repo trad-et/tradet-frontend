@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../providers/app_provider.dart';
 import '../models/models.dart';
 import '../theme.dart';
+import '../utils/asset_emoji.dart';
 import '../widgets/sharia_badge.dart';
 import '../widgets/price_change.dart';
 import '../widgets/mini_chart.dart';
@@ -22,6 +23,7 @@ class MarketScreen extends StatefulWidget {
 class _MarketScreenState extends State<MarketScreen> {
   String _filter = 'all';
   bool _shariaOnly = false;
+  String? _selectedCategory; // when set, shows flat list for that category
   final _fmt = NumberFormat('#,##0.00', 'en');
   final _searchController = TextEditingController();
   String _searchQuery = '';
@@ -44,7 +46,9 @@ class _MarketScreenState extends State<MarketScreen> {
     return provider.assets.where((a) {
       // Hide foreign/global equities (frontend-only filter)
       if (a.categoryName?.toLowerCase().contains('global') == true) return false;
-      if (_filter != 'all' && a.categoryType != _filter) return false;
+      if (_shariaOnly && !a.isShariaCompliant) return false;
+      if (_selectedCategory != null && a.categoryName != _selectedCategory) return false;
+      if (_filter != 'all' && _selectedCategory == null && a.categoryType != _filter) return false;
       if (_searchQuery.isNotEmpty) {
         return a.symbol.toLowerCase().contains(_searchQuery) ||
             a.name.toLowerCase().contains(_searchQuery) ||
@@ -117,23 +121,46 @@ class _MarketScreenState extends State<MarketScreen> {
             const SizedBox(height: 12),
 
             if (!wide) ...[
-              // Mobile filter pills — trailing SizedBox ensures last item is fully visible
-              SizedBox(
-                height: 36,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  children: [
-                    _filterPill('All', 'all'),
-                    _filterPill('Commodities', 'commodity'),
-                    _filterPill('Sukuk', 'sukuk'),
-                    _filterPill('Equities', 'equity'),
-                    const SizedBox(width: 8),
-                    _halalToggle(),
-                    const SizedBox(width: 20),
-                  ],
+              if (_selectedCategory != null)
+                // Breadcrumb back button
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+                  child: GestureDetector(
+                    onTap: () => setState(() => _selectedCategory = null),
+                    child: Row(mainAxisSize: MainAxisSize.min, children: [
+                      const Icon(Icons.arrow_back_ios_rounded,
+                          size: 14, color: TradEtTheme.positive),
+                      const SizedBox(width: 4),
+                      const Text('All Categories',
+                          style: TextStyle(
+                              fontSize: 13,
+                              color: TradEtTheme.positive,
+                              fontWeight: FontWeight.w600)),
+                      const SizedBox(width: 8),
+                      Text('• $_selectedCategory',
+                          style: const TextStyle(
+                              fontSize: 13, color: TradEtTheme.textMuted)),
+                    ]),
+                  ),
+                )
+              else
+                // Mobile filter pills
+                SizedBox(
+                  height: 36,
+                  child: ListView(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    children: [
+                      _filterPill('All', 'all'),
+                      _filterPill('Commodities', 'commodity'),
+                      _filterPill('Sukuk', 'sukuk'),
+                      _filterPill('Equities', 'equity'),
+                      const SizedBox(width: 8),
+                      _halalToggle(),
+                      const SizedBox(width: 20),
+                    ],
+                  ),
                 ),
-              ),
               const SizedBox(height: 12),
             ],
 
@@ -209,6 +236,14 @@ class _MarketScreenState extends State<MarketScreen> {
 
                   if (wide) {
                     return _buildWebTable(filtered);
+                  }
+                  // Mobile: sections view when browsing all, flat list when searching/filtering
+                  final showSections = _filter == 'all' &&
+                      _searchQuery.isEmpty &&
+                      !_shariaOnly &&
+                      _selectedCategory == null;
+                  if (showSections) {
+                    return _buildMobileSections(provider, filtered);
                   }
                   return _buildMobileList(provider, filtered);
                 },
@@ -290,12 +325,71 @@ class _MarketScreenState extends State<MarketScreen> {
     );
   }
 
-  // ─── Web: Data table view ───
+  // ─── Web: Data table view — grouped by category when browsing all ───
   Widget _buildWebTable(List<Asset> filtered) {
+    final showGrouped = _filter == 'all' &&
+        _searchQuery.isEmpty &&
+        !_shariaOnly &&
+        _selectedCategory == null;
+
+    // Build flat items list, inserting category headers when grouped
+    final List<Widget> rows = [];
+    if (showGrouped) {
+      const categoryOrder = [
+        'ECX Commodities', 'Islamic Banks', 'Ethiopian Equities',
+        'Takaful & Insurance', 'Sukuk',
+      ];
+      final Map<String, List<Asset>> byCategory = {};
+      for (final a in filtered) {
+        byCategory.putIfAbsent(a.categoryName ?? 'Other', () => []).add(a);
+      }
+      final orderedKeys = [
+        ...categoryOrder.where((c) => byCategory.containsKey(c)),
+        ...byCategory.keys.where((c) => !categoryOrder.contains(c)),
+      ];
+      int globalIdx = 0;
+      for (final cat in orderedKeys) {
+        final assets = byCategory[cat]!;
+        rows.add(_WebCategoryHeader(categoryName: cat, count: assets.length));
+        for (final a in assets) {
+          rows.add(_WebAssetRow(asset: a, fmt: _fmt, isEven: globalIdx.isEven));
+          globalIdx++;
+        }
+      }
+    } else {
+      for (int i = 0; i < filtered.length; i++) {
+        rows.add(_WebAssetRow(asset: filtered[i], fmt: _fmt, isEven: i.isEven));
+      }
+    }
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 32),
       child: Column(
         children: [
+          // Breadcrumb for category drill-down on web
+          if (_selectedCategory != null)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Row(mainAxisAlignment: MainAxisAlignment.start, children: [
+                GestureDetector(
+                  onTap: () => setState(() => _selectedCategory = null),
+                  child: const Row(mainAxisSize: MainAxisSize.min, children: [
+                    Icon(Icons.arrow_back_ios_rounded,
+                        size: 13, color: TradEtTheme.positive),
+                    SizedBox(width: 4),
+                    Text('All Categories',
+                        style: TextStyle(
+                            fontSize: 13,
+                            color: TradEtTheme.positive,
+                            fontWeight: FontWeight.w600)),
+                  ]),
+                ),
+                const SizedBox(width: 8),
+                Text('› $_selectedCategory',
+                    style: const TextStyle(
+                        fontSize: 13, color: TradEtTheme.textMuted)),
+              ]),
+            ),
           // Table header
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -355,20 +449,15 @@ class _MarketScreenState extends State<MarketScreen> {
                 ),
               ),
               child: ListView.builder(
-                itemCount: filtered.length + 1,
+                itemCount: rows.length + 1,
                 itemBuilder: (context, index) {
-                  if (index == filtered.length) {
+                  if (index == rows.length) {
                     return const Padding(
                       padding: EdgeInsets.fromLTRB(16, 12, 16, 16),
                       child: DisclaimerFooter(),
                     );
                   }
-                  final asset = filtered[index];
-                  return _WebAssetRow(
-                    asset: asset,
-                    fmt: _fmt,
-                    isEven: index.isEven,
-                  );
+                  return rows[index];
                 },
               ),
             ),
@@ -378,7 +467,97 @@ class _MarketScreenState extends State<MarketScreen> {
     );
   }
 
-  // ─── Mobile: Card list (unchanged) ───
+  // ─── Mobile: Categorized sections view (default) ───
+  Widget _buildMobileSections(AppProvider provider, List<Asset> assets) {
+    // Define the desired category display order
+    const categoryOrder = [
+      'ECX Commodities',
+      'Islamic Banks',
+      'Ethiopian Equities',
+      'Takaful & Insurance',
+      'Sukuk',
+    ];
+    final Map<String, List<Asset>> byCategory = {};
+    for (final a in assets) {
+      final cat = a.categoryName ?? 'Other';
+      byCategory.putIfAbsent(cat, () => []).add(a);
+    }
+    // Sort categories: known order first, then any extras
+    final orderedKeys = [
+      ...categoryOrder.where((c) => byCategory.containsKey(c)),
+      ...byCategory.keys.where((c) => !categoryOrder.contains(c)),
+    ];
+
+    return RefreshIndicator(
+      color: TradEtTheme.positive,
+      backgroundColor: TradEtTheme.cardBg,
+      onRefresh: () => provider.loadAssets(shariaOnly: _shariaOnly, refresh: true),
+      child: ListView(
+        padding: const EdgeInsets.fromLTRB(20, 4, 20, 16),
+        children: [
+          for (final cat in orderedKeys) ...[
+            _buildCategorySection(cat, byCategory[cat]!),
+            const SizedBox(height: 16),
+          ],
+          const DisclaimerFooter(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCategorySection(String categoryName, List<Asset> assets) {
+    final emoji = _categoryEmoji(categoryName);
+    final sortedByChange = [...assets]
+      ..sort((a, b) => (b.change24h ?? 0).compareTo(a.change24h ?? 0));
+    final preview = sortedByChange.take(3).toList();
+
+    return Container(
+      decoration: BoxDecoration(
+        color: TradEtTheme.cardBg,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: TradEtTheme.divider.withValues(alpha: 0.25)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Section header
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
+            child: Row(
+              children: [
+                Text(emoji, style: const TextStyle(fontSize: 22)),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(categoryName,
+                      style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white)),
+                ),
+                Text('${assets.length} assets',
+                    style: const TextStyle(
+                        fontSize: 11, color: TradEtTheme.textMuted)),
+                const SizedBox(width: 10),
+                GestureDetector(
+                  onTap: () => setState(() => _selectedCategory = categoryName),
+                  child: const Text('See all →',
+                      style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: TradEtTheme.positive)),
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1, color: Color(0x22FFFFFF)),
+          // Asset rows
+          ...preview.map((a) => _CategoryAssetRow(asset: a, fmt: _fmt)),
+        ],
+      ),
+    );
+  }
+
+  // ─── Mobile: Flat card list (search / filter / category drill-down) ───
   Widget _buildMobileList(AppProvider provider, List<Asset> filtered) {
     return RefreshIndicator(
       color: TradEtTheme.positive,
@@ -515,25 +694,168 @@ class _MarketScreenState extends State<MarketScreen> {
   }
 }
 
-// ─── Shared emoji logo helper ───
-String _assetEmoji(String symbol, String? categoryName) {
-  final s = symbol.toUpperCase();
-  if (s.contains('COFFEE')) return '☕';
-  if (s.contains('MAIZE') || s.contains('CORN')) return '🌽';
-  if (s.contains('BEAN')) return '🫘';
-  if (s.contains('SESAME')) return '🌾';
-  if (s.contains('SOY')) return '🌱';
-  if (s.contains('CHICKPEA')) return '🥜';
-  if (s.contains('WHEAT') || s.contains('SORGHUM')) return '🌾';
-  if (s.contains('SUKUK') || s.contains('GOV')) return '📜';
-  if (s.contains('GOLD')) return '🥇';
-  if (s.contains('HALAL') || s.contains('FOOD')) return '🍃';
-  final cat = categoryName?.toLowerCase() ?? '';
-  if (cat.contains('bank') || cat.contains('islamic')) return '🏦';
-  if (cat.contains('insurance') || cat.contains('takaful')) return '🛡️';
-  if (cat.contains('sukuk')) return '📜';
-  if (cat.contains('equity') || cat.contains('equities')) return '📈';
-  return '🌿';
+// Delegates to shared utilities in lib/utils/asset_emoji.dart
+String _assetEmoji(String symbol, String? categoryName) =>
+    assetEmoji(symbol, categoryName);
+
+String _categoryEmoji(String category) => categoryEmoji(category);
+
+// ─── Mobile: single asset row inside a category section ───
+class _CategoryAssetRow extends StatelessWidget {
+  final Asset asset;
+  final NumberFormat fmt;
+  const _CategoryAssetRow({required this.asset, required this.fmt});
+
+  @override
+  Widget build(BuildContext context) {
+    final isUp = (asset.change24h ?? 0) >= 0;
+    final emoji = _assetEmoji(asset.symbol, asset.categoryName);
+    return GestureDetector(
+      onTap: () => Navigator.of(context).push(appRoute(context, TradeScreen(asset: asset))),
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
+          decoration: BoxDecoration(
+            border: Border(
+              top: BorderSide(color: TradEtTheme.divider.withValues(alpha: 0.12)),
+            ),
+          ),
+          child: Row(
+            children: [
+              // Emoji circle
+              Container(
+                width: 38, height: 38,
+                decoration: BoxDecoration(
+                  color: TradEtTheme.surfaceLight.withValues(alpha: 0.6),
+                  shape: BoxShape.circle,
+                ),
+                alignment: Alignment.center,
+                child: Text(emoji, style: const TextStyle(fontSize: 18)),
+              ),
+              const SizedBox(width: 12),
+              // Symbol + name
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(asset.symbol,
+                        style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white)),
+                    Text(asset.name,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                            fontSize: 11, color: TradEtTheme.textMuted)),
+                  ],
+                ),
+              ),
+              // Price + change
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    asset.price != null ? '${fmt.format(asset.price)} ETB' : '—',
+                    style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white),
+                  ),
+                  if (asset.change24h != null)
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          isUp ? Icons.arrow_drop_up_rounded : Icons.arrow_drop_down_rounded,
+                          size: 14,
+                          color: isUp ? TradEtTheme.positive : TradEtTheme.negative,
+                        ),
+                        Text(
+                          '${asset.change24h!.abs().toStringAsFixed(2)}%',
+                          style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: isUp ? TradEtTheme.positive : TradEtTheme.negative),
+                        ),
+                      ],
+                    ),
+                ],
+              ),
+              const SizedBox(width: 8),
+              // Trade icon button
+              GestureDetector(
+                onTap: () => Navigator.of(context)
+                    .push(appRoute(context, TradeScreen(asset: asset))),
+                child: MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                  child: Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: TradEtTheme.positive.withValues(alpha: 0.12),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                          color: TradEtTheme.positive.withValues(alpha: 0.3)),
+                    ),
+                    child: const Icon(Icons.swap_horiz_rounded,
+                        size: 18, color: TradEtTheme.positive),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Web: Category group header row in table ───
+class _WebCategoryHeader extends StatelessWidget {
+  final String categoryName;
+  final int count;
+  const _WebCategoryHeader({required this.categoryName, required this.count});
+
+  @override
+  Widget build(BuildContext context) {
+    final emoji = _categoryEmoji(categoryName);
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+      decoration: BoxDecoration(
+        color: TradEtTheme.primaryDark.withValues(alpha: 0.4),
+        border: Border(
+          top: BorderSide(color: TradEtTheme.divider.withValues(alpha: 0.2)),
+          bottom: BorderSide(color: TradEtTheme.divider.withValues(alpha: 0.15)),
+        ),
+      ),
+      child: Row(
+        children: [
+          Text(emoji, style: const TextStyle(fontSize: 16)),
+          const SizedBox(width: 10),
+          Text(categoryName,
+              style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: TradEtTheme.textSecondary,
+                  letterSpacing: 0.3)),
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: TradEtTheme.positive.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Text('$count',
+                style: const TextStyle(
+                    fontSize: 10,
+                    color: TradEtTheme.positive,
+                    fontWeight: FontWeight.w600)),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 // ─── Table header text ───
@@ -1160,7 +1482,7 @@ class _QuickActions extends StatelessWidget {
                 if (hasHolding) ...[
                   _MktBtn('Sell', TradEtTheme.negative,
                       () => Navigator.of(context).push(
-                          appRoute(context, TradeScreen(asset: asset)))),
+                          appRoute(context, TradeScreen(asset: asset, initialSell: true)))),
                   const SizedBox(width: 6),
                 ],
                 // Buy button after

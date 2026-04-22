@@ -96,8 +96,7 @@ class DashboardScreen extends StatelessWidget {
             const SizedBox(height: 24),
             _mobileStatsGrid(context, provider, fmt, l, onNavigateTo),
             const SizedBox(height: 20),
-            // Sharia compliance score at bottom
-            _ShariaComplianceScoreCard(provider: provider, fmt: fmt),
+            const CorporateEventsCard(),
             const SizedBox(height: 20),
             const DisclaimerFooter(),
             const SizedBox(height: 8),
@@ -205,21 +204,24 @@ class DashboardScreen extends StatelessWidget {
               provider: provider, fmt: fmt, onNavigateTo: onNavigateTo),
         const SizedBox(height: 28),
 
-        // Top Opportunities + Watchlist side by side on desktop
+        // Top Opportunities (flex:2) + Watchlist (flex:1) — same ratio as Hero/Cash
         if (desktop)
           IntrinsicHeight(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Expanded(
-                  flex: 3,
-                  child: TopOpportunitiesSection(provider: provider, fmt: fmt),
+                  flex: 2,
+                  child: TopOpportunitiesSection(
+                      provider: provider, fmt: fmt),
                 ),
                 const SizedBox(width: 20),
                 Expanded(
-                  flex: 2,
+                  flex: 1,
                   child: WatchlistMiniSection(
-                      provider: provider, fmt: fmt, onNavigateTo: onNavigateTo),
+                      provider: provider,
+                      fmt: fmt,
+                      onNavigateTo: onNavigateTo),
                 ),
               ],
             ),
@@ -242,13 +244,29 @@ class DashboardScreen extends StatelessWidget {
             provider: provider, fmt: fmt, onNavigateTo: onNavigateTo),
         const SizedBox(height: 28),
 
-        // Portfolio overview + compliance section
-        if (desktop) ...[
-          IntrinsicHeight(child: _webRow2WithSharia(context, provider, l, onNavigateTo, fmt)),
-        ] else ...[
-          _ShariaComplianceScoreCard(provider: provider, fmt: fmt),
-          const SizedBox(height: 14),
+        // Bottom row: Corporate Events (66%) + 2×2 stat grid (34%) on desktop
+        // Mobile: stat cards grid then corporate events stacked
+        if (desktop)
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Expanded(
+                  flex: 2,
+                  child: CorporateEventsCard(),
+                ),
+                const SizedBox(width: 20),
+                Expanded(
+                  flex: 1,
+                  child: _statGrid(context, provider, l, onNavigateTo),
+                ),
+              ],
+            ),
+          )
+        else ...[
           IntrinsicHeight(child: _webRow2(context, provider, l, onNavigateTo)),
+          const SizedBox(height: 20),
+          const CorporateEventsCard(),
         ],
         const SizedBox(height: 28),
         const DisclaimerFooter(),
@@ -445,8 +463,7 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  /// Row 2: Portfolio Split (flex:2) | Transactions (flex:1) | Open Orders (flex:1) | Holdings (flex:1) | Watchlist (flex:1)
-  /// Right 3 cards together = 3/6 = 50% of the row width.
+  /// Mobile stats row: 4 equal stat cards in a row
   Widget _webRow2(
     BuildContext context,
     AppProvider provider,
@@ -456,18 +473,7 @@ class DashboardScreen extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // Portfolio Split — flex:2 (~33%)
         Expanded(
-          flex: 2,
-          child: AllocationCard(
-            provider: provider,
-            fmt: NumberFormat('#,##0.00', 'en'),
-          ),
-        ),
-        const SizedBox(width: 14),
-        // Transactions — flex:1 (~17%)
-        Expanded(
-          flex: 1,
           child: StatCard(
             icon: Icons.swap_horiz_rounded,
             label: l.transactions,
@@ -485,9 +491,7 @@ class DashboardScreen extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 14),
-        // Open Orders — flex:1 (~17%)
         Expanded(
-          flex: 1,
           child: StatCard(
             icon: Icons.receipt_long_outlined,
             label: l.openOrders,
@@ -497,9 +501,7 @@ class DashboardScreen extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 14),
-        // Holdings — flex:1 (~17%)
         Expanded(
-          flex: 1,
           child: StatCard(
             icon: Icons.pie_chart_outline,
             label: l.holdings,
@@ -509,15 +511,86 @@ class DashboardScreen extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 14),
-        // Watchlist — flex:1 (~17%) — right 3 total = 50%
         Expanded(
-          flex: 1,
           child: StatCard(
             icon: Icons.star_outline_rounded,
             label: l.watchlist,
             value: '${provider.watchlist.length} assets',
             color: const Color(0xFFFBBF24),
             onTap: onNavigateTo != null ? () => onNavigateTo(4) : null,
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Desktop: 2×2 grid of stat cards placed alongside CorporateEventsCard
+  Widget _statGrid(
+    BuildContext context,
+    AppProvider provider,
+    AppLocalizations l,
+    void Function(int)? onNavigateTo,
+  ) {
+    final cards = [
+      StatCard(
+        icon: Icons.swap_horiz_rounded,
+        label: l.transactions,
+        value: l.viewHistory,
+        color: const Color(0xFF22D3EE),
+        onTap: () => Navigator.of(context).push(
+          appRoute(
+            context,
+            WrappedScreen(
+              child: const TransactionsScreen(),
+              showMobileAppBar: false,
+            ),
+          ),
+        ),
+      ),
+      StatCard(
+        icon: Icons.receipt_long_outlined,
+        label: l.openOrders,
+        value: '${provider.orders.where((o) => o.isPending).length}',
+        color: TradEtTheme.primaryLight,
+        onTap: onNavigateTo != null ? () => onNavigateTo(3) : null,
+      ),
+      StatCard(
+        icon: Icons.pie_chart_outline,
+        label: l.holdings,
+        value: '${provider.holdings.length} assets',
+        color: const Color(0xFF818CF8),
+        onTap: onNavigateTo != null ? () => onNavigateTo(2) : null,
+      ),
+      StatCard(
+        icon: Icons.star_outline_rounded,
+        label: l.watchlist,
+        value: '${provider.watchlist.length} assets',
+        color: const Color(0xFFFBBF24),
+        onTap: onNavigateTo != null ? () => onNavigateTo(4) : null,
+      ),
+    ];
+
+    return Column(
+      children: [
+        Expanded(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(child: cards[0]),
+              const SizedBox(width: 12),
+              Expanded(child: cards[1]),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        Expanded(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(child: cards[2]),
+              const SizedBox(width: 12),
+              Expanded(child: cards[3]),
+            ],
           ),
         ),
       ],
@@ -771,7 +844,7 @@ class _TradeFab extends StatelessWidget {
           children: [
             Icon(Icons.bolt_rounded, color: Colors.white, size: 18),
             SizedBox(width: 6),
-            Text('Trade',
+            Text('Trade Now',
                 style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w800,

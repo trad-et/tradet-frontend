@@ -13,10 +13,12 @@ import 'alerts_screen.dart';
 import 'home_screen.dart';
 import 'login_screen.dart';
 import '../widgets/disclaimer_footer.dart';
+import '../utils/security_challenge.dart';
 
 class TradeScreen extends StatefulWidget {
   final Asset asset;
-  const TradeScreen({super.key, required this.asset});
+  final bool initialSell;
+  const TradeScreen({super.key, required this.asset, this.initialSell = false});
 
   @override
   State<TradeScreen> createState() => _TradeScreenState();
@@ -25,7 +27,7 @@ class TradeScreen extends StatefulWidget {
 class _TradeScreenState extends State<TradeScreen> {
   static const double _kFeeRate = 0.015;
 
-  bool _isBuy = true;
+  late bool _isBuy = !widget.initialSell;
   bool _isLimitOrder = false; // false = market, true = limit
   final _qtyController = TextEditingController();
   final _priceController = TextEditingController();
@@ -67,25 +69,19 @@ class _TradeScreenState extends State<TradeScreen> {
         text: asset.price != null ? asset.price!.toStringAsFixed(2) : '');
     String condition = 'above';
 
-    showModalBottomSheet(
+    showResponsiveSheet(
       context: ctx,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => StatefulBuilder(
+      backgroundColor: const Color(0xFF1A3A25),
+      builder: (sheetCtx, isDialog) => StatefulBuilder(
         builder: (context, setSheetState) => Padding(
-          padding: EdgeInsets.only(
-              bottom: MediaQuery.of(context).viewInsets.bottom),
-          child: Container(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
-            decoration: const BoxDecoration(
-              color: Color(0xFF1A3A25),
-              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Handle
+          padding: EdgeInsets.fromLTRB(20, 20, 20,
+              isDialog ? 20 : 32 + MediaQuery.of(context).viewInsets.bottom),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Handle — mobile only
+              if (!isDialog)
                 Center(
                   child: Container(
                     width: 36, height: 4,
@@ -255,7 +251,6 @@ class _TradeScreenState extends State<TradeScreen> {
                   ),
                 ),
               ],
-            ),
           ),
         ),
       ),
@@ -299,6 +294,22 @@ class _TradeScreenState extends State<TradeScreen> {
     );
 
     if (confirmed != true || !mounted) return;
+
+    // Wealth protection: require authentication before placing the order
+    final authed = await challengeTransactionAuth(
+      context,
+      reason:
+          'Authenticate to ${_isBuy ? "buy" : "sell"} ${widget.asset.symbol}',
+    );
+    if (!authed || !mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(AppLocalizations.of(context).authRequiredOrder),
+        backgroundColor: TradEtTheme.negative,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ));
+      return;
+    }
 
     final result = await context.read<AppProvider>().placeOrder(
           assetId: widget.asset.id,

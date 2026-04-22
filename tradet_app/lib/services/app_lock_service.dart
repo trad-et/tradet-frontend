@@ -38,6 +38,31 @@ class AppLockService {
     return v == 'true';
   }
 
+  // ── Wealth Protection ───────────────────────────────────────────────
+
+  static const _wealthProtectionKey = 'tradet_wealth_protection_enabled';
+  static const _wealthAuthMethodKey = 'tradet_wealth_auth_method'; // 'biometric' | 'pin' | 'any'
+
+  static Future<bool> isWealthProtectionEnabled() async {
+    if (kIsWeb) return false;
+    final v = await _storage.read(key: _wealthProtectionKey);
+    return v == 'true';
+  }
+
+  static Future<void> setWealthProtectionEnabled(bool enabled) async {
+    await _storage.write(key: _wealthProtectionKey, value: enabled ? 'true' : 'false');
+  }
+
+  /// Returns the preferred auth method: 'biometric', 'pin', or 'any' (default).
+  static Future<String> getWealthAuthMethod() async {
+    final v = await _storage.read(key: _wealthAuthMethodKey);
+    return v ?? 'any';
+  }
+
+  static Future<void> setWealthAuthMethod(String method) async {
+    await _storage.write(key: _wealthAuthMethodKey, value: method);
+  }
+
   // ── Biometric ───────────────────────────────────────────────────────
 
   static Future<bool> isBiometricAvailable() async {

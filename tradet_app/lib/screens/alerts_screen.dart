@@ -251,7 +251,6 @@ class _AlertsScreenState extends State<AlertsScreen> {
       ),
     );
 
-    if (wide) return WebContentWrapper(maxWidth: 800, child: content);
     return content;
   }
 

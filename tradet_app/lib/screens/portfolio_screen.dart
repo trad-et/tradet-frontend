@@ -11,6 +11,7 @@ import '../widgets/price_change.dart';
 import '../widgets/responsive_layout.dart';
 import '../widgets/disclaimer_footer.dart';
 import 'trade_screen.dart';
+import '../utils/security_challenge.dart';
 
 class PortfolioScreen extends StatelessWidget {
   const PortfolioScreen({super.key});
@@ -177,15 +178,7 @@ class PortfolioScreen extends StatelessWidget {
                           const SizedBox(width: 20),
                           Expanded(
                             flex: 2,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                _quickStats(summary, fmt),
-                                const SizedBox(height: 14),
-                                _returnRateCard(summary, fmt),
-                              ],
-                            ),
+                            child: _combinedStatsCard(summary, fmt),
                           ),
                         ],
                       ),
@@ -366,7 +359,6 @@ class PortfolioScreen extends StatelessWidget {
               ],
             ),
           ),
-          const Spacer(),
           const SizedBox(height: 16),
           Row(
             children: [
@@ -583,6 +575,95 @@ class PortfolioScreen extends StatelessWidget {
                     ),
                   ),
                 ],
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Combined card that merges Quick Stats + Return Rate into a single card
+  Widget _combinedStatsCard(dynamic summary, NumberFormat fmt) {
+    final invested = (summary?.totalInvested ?? 0) as double;
+    final pnl = (summary?.totalPnl ?? 0) as double;
+    final pnlPct = invested > 0 ? (pnl / invested * 100) : 0.0;
+    final isPositive = pnl >= 0;
+    final color = isPositive ? TradEtTheme.positive : TradEtTheme.negative;
+    final barValue = (pnlPct.abs() / 50).clamp(0.0, 1.0);
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: TradEtTheme.cardBg,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: TradEtTheme.divider.withValues(alpha: 0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Quick stats section
+          const Text('Portfolio Stats',
+              style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: TradEtTheme.textSecondary)),
+          const SizedBox(height: 14),
+          _quickStatRow('Total Invested',
+              '${fmt.format(summary?.totalInvested ?? 0)} ETB'),
+          const SizedBox(height: 8),
+          _quickStatRow('Holdings Value',
+              '${fmt.format(summary?.totalHoldingsValue ?? 0)} ETB'),
+          const SizedBox(height: 8),
+          _quickStatRow(
+            'Return',
+            '${isPositive ? "+" : ""}${fmt.format(pnl)} ETB',
+            color: color,
+          ),
+          const SizedBox(height: 20),
+          const Divider(height: 1, color: Color(0x22FFFFFF)),
+          const SizedBox(height: 16),
+          // Return rate section
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('Return Rate',
+                  style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: TradEtTheme.textSecondary)),
+              Text(
+                '${isPositive ? "+" : ""}${pnlPct.toStringAsFixed(2)}%',
+                style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w800,
+                    color: color),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: barValue,
+              minHeight: 7,
+              backgroundColor: color.withValues(alpha: 0.15),
+              valueColor: AlwaysStoppedAnimation<Color>(color),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('${fmt.format(invested)} ETB invested',
+                  style: const TextStyle(
+                      fontSize: 11, color: TradEtTheme.textMuted)),
+              Text(
+                '${isPositive ? "+" : ""}${fmt.format(pnl)} ETB',
+                style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: color),
               ),
             ],
           ),
@@ -1439,6 +1520,26 @@ class PortfolioScreen extends StatelessWidget {
                               ));
                               return;
                             }
+                            // Wealth protection: require auth for large withdrawals
+                            if (amount >= kWealthProtectionWithdrawalThreshold) {
+                              final authed = await challengeTransactionAuth(
+                                context,
+                                reason:
+                                    'Authenticate to withdraw ${amount.toStringAsFixed(2)} ETB',
+                              );
+                              if (!authed) {
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                    content: Text(AppLocalizations.of(context).authRequiredWithdraw),
+                                    backgroundColor: TradEtTheme.negative,
+                                    behavior: SnackBarBehavior.floating,
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(10)),
+                                  ));
+                                }
+                                return;
+                              }
+                            }
                             final method = methods
                                 .firstWhere((m) => m.id == selectedMethodId);
                             Navigator.pop(ctx);
@@ -1580,20 +1681,25 @@ class _ShariaScoreCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final total = holdings.length;
     final compliant = holdings.where((h) => h.isShariaCompliant).length;
-    final score = total > 0 ? compliant / total : 1.0;
-    final pct = (score * 100).toStringAsFixed(0);
+    // Value-weighted score (matches dashboard): % of portfolio *value* that is AAOIFI-compliant
+    final totalValue = holdings.fold<double>(0, (s, h) => s + h.currentValue);
+    final compliantValue = holdings
+        .where((h) => h.isShariaCompliant)
+        .fold<double>(0, (s, h) => s + h.currentValue);
+    final score = totalValue > 0 ? compliantValue / totalValue : 1.0;
+    final pct = (score * 100).toStringAsFixed(1);
 
     final Color barColor;
     final String statusLabel;
     if (score >= 0.9) {
       barColor = TradEtTheme.positive;
-      statusLabel = 'Excellent';
+      statusLabel = 'AAOIFI Compliant';
     } else if (score >= 0.7) {
-      barColor = const Color(0xFFF59E0B);
-      statusLabel = 'Good';
+      barColor = TradEtTheme.warning;
+      statusLabel = 'Mostly Compliant';
     } else {
       barColor = TradEtTheme.negative;
-      statusLabel = 'Review Needed';
+      statusLabel = 'Review Required';
     }
 
     return Container(
@@ -1667,7 +1773,7 @@ class _ShariaScoreCard extends StatelessWidget {
           Text(
             total == 0
                 ? 'No holdings — AAOIFI screening will apply when you invest'
-                : '$compliant of $total holdings meet AAOIFI standards (debt <30%, haram revenue <5%)',
+                : '$compliant of $total holdings are AAOIFI-compliant — ${pct}% of portfolio value',
             style: const TextStyle(
               color: TradEtTheme.textSecondary,
               fontSize: 12,

@@ -10,6 +10,8 @@ import '../services/security_log_service.dart';
 import '../services/pdf_export_service.dart';
 import '../services/app_lock_service.dart';
 import 'login_screen.dart';
+import 'security_screen.dart';
+import '../utils/security_challenge.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -26,10 +28,7 @@ class ProfileScreen extends StatelessWidget {
             final user = provider.user;
 
             if (wide) {
-              return WebContentWrapper(
-                maxWidth: 1060,
-                child: _buildWebLayout(context, provider, user),
-              );
+              return _buildWebLayout(context, provider, user);
             }
             return _buildMobileLayout(context, provider, user);
           },
@@ -55,17 +54,26 @@ class ProfileScreen extends StatelessWidget {
         _webUserBanner(user),
         const SizedBox(height: 24),
 
-        // Three-column grid: Compliance | Settings | Security
+        // Three-column grid — each column sizes to its own content
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Compliance
-            Expanded(child: _webComplianceCard()),
+            // Left: Compliance + Security Log stacked
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _webComplianceCard(),
+                  const SizedBox(height: 16),
+                  const _SecurityLogSection(),
+                ],
+              ),
+            ),
             const SizedBox(width: 20),
-            // Settings
+            // Middle: Preferences
             Expanded(child: _webSettingsCard(context, provider)),
             const SizedBox(width: 20),
-            // Account actions
+            // Right: Account + Payment + Logout
             Expanded(child: _webAccountCard(context, provider, user)),
           ],
         ),
@@ -388,13 +396,20 @@ class ProfileScreen extends StatelessWidget {
           ),
           Divider(height: 24, color: TradEtTheme.divider.withValues(alpha: 0.2)),
           // Security
-          _webSettingRow(
-            icon: Icons.shield_outlined,
-            title: 'Security',
-            subtitle: 'ደህንነት • Password & 2FA',
-            color: const Color(0xFF22D3EE),
-            trailing: const Icon(Icons.chevron_right_rounded,
-                color: TradEtTheme.textMuted, size: 20),
+          MouseRegion(
+            cursor: SystemMouseCursors.click,
+            child: GestureDetector(
+              onTap: () => Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => const SecurityScreen())),
+              child: _webSettingRow(
+                icon: Icons.shield_outlined,
+                title: 'Security',
+                subtitle: 'ደህንነት • Wealth protection & PIN',
+                color: const Color(0xFF22D3EE),
+                trailing: const Icon(Icons.chevron_right_rounded,
+                    color: TradEtTheme.textMuted, size: 20),
+              ),
+            ),
           ),
           Divider(height: 24, color: TradEtTheme.divider.withValues(alpha: 0.2)),
           // Help
@@ -563,10 +578,6 @@ class ProfileScreen extends StatelessWidget {
 
         // Payment Methods
         const _PaymentMethodsSection(),
-        const SizedBox(height: 16),
-
-        // Security Log
-        const _SecurityLogSection(),
         const SizedBox(height: 16),
 
         // Logout
@@ -971,6 +982,10 @@ class ProfileScreen extends StatelessWidget {
               _settingsTile(
                   Icons.notifications_outlined, AppLocalizations.of(context).notifications, 'Manage alerts', () {}),
               Divider(height: 1, color: TradEtTheme.divider.withValues(alpha: 0.3)),
+              _settingsTile(
+                  Icons.shield_outlined, AppLocalizations.of(context).security, 'ደህንነት • Wealth protection & PIN',
+                  () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SecurityScreen()))),
+              Divider(height: 1, color: TradEtTheme.divider.withValues(alpha: 0.3)),
               _appLockTile(context),
               Divider(height: 1, color: TradEtTheme.divider.withValues(alpha: 0.3)),
               _settingsTile(
@@ -1347,11 +1362,29 @@ class _PaymentMethodsSectionState extends State<_PaymentMethodsSection> {
     'Other',
   ];
 
-  void _showAddDialog() {
+  Future<void> _showAddDialog() async {
+    // Wealth protection: require auth before adding a payment method
+    final authed = await challengeTransactionAuth(
+      context,
+      reason: 'Authenticate to add a payment method',
+    );
+    if (!authed) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(AppLocalizations.of(context).authRequiredPayment),
+          backgroundColor: TradEtTheme.negative,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ));
+      }
+      return;
+    }
+
     String? selectedBank;
     final acctNumCtrl = TextEditingController();
     final acctNameCtrl = TextEditingController();
 
+    if (!mounted) return;
     showDialog(
       context: context,
       builder: (ctx) => StatefulBuilder(
@@ -1699,6 +1732,7 @@ class _SecurityLogSection extends StatefulWidget {
 class _SecurityLogSectionState extends State<_SecurityLogSection> {
   List<SecurityLogEntry> _entries = [];
   bool _loading = true;
+  bool _collapsed = true;
 
   @override
   void initState() {
@@ -1758,57 +1792,70 @@ class _SecurityLogSectionState extends State<_SecurityLogSection> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // ── Header ──
-          Row(
-            children: [
-              const Icon(Icons.security, size: 18, color: TradEtTheme.accent),
-              const SizedBox(width: 8),
-              const Expanded(
-                child: Text('Security Log',
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 15)),
-              ),
-              if (!_loading)
-                Text('${_entries.length} events',
-                    style: const TextStyle(
-                        color: TradEtTheme.textMuted, fontSize: 11)),
-              const SizedBox(width: 8),
-              IconButton(
-                icon: const Icon(Icons.refresh, size: 18,
-                    color: TradEtTheme.textSecondary),
-                tooltip: 'Refresh',
-                onPressed: _load,
-                visualDensity: VisualDensity.compact,
-                padding: EdgeInsets.zero,
-              ),
-            ],
+          GestureDetector(
+            onTap: () => setState(() => _collapsed = !_collapsed),
+            behavior: HitTestBehavior.opaque,
+            child: Row(
+              children: [
+                const Icon(Icons.security, size: 18, color: TradEtTheme.accent),
+                const SizedBox(width: 8),
+                const Expanded(
+                  child: Text('Security Log',
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 15)),
+                ),
+                if (!_loading)
+                  Text('${_entries.length} events',
+                      style: const TextStyle(
+                          color: TradEtTheme.textMuted, fontSize: 11)),
+                const SizedBox(width: 4),
+                if (!_collapsed)
+                  IconButton(
+                    icon: const Icon(Icons.refresh, size: 18,
+                        color: TradEtTheme.textSecondary),
+                    tooltip: 'Refresh',
+                    onPressed: _load,
+                    visualDensity: VisualDensity.compact,
+                    padding: EdgeInsets.zero,
+                  ),
+                AnimatedRotation(
+                  turns: _collapsed ? -0.25 : 0,
+                  duration: const Duration(milliseconds: 200),
+                  child: const Icon(Icons.expand_more,
+                      size: 20, color: TradEtTheme.textSecondary),
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 12),
 
-          if (_loading)
-            const Center(
-              child: Padding(
+          if (!_collapsed) ...[
+            const SizedBox(height: 12),
+            if (_loading)
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  child: CircularProgressIndicator(
+                      color: TradEtTheme.accent, strokeWidth: 2),
+                ),
+              )
+            else if (_entries.isEmpty)
+              const Padding(
                 padding: EdgeInsets.symmetric(vertical: 16),
-                child: CircularProgressIndicator(
-                    color: TradEtTheme.accent, strokeWidth: 2),
-              ),
-            )
-          else if (_entries.isEmpty)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 16),
-              child: Center(
-                child: Text('No security events recorded',
-                    style: TextStyle(
-                        color: TradEtTheme.textSecondary, fontSize: 13)),
-              ),
-            )
-          // ── Wide: 2-column grid ──
-          else if (wide)
-            _buildGrid()
-          // ── Mobile: compact timeline ──
-          else
-            _buildTimeline(),
+                child: Center(
+                  child: Text('No security events recorded',
+                      style: TextStyle(
+                          color: TradEtTheme.textSecondary, fontSize: 13)),
+                ),
+              )
+            // ── Wide: 2-column grid ──
+            else if (wide)
+              _buildGrid()
+            // ── Mobile: compact timeline ──
+            else
+              _buildTimeline(),
+          ],
         ],
       ),
     );

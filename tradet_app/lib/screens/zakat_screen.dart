@@ -143,7 +143,6 @@ class _ZakatScreenState extends State<ZakatScreen> {
       ),
     );
 
-    if (wide) return WebContentWrapper(maxWidth: 800, child: content);
     return content;
   }
 

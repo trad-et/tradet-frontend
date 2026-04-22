@@ -6,6 +6,7 @@ import '../l10n/app_localizations.dart';
 import '../models/models.dart';
 import '../providers/app_provider.dart';
 import '../theme.dart';
+import '../utils/asset_emoji.dart';
 import '../widgets/price_change.dart';
 import '../widgets/mini_chart.dart';
 import '../widgets/responsive_layout.dart';
@@ -17,6 +18,7 @@ import '../screens/zakat_screen.dart';
 import '../screens/converter_screen.dart';
 import '../screens/login_screen.dart';
 import '../screens/home_screen.dart';
+import '../screens/corporate_events_screen.dart';
 
 // ─── Web Section Card ───
 class WebSectionCard extends StatelessWidget {
@@ -255,6 +257,25 @@ class HeroTradeCard extends StatelessWidget {
                         color: Colors.white)),
               ],
             ),
+            if (provider.reservedForOrders > 0) ...[
+              const SizedBox(height: 3),
+              Row(
+                children: [
+                  const Icon(Icons.lock_outline_rounded,
+                      size: 12, color: TradEtTheme.warning),
+                  const SizedBox(width: 4),
+                  const Text('Reserved for Orders',
+                      style: TextStyle(
+                          fontSize: 11, color: TradEtTheme.warning)),
+                  const Spacer(),
+                  Text('${fmt.format(provider.reservedForOrders)} ETB',
+                      style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: TradEtTheme.warning)),
+                ],
+              ),
+            ],
           ],
           const SizedBox(height: 8),
           // Compliance micro-badges
@@ -267,73 +288,75 @@ class HeroTradeCard extends StatelessWidget {
               _MicroBadge(icon: Icons.gavel_rounded, label: 'AAOIFI', color: TradEtTheme.accent),
             ],
           ),
-          const SizedBox(height: 10),
-          // CTA buttons — compact height
-          Row(
-            children: [
-              Expanded(
-                child: GestureDetector(
-                  onTap: () => onNavigateTo?.call(1),
-                  child: MouseRegion(
-                    cursor: SystemMouseCursors.click,
-                    child: Container(
-                      height: 32,
-                      decoration: BoxDecoration(
-                        gradient: TradEtTheme.heroGradient,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.bolt_rounded,
-                              size: 14, color: Colors.white),
-                          SizedBox(width: 5),
-                          Text('Trade Now',
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 12)),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: GestureDetector(
-                  onTap: () => onNavigateTo?.call(2),
-                  child: MouseRegion(
-                    cursor: SystemMouseCursors.click,
-                    child: Container(
-                      height: 32,
-                      decoration: BoxDecoration(
-                        color: TradEtTheme.surfaceLight,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                            color:
-                                TradEtTheme.divider.withValues(alpha: 0.5)),
-                      ),
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.pie_chart_outline,
-                              size: 14,
-                              color: TradEtTheme.primaryLight),
-                          SizedBox(width: 5),
-                          Text('Portfolio',
-                              style: TextStyle(
-                                  color: TradEtTheme.primaryLight,
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 12)),
-                        ],
+          if (wide) ...[
+            const SizedBox(height: 10),
+            // CTA buttons — desktop only
+            Row(
+              children: [
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => onNavigateTo?.call(1),
+                    child: MouseRegion(
+                      cursor: SystemMouseCursors.click,
+                      child: Container(
+                        height: 32,
+                        decoration: BoxDecoration(
+                          gradient: TradEtTheme.heroGradient,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.bolt_rounded,
+                                size: 14, color: Colors.white),
+                            SizedBox(width: 5),
+                            Text('Trade Now',
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 12)),
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            ],
-          ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => onNavigateTo?.call(2),
+                    child: MouseRegion(
+                      cursor: SystemMouseCursors.click,
+                      child: Container(
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: TradEtTheme.surfaceLight,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                              color: TradEtTheme.divider
+                                  .withValues(alpha: 0.5)),
+                        ),
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.pie_chart_outline,
+                                size: 14,
+                                color: TradEtTheme.primaryLight),
+                            SizedBox(width: 5),
+                            Text('Portfolio',
+                                style: TextStyle(
+                                    color: TradEtTheme.primaryLight,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 12)),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );
@@ -975,7 +998,7 @@ class HoldingTile extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // Left: symbol + shares
+          // Left: symbol + name + shares
           Expanded(
             flex: 3,
             child: Column(
@@ -989,6 +1012,12 @@ class HoldingTile extends StatelessWidget {
                     color: Colors.white,
                   ),
                 ),
+                if (holding.assetName != null && (holding.assetName as String).isNotEmpty)
+                  Text(
+                    holding.assetName as String,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 11, color: TradEtTheme.textSecondary),
+                  ),
                 Text(
                   '${holding.quantity} ${holding.unit}',
                   style: const TextStyle(fontSize: 11, color: TradEtTheme.textMuted),
@@ -1027,21 +1056,12 @@ class HoldingTile extends StatelessWidget {
                 (a) => a.symbol == holding.symbol || a.id == holding.assetId);
               if (matches.isEmpty) return const SizedBox.shrink();
               final asset = matches.first;
-              return Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _TradeChip(
-                    label: 'Buy',
-                    color: TradEtTheme.positive,
-                    onTap: () => Navigator.of(ctx).push(appRoute(ctx, TradeScreen(asset: asset))),
-                  ),
-                  const SizedBox(width: 6),
-                  _TradeChip(
-                    label: 'Sell',
-                    color: TradEtTheme.negative,
-                    onTap: () => Navigator.of(ctx).push(appRoute(ctx, TradeScreen(asset: asset))),
-                  ),
-                ],
+              return _TradeChip(
+                label: 'Sell',
+                color: TradEtTheme.negative,
+                big: true,
+                onTap: () => Navigator.of(ctx).push(
+                    appRoute(ctx, TradeScreen(asset: asset, initialSell: true))),
               );
             },
           ),
@@ -1055,7 +1075,8 @@ class _TradeChip extends StatelessWidget {
   final String label;
   final Color color;
   final VoidCallback onTap;
-  const _TradeChip({required this.label, required this.color, required this.onTap});
+  final bool big;
+  const _TradeChip({required this.label, required this.color, required this.onTap, this.big = false});
 
   @override
   Widget build(BuildContext context) {
@@ -1064,15 +1085,17 @@ class _TradeChip extends StatelessWidget {
       child: MouseRegion(
         cursor: SystemMouseCursors.click,
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+          padding: big
+              ? const EdgeInsets.symmetric(horizontal: 16, vertical: 8)
+              : const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
           decoration: BoxDecoration(
             color: color.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(6),
+            borderRadius: BorderRadius.circular(big ? 10 : 6),
             border: Border.all(color: color.withValues(alpha: 0.3)),
           ),
           child: Text(label,
               style: TextStyle(
-                  fontSize: 10, fontWeight: FontWeight.w700, color: color)),
+                  fontSize: big ? 13 : 10, fontWeight: FontWeight.w700, color: color)),
         ),
       ),
     );
@@ -1812,7 +1835,33 @@ class _TopOpportunitiesSectionState extends State<TopOpportunitiesSection> {
   Widget build(BuildContext context) {
     if (widget.provider.assets.isEmpty) return const SizedBox.shrink();
     final wide = isWideScreen(context);
-    if (wide) return _buildDesktopLayout();
+    if (wide) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: TradEtTheme.cardBg,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: TradEtTheme.divider.withValues(alpha: 0.25)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(children: [
+              const Icon(Icons.lightbulb_rounded,
+                  size: 17, color: TradEtTheme.warning),
+              const SizedBox(width: 8),
+              const Text('Top Opportunities',
+                  style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white)),
+            ]),
+            const SizedBox(height: 14),
+            _buildDesktopLayout(),
+          ],
+        ),
+      );
+    }
 
     final assets = _tabAssets;
     final tabColor = _tabColors[_tab];
@@ -1832,11 +1881,16 @@ class _TopOpportunitiesSectionState extends State<TopOpportunitiesSection> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Title on its own row
-                const Text('Top Opportunities',
-                    style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white)),
+                Row(mainAxisSize: MainAxisSize.min, children: [
+                  const Icon(Icons.lightbulb_rounded,
+                      size: 17, color: TradEtTheme.warning),
+                  const SizedBox(width: 7),
+                  const Text('Top Opportunities',
+                      style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white)),
+                ]),
                 const SizedBox(height: 10),
                 // Tab pills row
                 Container(
@@ -1846,42 +1900,48 @@ class _TopOpportunitiesSectionState extends State<TopOpportunitiesSection> {
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Row(
-                    mainAxisSize: MainAxisSize.min,
                     children: List.generate(_tabs.length, (i) {
                       final sel = _tab == i;
                       final color = _tabColors[i];
-                      return GestureDetector(
-                        onTap: () => setState(() => _tab = i),
-                        child: MouseRegion(
-                          cursor: SystemMouseCursors.click,
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 160),
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 14, vertical: 7),
-                            decoration: BoxDecoration(
-                              color: sel
-                                  ? color.withValues(alpha: 0.18)
-                                  : Colors.transparent,
-                              borderRadius: BorderRadius.circular(7),
-                              border: sel
-                                  ? Border.all(color: color.withValues(alpha: 0.4))
-                                  : null,
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(_tabs[i].$1,
-                                    size: 13,
-                                    color: sel ? color : TradEtTheme.textMuted),
-                                const SizedBox(width: 5),
-                                Text(_tabs[i].$2,
-                                    style: TextStyle(
-                                        fontSize: 11,
-                                        fontWeight: sel
-                                            ? FontWeight.w700
-                                            : FontWeight.w500,
-                                        color: sel ? color : TradEtTheme.textMuted)),
-                              ],
+                      return Expanded(
+                        child: GestureDetector(
+                          onTap: () => setState(() => _tab = i),
+                          child: MouseRegion(
+                            cursor: SystemMouseCursors.click,
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 160),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 14, vertical: 7),
+                              decoration: BoxDecoration(
+                                color: sel
+                                    ? color.withValues(alpha: 0.18)
+                                    : Colors.transparent,
+                                borderRadius: BorderRadius.circular(7),
+                                border: sel
+                                    ? Border.all(
+                                        color: color.withValues(alpha: 0.4))
+                                    : null,
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(_tabs[i].$1,
+                                      size: 13,
+                                      color: sel
+                                          ? color
+                                          : TradEtTheme.textMuted),
+                                  const SizedBox(width: 5),
+                                  Text(_tabs[i].$2,
+                                      style: TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: sel
+                                              ? FontWeight.w700
+                                              : FontWeight.w500,
+                                          color: sel
+                                              ? color
+                                              : TradEtTheme.textMuted)),
+                                ],
+                              ),
                             ),
                           ),
                         ),
@@ -2046,7 +2106,7 @@ class _MoversSectionState extends State<MoversSection> {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
-    return Column(
+    final content = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
@@ -2072,20 +2132,39 @@ class _MoversSectionState extends State<MoversSection> {
         const SizedBox(height: 12),
         _showGainers
             ? (widget.webMode
-                  ? webTopMoversSection(
-                      widget.provider,
-                      widget.fmt,
-                      widget.desktop,
-                    )
+                  ? webTopMoversSection(widget.provider, widget.fmt, widget.desktop)
                   : topMoversSection(widget.provider, widget.fmt))
             : (widget.webMode
-                  ? webTopLosersSection(
-                      widget.provider,
-                      widget.fmt,
-                      widget.desktop,
-                    )
+                  ? webTopLosersSection(widget.provider, widget.fmt, widget.desktop)
                   : topLosersSection(widget.provider, widget.fmt)),
       ],
+    );
+    // Wrap in a titled card for visual separation (mobile and desktop)
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: TradEtTheme.cardBg,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: TradEtTheme.divider.withValues(alpha: 0.25)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.show_chart_rounded, size: 18, color: TradEtTheme.positive),
+              const SizedBox(width: 8),
+              const Text('Top Movers',
+                  style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white)),
+            ],
+          ),
+          const SizedBox(height: 14),
+          content,
+        ],
+      ),
     );
   }
 
@@ -2142,25 +2221,9 @@ Widget _mobileMoversGrid(List<dynamic> assets) {
   );
 }
 
-String _assetEmoji(String symbol, String? categoryName) {
-  final s = symbol.toUpperCase();
-  if (s.contains('COFFEE')) return '☕';
-  if (s.contains('MAIZE') || s.contains('CORN')) return '🌽';
-  if (s.contains('BEAN')) return '🫘';
-  if (s.contains('SESAME')) return '🌾';
-  if (s.contains('SOY')) return '🌱';
-  if (s.contains('CHICKPEA')) return '🥜';
-  if (s.contains('WHEAT') || s.contains('SORGHUM')) return '🌾';
-  if (s.contains('SUKUK') || s.contains('GOV')) return '📜';
-  if (s.contains('GOLD')) return '🥇';
-  if (s.contains('HALAL') || s.contains('FOOD')) return '🍃';
-  final cat = categoryName?.toLowerCase() ?? '';
-  if (cat.contains('bank') || cat.contains('islamic')) return '🏦';
-  if (cat.contains('insurance') || cat.contains('takaful')) return '🛡️';
-  if (cat.contains('sukuk')) return '📜';
-  if (cat.contains('equity') || cat.contains('equities')) return '📈';
-  return '🌿';
-}
+// Delegates to shared utility in lib/utils/asset_emoji.dart
+String _assetEmoji(String symbol, String? categoryName) =>
+    assetEmoji(symbol, categoryName);
 
 Widget topMoversSection(AppProvider provider, NumberFormat fmt) {
   if (provider.assetsLoading && provider.assets.isEmpty) {
@@ -2369,7 +2432,8 @@ class WatchlistMiniSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final items = provider.watchlist.take(3).toList();
+    final isWide = isWideScreen(context);
+    final items = provider.watchlist.take(isWide ? 5 : 3).toList();
 
     return Container(
       decoration: BoxDecoration(
@@ -2513,7 +2577,7 @@ class _WatchlistMiniRow extends StatelessWidget {
               ),
               // Price + change (fixed width for alignment)
               SizedBox(
-                width: 90,
+                width: 80,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
@@ -3291,49 +3355,184 @@ class _HoldingsOrdersTabCardState extends State<HoldingsOrdersTabCard> {
     final hasHoldings = widget.provider.holdings.isNotEmpty;
     final hasOrders = widget.provider.orders.isNotEmpty;
     final l = AppLocalizations.of(context);
+    final wide = isWideScreen(context);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Tab switcher
-        Container(
-          padding: const EdgeInsets.all(3),
-          decoration: BoxDecoration(
-            color: TradEtTheme.surfaceLight,
-            borderRadius: BorderRadius.circular(12),
+    // ── Desktop: two side-by-side sub-cards (same pattern as TopOpportunitiesSection) ──
+    if (wide) {
+      const subCards = [
+        (Icons.pie_chart_rounded, 'Your Holdings', TradEtTheme.primaryLight),
+        (Icons.receipt_long_rounded, 'Recent Orders', TradEtTheme.accent),
+      ];
+
+      Widget buildSubCard(int i) {
+        final icon = subCards[i].$1;
+        final label = subCards[i].$2;
+        final color = subCards[i].$3;
+        final isEmpty = i == 0 ? !hasHoldings : !hasOrders;
+
+        Widget content;
+        if (i == 0) {
+          content = hasHoldings
+              ? Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  ...widget.provider.holdings.take(4).map((h) => Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: HoldingTile(holding: h, fmt: widget.fmt),
+                      )),
+                  if (widget.provider.holdings.length > 4)
+                    _viewAllBtn('View all holdings', () => widget.onNavigateTo?.call(2)),
+                ])
+              : _emptyHoldings(context);
+        } else {
+          content = hasOrders
+              ? Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  ...widget.provider.orders.take(4).map((o) => Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: OrderTile(order: o, fmt: widget.fmt),
+                      )),
+                  if (widget.provider.orders.length > 4)
+                    _viewAllBtn('View all orders', () => widget.onNavigateTo?.call(3)),
+                ])
+              : _emptyState(Icons.receipt_long_outlined, 'No recent orders');
+        }
+
+        return Expanded(
+          child: Container(
+            decoration: BoxDecoration(
+              color: TradEtTheme.cardBg,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: color.withValues(alpha: 0.2)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(14, 12, 14, 0),
+                  child: Row(
+                    children: [
+                      Icon(icon, size: 14, color: color),
+                      const SizedBox(width: 6),
+                      Text(label,
+                          style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: color)),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Divider(height: 1, color: TradEtTheme.divider.withValues(alpha: 0.3)),
+                if (isEmpty)
+                  content
+                else
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+                    child: content,
+                  ),
+              ],
+            ),
           ),
-          child: Row(
+        );
+      }
+
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: TradEtTheme.cardBg,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: TradEtTheme.divider.withValues(alpha: 0.25)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(children: [
+              const Icon(Icons.bar_chart_rounded, size: 18, color: TradEtTheme.accent),
+              const SizedBox(width: 8),
+              const Text('Activity',
+                  style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white)),
+            ]),
+            const SizedBox(height: 14),
+            IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  buildSubCard(0),
+                  const SizedBox(width: 12),
+                  buildSubCard(1),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // ── Mobile: tabbed layout ─────────────────────────────────────────────────
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: TradEtTheme.cardBg,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: TradEtTheme.divider.withValues(alpha: 0.25)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Section title
+          Row(
             children: [
-              Expanded(child: _tabBtn(l.yourHoldings, 0)),
-              const SizedBox(width: 3),
-              Expanded(child: _tabBtn(l.recentOrders, 1)),
+              const Icon(Icons.bar_chart_rounded, size: 18, color: TradEtTheme.accent),
+              const SizedBox(width: 8),
+              const Text('Activity',
+                  style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white)),
             ],
           ),
-        ),
-        const SizedBox(height: 12),
-        // Content
-        if (_tab == 0) ...[
-          if (!hasHoldings) _emptyHoldings(context)
-          else ...[
-            ...widget.provider.holdings.take(3).map((h) => Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: HoldingTile(holding: h, fmt: widget.fmt),
-            )),
-            if (widget.provider.holdings.length > 3)
-              _viewAllBtn('View all holdings', () => widget.onNavigateTo?.call(2)),
-          ],
-        ] else ...[
-          if (!hasOrders) _emptyState(Icons.receipt_long_outlined, 'No recent orders')
-          else ...[
-            ...widget.provider.orders.take(3).map((o) => Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: OrderTile(order: o, fmt: widget.fmt),
-            )),
-            if (widget.provider.orders.length > 3)
-              _viewAllBtn('View all orders', () => widget.onNavigateTo?.call(3)),
+          const SizedBox(height: 14),
+          // Tab switcher
+          Container(
+            padding: const EdgeInsets.all(3),
+            decoration: BoxDecoration(
+              color: TradEtTheme.surfaceLight,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                Expanded(child: _tabBtn(l.yourHoldings, 0)),
+                const SizedBox(width: 3),
+                Expanded(child: _tabBtn(l.recentOrders, 1)),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          // Content
+          if (_tab == 0) ...[
+            if (!hasHoldings) _emptyHoldings(context)
+            else ...[
+              ...widget.provider.holdings.take(3).map((h) => Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: HoldingTile(holding: h, fmt: widget.fmt),
+              )),
+              if (widget.provider.holdings.length > 3)
+                _viewAllBtn('View all holdings', () => widget.onNavigateTo?.call(2)),
+            ],
+          ] else ...[
+            if (!hasOrders) _emptyState(Icons.receipt_long_outlined, 'No recent orders')
+            else ...[
+              ...widget.provider.orders.take(3).map((o) => Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: OrderTile(order: o, fmt: widget.fmt),
+              )),
+              if (widget.provider.orders.length > 3)
+                _viewAllBtn('View all orders', () => widget.onNavigateTo?.call(3)),
+            ],
           ],
         ],
-      ],
+      ),
     );
   }
 
@@ -3452,5 +3651,227 @@ class _HoldingsOrdersTabCardState extends State<HoldingsOrdersTabCard> {
         ),
       ),
     );
+  }
+}
+
+// ─── Corporate Events Card ────────────────────────────────────────────────────
+
+class CorporateEventsCard extends StatelessWidget {
+  const CorporateEventsCard({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final now = DateTime.now();
+    // Show the next 3 upcoming events from today
+    final upcoming = corporateEvents
+        .where((e) =>
+            e.date.isAfter(now.subtract(const Duration(days: 1))))
+        .take(3)
+        .toList();
+
+    return Container(
+      decoration: BoxDecoration(
+        color: TradEtTheme.cardBg,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: TradEtTheme.divider.withValues(alpha: 0.25)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header row — title + "See all" arrow
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 14, 8, 0),
+            child: Row(
+              children: [
+                const Icon(Icons.event_note_rounded,
+                    size: 16, color: TradEtTheme.primaryLight),
+                const SizedBox(width: 8),
+                const Expanded(
+                  child: Text('Corporate Events',
+                      style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white)),
+                ),
+                GestureDetector(
+                  onTap: () => Navigator.of(context)
+                      .push(appRoute(context, const CorporateEventsScreen())),
+                  child: MouseRegion(
+                    cursor: SystemMouseCursors.click,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 6),
+                      child: Row(
+                        children: [
+                          Text('See all',
+                              style: TextStyle(
+                                  fontSize: 13,
+                                  color: TradEtTheme.primaryLight
+                                      .withValues(alpha: 0.85),
+                                  fontWeight: FontWeight.w600)),
+                          const SizedBox(width: 2),
+                          const Icon(Icons.chevron_right_rounded,
+                              size: 16, color: TradEtTheme.primaryLight),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+
+          // Event rows
+          if (upcoming.isEmpty)
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Center(
+                child: Text('No upcoming events',
+                    style: TextStyle(
+                        fontSize: 13, color: TradEtTheme.textMuted)),
+              ),
+            )
+          else
+            ...upcoming.map((e) => _EventPreviewRow(event: e)),
+
+          const SizedBox(height: 8),
+        ],
+      ),
+    );
+  }
+}
+
+class _EventPreviewRow extends StatelessWidget {
+  final CorporateEvent event;
+  const _EventPreviewRow({required this.event});
+
+  @override
+  Widget build(BuildContext context) {
+    final color = _eventColor(event.type);
+    final emoji = event.assetSymbol.isNotEmpty
+        ? assetEmoji(event.assetSymbol, null)
+        : _holidayEmoji(event.assetName);
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
+      child: Row(
+        children: [
+          // Date column
+          SizedBox(
+            width: 32,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(event.date.day.toString(),
+                    style: const TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                        height: 1.1)),
+                Text(DateFormat('MMM').format(event.date),
+                    style: const TextStyle(
+                        fontSize: 10,
+                        color: TradEtTheme.textMuted,
+                        height: 1.1)),
+              ],
+            ),
+          ),
+          const SizedBox(width: 10),
+
+          // Event card
+          Expanded(
+            child: Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              margin: const EdgeInsets.symmetric(vertical: 4),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(13),
+                border: Border.all(color: color.withValues(alpha: 0.2)),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 34,
+                    height: 34,
+                    decoration: BoxDecoration(
+                      color: color.withValues(alpha: 0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Center(
+                        child:
+                            Text(emoji, style: const TextStyle(fontSize: 15))),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(event.assetName,
+                            style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white),
+                            overflow: TextOverflow.ellipsis),
+                        Text(event.detail ?? _eventLabel(event.type),
+                            style: TextStyle(
+                                fontSize: 11,
+                                color: color.withValues(alpha: 0.85)),
+                            overflow: TextOverflow.ellipsis),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _holidayEmoji(String name) {
+    final n = name.toLowerCase();
+    if (n.contains('christmas') || n.contains('genna')) return '🎄';
+    if (n.contains('epiphany') || n.contains('timkat')) return '✝️';
+    if (n.contains('adwa')) return '🦁';
+    if (n.contains('easter') || n.contains('fasika') || n.contains('good friday')) return '✝️';
+    if (n.contains('labour') || n.contains('labor')) return '👷';
+    if (n.contains('patriots')) return '⚔️';
+    if (n.contains('derg') || n.contains('downfall')) return '🇪🇹';
+    if (n.contains('new year') || n.contains('enkutatash')) return '🌸';
+    if (n.contains('meskel') || n.contains('cross')) return '✝️';
+    return '🗓️';
+  }
+}
+
+Color _eventColor(CorporateEventType type) {
+  switch (type) {
+    case CorporateEventType.earnings:
+      return TradEtTheme.primaryLight;
+    case CorporateEventType.agm:
+      return TradEtTheme.accent;
+    case CorporateEventType.dividend:
+      return TradEtTheme.positive;
+    case CorporateEventType.marketHoliday:
+      return const Color(0xFFF59E0B);
+    case CorporateEventType.ecxSession:
+      return const Color(0xFF8B5CF6);
+  }
+}
+
+String _eventLabel(CorporateEventType type) {
+  switch (type) {
+    case CorporateEventType.earnings:
+      return 'Earnings / Report';
+    case CorporateEventType.agm:
+      return 'Annual Meeting';
+    case CorporateEventType.dividend:
+      return 'Profit Share';
+    case CorporateEventType.marketHoliday:
+      return 'Market Holiday';
+    case CorporateEventType.ecxSession:
+      return 'ECX Session';
   }
 }

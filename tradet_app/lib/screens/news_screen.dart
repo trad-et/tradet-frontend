@@ -172,7 +172,6 @@ class _NewsScreenState extends State<NewsScreen> with SingleTickerProviderStateM
       ),
     );
 
-    if (wide) return WebContentWrapper(maxWidth: 900, child: content);
     return content;
   }
 

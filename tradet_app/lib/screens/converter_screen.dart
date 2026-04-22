@@ -253,7 +253,6 @@ class _ConverterScreenState extends State<ConverterScreen> {
       ),
     );
 
-    if (wide) return WebContentWrapper(maxWidth: 700, child: content);
     return content;
   }
 
