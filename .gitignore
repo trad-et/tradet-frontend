@@ -1,23 +1,21 @@
 # Flutter
-tradet_app/.dart_tool/
-tradet_app/.packages
-tradet_app/build/app/
-tradet_app/build/ios/
-tradet_app/build/linux/
-tradet_app/build/macos/
-tradet_app/build/windows/
-tradet_app/.flutter-plugins
-tradet_app/.flutter-plugins-dependencies
-tradet_app/pubspec.lock
-tradet_app/.idea/
-tradet_app/*.iml
-tradet_app/android/.gradle/
-tradet_app/android/local.properties
-tradet_app/ios/Pods/
-tradet_app/ios/Podfile.lock
-tradet_app/ios/.symlinks/
-tradet_app/ios/Flutter/flutter_export_environment.sh
-tradet_app/ios/Flutter/Generated.xcconfig
+tradet-frontend/.dart_tool/
+tradet-frontend/.packages
+tradet-frontend/build/
+tradet-frontend/.flutter-plugins
+tradet-frontend/.flutter-plugins-dependencies
+tradet-frontend/.idea/
+tradet-frontend/*.iml
+tradet-frontend/android/.gradle/
+tradet-frontend/android/local.properties
+tradet-frontend/ios/Pods/
+tradet-frontend/ios/Podfile.lock
+tradet-frontend/ios/.symlinks/
+tradet-frontend/ios/Flutter/flutter_export_environment.sh
+tradet-frontend/ios/Flutter/Generated.xcconfig
+
+# Nested repos (managed independently)
+tradet-backend/
 
 # IDE
 .idea/
