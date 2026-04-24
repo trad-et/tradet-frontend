@@ -3704,8 +3704,14 @@ class CorporateEventsCard extends StatelessWidget {
                           color: Colors.white)),
                 ),
                 GestureDetector(
-                  onTap: () => Navigator.of(context)
-                      .push(appRoute(context, const CorporateEventsScreen())),
+                  onTap: () {
+                    if (isWideScreen(context)) {
+                      context.read<AppProvider>().navigateGlobal(12);
+                    } else {
+                      Navigator.of(context)
+                          .push(appRoute(context, const CorporateEventsScreen()));
+                    }
+                  },
                   child: MouseRegion(
                     cursor: SystemMouseCursors.click,
                     child: Padding(

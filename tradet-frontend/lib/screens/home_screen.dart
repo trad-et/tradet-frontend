@@ -18,6 +18,7 @@ import 'alerts_screen.dart';
 import 'converter_screen.dart';
 import 'analytics_screen.dart';
 import 'transactions_screen.dart';
+import 'corporate_events_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -64,6 +65,7 @@ class _HomeScreenState extends State<HomeScreen> {
     const AnalyticsScreen(),
     const TransactionsScreen(),
     const ProfileScreen(),
+    const CorporateEventsScreen(), // index 12 — accessed from dashboard card on desktop
   ];
 
   @override
