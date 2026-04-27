@@ -292,6 +292,10 @@ class AppLocalizations {
   String get taxStatements => _t({'en': 'Tax Statements & Reporting', 'am': 'የታክስ ዘርዝር', 'ti': 'ሓሳብ ቀረጽ', 'om': 'Ibsa gibiraa', 'so': 'Warbixinada canaasiibta', 'gur': 'የቀረጥ ዘርዝር'});
   String get feesAndLimits => _t({'en': 'Fees & Trading Limits', 'am': 'ክፍያ እና ወሰን', 'ti': 'ክፍሊት ወ ገደብ', 'om': 'Kaffaltii fi daangaa', 'so': 'Kharashyada & Xadduudka', 'gur': 'ክፍያ እና ወሰን'});
   String get verificationStatus => _t({'en': 'Verification Status', 'am': 'ሁኔታ ማረጋገጫ', 'ti': 'ኩነታ ምርግጋጽ', 'om': 'Haala mirkaneessaa', 'so': 'Xaalada xaqiijinta', 'gur': 'ሁኔታ ማረጋገጫ'});
+  String get profileInformation => _t({'en': 'Profile Information', 'am': 'መገለጫ መረጃ', 'ti': 'ሓበሬታ ፕሮፋይል', 'om': 'Odeeffannoo piroofaayilii', 'so': 'Macluumaadka Bogga', 'gur': 'መገለጫ ሓበሬታ'});
+  String get paymentMethod => _t({'en': 'Payment Method', 'am': 'የክፍያ ዘዴ', 'ti': 'ኣገባብ ክፍሊት', 'om': 'Mala kaffaltii', 'so': 'Habka Lacag-bixinta', 'gur': 'የክፍያ ዓይነት'});
+  String get securityAndPrivacy => _t({'en': 'Security & Privacy', 'am': 'ደህንነት እና ምስጢር', 'ti': 'ድሕንነት ወ ምስጢር', 'om': 'Nageenyaa fi dhuunfaa', 'so': 'Amniga & Xurmada', 'gur': 'ደህንነት እና ምስጢር'});
+  String get helpAndSupport => _t({'en': 'Help & Support', 'am': 'እርዳታ እና ድጋፍ', 'ti': 'ሓገዝ ወ ደገፍ', 'om': 'Gargaarsa fi deggersaa', 'so': 'Caawimaad & Taageero', 'gur': 'ሓገዝ እና ድጋፍ'});
   String get basicInfo => _t({'en': 'Basic information', 'am': 'መሠረታዊ መረጃ', 'ti': 'መሰረታዊ ሓበሬታ', 'om': 'Odeeffannoo bu\'uraa', 'so': 'Macluumaadka aasaasiga', 'gur': 'መሠረታዊ ሓበሬታ'});
   String get nationality => _t({'en': 'Nationality', 'am': 'ዜግነት', 'ti': 'ዜጋነት', 'om': 'Lammummaa', 'so': 'Jinsiyadda', 'gur': 'ዜጋነት'});
   String get residentialAddress => _t({'en': 'Residential address', 'am': 'መኖሪያ አድራሻ', 'ti': 'ናይ ቤት ኣድራሻ', 'om': 'Teessoo jireenyaa', 'so': 'Cinwaanka deganaanshaha', 'gur': 'ቤት አድራሻ'});

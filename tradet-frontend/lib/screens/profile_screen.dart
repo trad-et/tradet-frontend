@@ -40,7 +40,7 @@ class ProfileScreen extends StatelessWidget {
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // MOBILE — new menu design matching design spec
+  // MOBILE — 5-category menu matching doc spec
   // ═══════════════════════════════════════════════════════════════════════════
 
   Widget _buildMobileMenu(BuildContext context, AppProvider provider, dynamic user) {
@@ -56,10 +56,9 @@ class ProfileScreen extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
           child: Column(
             children: [
-              // Avatar + close hint row
               Row(
                 children: [
-                  const SizedBox(width: 32), // balance
+                  const SizedBox(width: 32),
                   const Spacer(),
                   _mobileAvatar(context, provider, user, size: 72),
                   const Spacer(),
@@ -77,12 +76,11 @@ class ProfileScreen extends StatelessWidget {
                   Text('@${email.split('@').first}',
                       style: const TextStyle(color: TradEtTheme.accent, fontSize: 13)),
                   const SizedBox(width: 6),
-                  Icon(Icons.qr_code_2_rounded, size: 16,
+                  const Icon(Icons.qr_code_2_rounded, size: 16,
                       color: TradEtTheme.textSecondary),
                 ],
               ),
               const SizedBox(height: 16),
-              // Verification + Invite row
               Row(
                 children: [
                   Expanded(child: _statCard(
@@ -104,46 +102,63 @@ class ProfileScreen extends StatelessWidget {
           ),
         ),
 
-        // ── Section 1: Main menu ─────────────────────────────────────────
+        // ── 1. Account ───────────────────────────────────────────────────
         _menuCard([
-          _menuItem(context, icon: Icons.help_outline_rounded, label: l.help,
-              onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(l.help + ' — coming soon'),
-                    behavior: SnackBarBehavior.floating))),
-          _menuDivider(),
-          _menuItem(context, icon: Icons.person_outline_rounded, label: l.account,
+          _menuItem(context,
+              icon: Icons.person_outline_rounded,
+              label: l.account,
+              subtitle: '${l.profileInformation}, ${l.verificationStatus}...',
               onTap: () => Navigator.push(context,
-                  MaterialPageRoute(builder: (_) => _AccountDetailsScreen(user: user)))),
-          _menuDivider(),
-          _menuItem(context, icon: Icons.description_outlined, label: l.complianceDocuments,
+                  MaterialPageRoute(builder: (_) => _AccountMenuScreen(user: user)))),
+        ]),
+        const SizedBox(height: 10),
+
+        // ── 2. Security & Privacy ─────────────────────────────────────────
+        _menuCard([
+          _menuItem(context,
+              icon: Icons.shield_outlined,
+              label: l.securityAndPrivacy,
+              subtitle: '${l.loginSecurity}, ${l.privacyControls}',
+              onTap: () => Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => const _SecurityPrivacyMenuScreen()))),
+        ]),
+        const SizedBox(height: 10),
+
+        // ── 3. Notifications ──────────────────────────────────────────────
+        _menuCard([
+          _menuItem(context,
+              icon: Icons.notifications_outlined,
+              label: l.notifications,
+              subtitle: '${l.marketAlerts}, ${l.systemMarketing}',
+              onTap: () => Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => const _NotificationsMenuScreen()))),
+        ]),
+        const SizedBox(height: 10),
+
+        // ── 4. Help & Support ─────────────────────────────────────────────
+        _menuCard([
+          _menuItem(context,
+              icon: Icons.help_outline_rounded,
+              label: l.helpAndSupport,
+              subtitle: '${l.supportCenter}, ${l.contactUs}',
+              onTap: () => Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => const _HelpSupportMenuScreen()))),
+        ]),
+        const SizedBox(height: 10),
+
+        // ── 5. Compliance & Documents ─────────────────────────────────────
+        _menuCard([
+          _menuItem(context,
+              icon: Icons.description_outlined,
+              label: l.complianceDocuments,
+              subtitle: '${l.legalDocs}, ${l.halalCompliance}...',
               onTap: () => Navigator.push(context,
                   MaterialPageRoute(builder: (_) => _ComplianceDocsScreen()))),
-          _menuDivider(),
-          _menuItem(context, icon: Icons.bolt_outlined, label: l.learn,
-              onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(l.learn + ' — coming soon'),
-                    behavior: SnackBarBehavior.floating))),
-          _menuDivider(),
-          _menuItem(context, icon: Icons.campaign_outlined, label: l.inbox,
-              badge: 4,
-              onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(l.inbox + ' — coming soon'),
-                    behavior: SnackBarBehavior.floating))),
         ]),
+        const SizedBox(height: 16),
 
-        const SizedBox(height: 12),
-
-        // ── Section 2: Settings ──────────────────────────────────────────
+        // ── Preferences (inline) ──────────────────────────────────────────
         _menuCard([
-          _menuItem(context, icon: Icons.security_rounded, label: l.security,
-              onTap: () => Navigator.push(context,
-                  MaterialPageRoute(builder: (_) => const SecurityScreen()))),
-          _menuDivider(),
-          _menuItem(context, icon: Icons.visibility_outlined, label: l.privacy,
-              onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(l.privacy + ' — coming soon'),
-                    behavior: SnackBarBehavior.floating))),
-          _menuDivider(),
           _menuItem(context, icon: Icons.palette_outlined, label: l.appearance,
               trailing: Consumer<AppProvider>(
                 builder: (ctx, prov, _) => Switch(
@@ -155,20 +170,10 @@ class ProfileScreen extends StatelessWidget {
               ),
               onTap: null),
           _menuDivider(),
-          _menuItem(context, icon: Icons.notifications_outlined, label: l.notificationSetting,
-              onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(l.notificationSetting + ' — coming soon'),
-                    behavior: SnackBarBehavior.floating))),
-          _menuDivider(),
           _menuItem(context, icon: Icons.language_rounded, label: l.language,
               trailing: const LanguageSelector(),
               onTap: null),
-        ]),
-
-        const SizedBox(height: 12),
-
-        // ── Section 3: About + Logout ────────────────────────────────────
-        _menuCard([
+          _menuDivider(),
           _menuItem(context, icon: Icons.info_outline_rounded, label: l.aboutUs,
               onTap: () => _showAboutDialog(context)),
           _menuDivider(),
@@ -266,6 +271,7 @@ class ProfileScreen extends StatelessWidget {
     BuildContext context, {
     required IconData icon,
     required String label,
+    String? subtitle,
     VoidCallback? onTap,
     int? badge,
     Widget? trailing,
@@ -285,6 +291,11 @@ class ProfileScreen extends StatelessWidget {
       title: Text(label,
           style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500,
               color: labelColor ?? Colors.white)),
+      subtitle: subtitle != null
+          ? Text(subtitle,
+              style: const TextStyle(fontSize: 11, color: TradEtTheme.textMuted),
+              maxLines: 1, overflow: TextOverflow.ellipsis)
+          : null,
       trailing: trailing ??
           (badge != null
               ? Row(mainAxisSize: MainAxisSize.min, children: [
@@ -1518,12 +1529,467 @@ class ProfileScreen extends StatelessWidget {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Account Details Screen (mobile "Your profile" subpage)
+// Account Menu Screen — 4 sub-options from doc spec
 // ═══════════════════════════════════════════════════════════════════════════
 
-class _AccountDetailsScreen extends StatelessWidget {
+class _AccountMenuScreen extends StatelessWidget {
   final dynamic user;
-  const _AccountDetailsScreen({required this.user});
+  const _AccountMenuScreen({required this.user});
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final isVerified = user?.kycStatus == 'verified';
+
+    return _SubMenuScaffold(
+      title: l.account,
+      icon: Icons.person_outline_rounded,
+      iconColor: const Color(0xFF22D3EE),
+      subtitle: 'Manage your personal & financial profile',
+      children: [
+        _subItem(context,
+          icon: Icons.badge_outlined,
+          color: const Color(0xFF22D3EE),
+          title: l.profileInformation,
+          subtitle: 'Update personal details, avatar & contact email',
+          onTap: () => Navigator.push(context,
+              MaterialPageRoute(builder: (_) => _AccountDetailsScreen(user: user))),
+        ),
+        _subItem(context,
+          icon: Icons.verified_user_outlined,
+          color: isVerified ? TradEtTheme.positive : TradEtTheme.warning,
+          title: l.verificationStatus,
+          subtitle: isVerified ? 'KYC Tier 1 — Verified' : 'Upload ID documents & check KYC approval',
+          trailingBadge: isVerified ? null : '!',
+          onTap: () {
+            Navigator.pop(context);
+            // KYC dialog opened from parent
+            showDialog(
+              context: context,
+              builder: (_) => _KycDialogContent(),
+            );
+          },
+        ),
+        _subItem(context,
+          icon: Icons.account_balance_outlined,
+          color: TradEtTheme.accent,
+          title: l.paymentMethod,
+          subtitle: 'Manage linked bank accounts & invoices',
+          onTap: () => Navigator.push(context,
+              MaterialPageRoute(builder: (_) => const _PaymentMethodsMobileScreen())),
+        ),
+        _subItem(context,
+          icon: Icons.price_change_outlined,
+          color: const Color(0xFF60A5FA),
+          title: l.feesAndLimits,
+          subtitle: 'Commission rates, withdrawal & trading limits',
+          isLast: true,
+          onTap: () => Navigator.push(context,
+              MaterialPageRoute(builder: (_) => const _FeesLimitsScreen())),
+        ),
+      ],
+    );
+  }
+
+  Widget _subItem(BuildContext context, {
+    required IconData icon,
+    required Color color,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+    bool isLast = false,
+    String? trailingBadge,
+  }) {
+    return Column(
+      children: [
+        ListTile(
+          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+          leading: Container(
+            width: 40, height: 40,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: color, size: 20),
+          ),
+          title: Text(title,
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600,
+                  color: Colors.white)),
+          subtitle: Text(subtitle,
+              style: const TextStyle(fontSize: 11, color: TradEtTheme.textMuted)),
+          trailing: trailingBadge != null
+              ? Container(
+                  width: 20, height: 20,
+                  decoration: const BoxDecoration(
+                      color: TradEtTheme.warning, shape: BoxShape.circle),
+                  child: Center(child: Text(trailingBadge,
+                      style: const TextStyle(fontSize: 11,
+                          fontWeight: FontWeight.w800, color: Colors.black))))
+              : const Icon(Icons.chevron_right_rounded,
+                  color: TradEtTheme.textMuted, size: 20),
+          onTap: onTap,
+        ),
+        if (!isLast)
+          Divider(height: 1, indent: 76,
+              color: TradEtTheme.divider.withValues(alpha: 0.3)),
+      ],
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Security & Privacy Menu Screen
+// ═══════════════════════════════════════════════════════════════════════════
+
+class _SecurityPrivacyMenuScreen extends StatelessWidget {
+  const _SecurityPrivacyMenuScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    return _SubMenuScaffold(
+      title: l.securityAndPrivacy,
+      icon: Icons.shield_outlined,
+      iconColor: const Color(0xFF22D3EE),
+      subtitle: 'Protect your account & manage privacy',
+      children: [
+        _secItem(context,
+          icon: Icons.lock_outline_rounded,
+          color: const Color(0xFF22D3EE),
+          title: l.loginSecurity,
+          subtitle: 'Change password & enable Two-Factor Authentication (2FA)',
+          onTap: () => Navigator.push(context,
+              MaterialPageRoute(builder: (_) => const SecurityScreen())),
+        ),
+        _secItem(context,
+          icon: Icons.visibility_outlined,
+          color: const Color(0xFF60A5FA),
+          title: l.privacyControls,
+          subtitle: 'Manage data sharing & account visibility settings',
+          isLast: true,
+          onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('${l.privacyControls} — coming soon'),
+                behavior: SnackBarBehavior.floating)),
+        ),
+      ],
+    );
+  }
+
+  Widget _secItem(BuildContext context, {
+    required IconData icon, required Color color,
+    required String title, required String subtitle,
+    required VoidCallback onTap, bool isLast = false,
+  }) {
+    return Column(children: [
+      ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+        leading: Container(width: 40, height: 40,
+          decoration: BoxDecoration(color: color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(12)),
+          child: Icon(icon, color: color, size: 20)),
+        title: Text(title, style: const TextStyle(fontSize: 14,
+            fontWeight: FontWeight.w600, color: Colors.white)),
+        subtitle: Text(subtitle, style: const TextStyle(fontSize: 11,
+            color: TradEtTheme.textMuted)),
+        trailing: const Icon(Icons.chevron_right_rounded,
+            color: TradEtTheme.textMuted, size: 20),
+        onTap: onTap,
+      ),
+      if (!isLast) Divider(height: 1, indent: 76,
+          color: TradEtTheme.divider.withValues(alpha: 0.3)),
+    ]);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Notifications Menu Screen
+// ═══════════════════════════════════════════════════════════════════════════
+
+class _NotificationsMenuScreen extends StatelessWidget {
+  const _NotificationsMenuScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    return _SubMenuScaffold(
+      title: l.notifications,
+      icon: Icons.notifications_outlined,
+      iconColor: TradEtTheme.accent,
+      subtitle: 'Configure alerts & messaging preferences',
+      children: [
+        _notifItem(context,
+          icon: Icons.show_chart_rounded,
+          color: TradEtTheme.positive,
+          title: l.marketAlerts,
+          subtitle: 'Configure push/email alerts for price movements & trends',
+          onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('${l.marketAlerts} — coming soon'),
+                behavior: SnackBarBehavior.floating)),
+        ),
+        _notifItem(context,
+          icon: Icons.campaign_outlined,
+          color: TradEtTheme.accent,
+          title: l.systemMarketing,
+          subtitle: 'Toggle newsletter & system-triggered AI assistance',
+          isLast: true,
+          onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('${l.systemMarketing} — coming soon'),
+                behavior: SnackBarBehavior.floating)),
+        ),
+      ],
+    );
+  }
+
+  Widget _notifItem(BuildContext context, {
+    required IconData icon, required Color color,
+    required String title, required String subtitle,
+    required VoidCallback onTap, bool isLast = false,
+  }) {
+    return Column(children: [
+      ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+        leading: Container(width: 40, height: 40,
+          decoration: BoxDecoration(color: color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(12)),
+          child: Icon(icon, color: color, size: 20)),
+        title: Text(title, style: const TextStyle(fontSize: 14,
+            fontWeight: FontWeight.w600, color: Colors.white)),
+        subtitle: Text(subtitle, style: const TextStyle(fontSize: 11,
+            color: TradEtTheme.textMuted)),
+        trailing: const Icon(Icons.chevron_right_rounded,
+            color: TradEtTheme.textMuted, size: 20),
+        onTap: onTap,
+      ),
+      if (!isLast) Divider(height: 1, indent: 76,
+          color: TradEtTheme.divider.withValues(alpha: 0.3)),
+    ]);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Help & Support Menu Screen
+// ═══════════════════════════════════════════════════════════════════════════
+
+class _HelpSupportMenuScreen extends StatelessWidget {
+  const _HelpSupportMenuScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    return _SubMenuScaffold(
+      title: l.helpAndSupport,
+      icon: Icons.help_outline_rounded,
+      iconColor: TradEtTheme.positive,
+      subtitle: 'FAQ, documentation & contact',
+      children: [
+        _helpItem(context,
+          icon: Icons.support_agent_rounded,
+          color: TradEtTheme.positive,
+          title: l.supportCenter,
+          subtitle: 'Access FAQ, help documentation & community forums',
+          onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('${l.supportCenter} — coming soon'),
+                behavior: SnackBarBehavior.floating)),
+        ),
+        _helpItem(context,
+          icon: Icons.chat_outlined,
+          color: const Color(0xFF60A5FA),
+          title: l.contactUs,
+          subtitle: 'Submit a support ticket or start an in-app chat',
+          isLast: true,
+          onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('${l.contactUs} — coming soon'),
+                behavior: SnackBarBehavior.floating)),
+        ),
+      ],
+    );
+  }
+
+  Widget _helpItem(BuildContext context, {
+    required IconData icon, required Color color,
+    required String title, required String subtitle,
+    required VoidCallback onTap, bool isLast = false,
+  }) {
+    return Column(children: [
+      ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+        leading: Container(width: 40, height: 40,
+          decoration: BoxDecoration(color: color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(12)),
+          child: Icon(icon, color: color, size: 20)),
+        title: Text(title, style: const TextStyle(fontSize: 14,
+            fontWeight: FontWeight.w600, color: Colors.white)),
+        subtitle: Text(subtitle, style: const TextStyle(fontSize: 11,
+            color: TradEtTheme.textMuted)),
+        trailing: const Icon(Icons.chevron_right_rounded,
+            color: TradEtTheme.textMuted, size: 20),
+        onTap: onTap,
+      ),
+      if (!isLast) Divider(height: 1, indent: 76,
+          color: TradEtTheme.divider.withValues(alpha: 0.3)),
+    ]);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Shared sub-menu scaffold
+// ═══════════════════════════════════════════════════════════════════════════
+
+class _SubMenuScaffold extends StatelessWidget {
+  final String title;
+  final IconData icon;
+  final Color iconColor;
+  final String subtitle;
+  final List<Widget> children;
+
+  const _SubMenuScaffold({
+    required this.title,
+    required this.icon,
+    required this.iconColor,
+    required this.subtitle,
+    required this.children,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: Container(
+        decoration: BoxDecoration(gradient: TradEtTheme.bgGradient),
+        child: SafeArea(
+          child: Column(
+            children: [
+              // Header
+              Padding(
+                padding: const EdgeInsets.fromLTRB(4, 8, 16, 0),
+                child: Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back_ios_new_rounded,
+                          color: Colors.white, size: 20),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                    const SizedBox(width: 4),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(title,
+                            style: const TextStyle(fontSize: 18,
+                                fontWeight: FontWeight.w700, color: Colors.white)),
+                        Text(subtitle,
+                            style: const TextStyle(fontSize: 11,
+                                color: TradEtTheme.textMuted)),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              // Card
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: TradEtTheme.cardBg,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: TradEtTheme.divider.withValues(alpha: 0.3)),
+                  ),
+                  child: Column(children: children),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// KYC Dialog (extracted for reuse)
+// ═══════════════════════════════════════════════════════════════════════════
+
+class _KycDialogContent extends StatefulWidget {
+  @override
+  State<_KycDialogContent> createState() => _KycDialogContentState();
+}
+
+class _KycDialogContentState extends State<_KycDialogContent> {
+  final _idCtrl = TextEditingController();
+  String _idType = 'national_id';
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    return AlertDialog(
+      backgroundColor: TradEtTheme.cardBg,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      title: Text(l.kycVerification,
+          style: const TextStyle(color: Colors.white)),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text('Identity verification',
+              style: TextStyle(fontSize: 13, color: TradEtTheme.textSecondary)),
+          const SizedBox(height: 16),
+          DropdownButtonFormField<String>(
+            initialValue: _idType,
+            dropdownColor: TradEtTheme.cardBgLight,
+            style: const TextStyle(color: Colors.white, fontSize: 14),
+            decoration: InputDecoration(labelText: l.idType),
+            items: [
+              DropdownMenuItem(value: 'national_id', child: Text(l.nationalId)),
+              DropdownMenuItem(value: 'passport', child: Text(l.passport)),
+              DropdownMenuItem(value: 'drivers_license', child: Text(l.driversLicense)),
+              DropdownMenuItem(value: 'kebele_id', child: Text(l.kebeleId)),
+            ],
+            onChanged: (v) => setState(() => _idType = v ?? 'national_id'),
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _idCtrl,
+            style: const TextStyle(color: Colors.white),
+            decoration: InputDecoration(labelText: l.idNumber),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(l.cancel,
+              style: const TextStyle(color: TradEtTheme.textSecondary)),
+        ),
+        ElevatedButton(
+          onPressed: () async {
+            if (_idCtrl.text.isNotEmpty) {
+              Navigator.pop(context);
+              final success = await context.read<AppProvider>().submitKyc(
+                    idType: _idType, idNumber: _idCtrl.text);
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text(success
+                      ? 'KYC verified successfully!'
+                      : 'KYC submission failed'),
+                  backgroundColor:
+                      success ? TradEtTheme.positive : TradEtTheme.negative,
+                  behavior: SnackBarBehavior.floating,
+                ));
+              }
+            }
+          },
+          child: Text(l.submit),
+        ),
+      ],
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Payment Methods — Mobile screen
+// ═══════════════════════════════════════════════════════════════════════════
+
+class _PaymentMethodsMobileScreen extends StatelessWidget {
+  const _PaymentMethodsMobileScreen();
 
   @override
   Widget build(BuildContext context) {
@@ -1535,19 +2001,311 @@ class _AccountDetailsScreen extends StatelessWidget {
         child: SafeArea(
           child: Column(
             children: [
-              // Header
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                padding: const EdgeInsets.fromLTRB(4, 8, 16, 8),
                 child: Row(
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.close, color: Colors.white),
+                      icon: const Icon(Icons.arrow_back_ios_new_rounded,
+                          color: Colors.white, size: 20),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(l.paymentMethod,
+                        style: const TextStyle(fontSize: 18,
+                            fontWeight: FontWeight.w700, color: Colors.white)),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: const _PaymentMethodsSection(),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Fees & Limits — Mobile screen
+// ═══════════════════════════════════════════════════════════════════════════
+
+class _FeesLimitsScreen extends StatelessWidget {
+  const _FeesLimitsScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+
+    Widget feeRow(String label, String value, IconData icon, Color color) {
+      return Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: TradEtTheme.cardBg,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: TradEtTheme.divider.withValues(alpha: 0.3)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40, height: 40,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: color, size: 20),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Text(label,
+                  style: const TextStyle(fontSize: 13,
+                      color: TradEtTheme.textSecondary)),
+            ),
+            Text(value,
+                style: const TextStyle(fontSize: 13,
+                    fontWeight: FontWeight.w700, color: Colors.white)),
+          ],
+        ),
+      );
+    }
+
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: Container(
+        decoration: BoxDecoration(gradient: TradEtTheme.bgGradient),
+        child: SafeArea(
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(4, 8, 16, 8),
+                child: Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back_ios_new_rounded,
+                          color: Colors.white, size: 20),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                    const SizedBox(width: 4),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(l.feesAndLimits,
+                            style: const TextStyle(fontSize: 18,
+                                fontWeight: FontWeight.w700, color: Colors.white)),
+                        const Text('Commission & trading limits',
+                            style: TextStyle(fontSize: 11,
+                                color: TradEtTheme.textMuted)),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                  children: [
+                    feeRow('Commission rate', '1.5% flat (Riba-free)',
+                        Icons.percent_rounded, TradEtTheme.positive),
+                    feeRow('Daily withdrawal limit', '100,000 ETB',
+                        Icons.arrow_upward_rounded, TradEtTheme.warning),
+                    feeRow('Weekly trading limit', '500,000 ETB',
+                        Icons.swap_horiz_rounded, const Color(0xFF60A5FA)),
+                    feeRow('Plan', 'Retail Trader — Standard',
+                        Icons.workspace_premium_outlined,
+                        const Color(0xFF818CF8)),
+                    feeRow('Settlement', 'T+2 (ECX standard)',
+                        Icons.schedule_rounded, TradEtTheme.accent),
+                    Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: TradEtTheme.positive.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                            color: TradEtTheme.positive.withValues(alpha: 0.2)),
+                      ),
+                      child: const Row(
+                        children: [
+                          Icon(Icons.info_outline, color: TradEtTheme.positive,
+                              size: 16),
+                          SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              'All fees are Sharia-compliant flat commissions. '
+                              'No hidden interest (Riba) charges.',
+                              style: TextStyle(fontSize: 11,
+                                  color: TradEtTheme.textSecondary),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Account Details Screen (mobile "Profile Information" subpage)
+// ═══════════════════════════════════════════════════════════════════════════
+
+class _AccountDetailsScreen extends StatefulWidget {
+  final dynamic user;
+  const _AccountDetailsScreen({required this.user});
+
+  @override
+  State<_AccountDetailsScreen> createState() => _AccountDetailsScreenState();
+}
+
+class _AccountDetailsScreenState extends State<_AccountDetailsScreen> {
+  // Dropdown state for KYC wealth fields
+  String? _occupation;
+  String? _sourceOfWealth;
+  String? _sourceOfFunds;
+  String? _netWorth;
+  String? _purposeOfTrading;
+
+  static const _occupations = [
+    'Public Sector Employee (Government)',
+    'Private Sector Employee',
+    'Self-Employed / Entrepreneur',
+    'Freelancer / Digital Professional',
+    'Student',
+    'Unemployed',
+    'Retired / Pensioner',
+    'Homemaker',
+    'NGO / International Organization Employee',
+  ];
+
+  static const _wealthSources = [
+    'Personal Savings',
+    'Inheritance',
+    'Business Profits',
+    'Investment Returns / Dividends',
+    'Real Estate / Property Sale',
+    'Gratuity / Severance Pay',
+    'Gift / Family Support',
+  ];
+
+  static const _fundSources = [
+    'Employment Income (Salary)',
+    'Business Revenue',
+    'Sale of Assets',
+    'Remittances (Diaspora Support)',
+    'Government Allowance / Pension',
+    'Savings Withdrawal',
+  ];
+
+  static const _netWorthRanges = [
+    'ETB 0 – ETB 100,000',
+    'ETB 100,001 – ETB 500,000',
+    'ETB 500,001 – ETB 2,500,000',
+    'ETB 2,500,001 – ETB 10,000,000',
+    'ETB 10,000,001 – ETB 50,000,000',
+    'Above ETB 50,000,000',
+  ];
+
+  static const _tradingPurposes = [
+    'Investing for Learning Purposes',
+    'Long-term Wealth Building',
+    'Infrequent trading, when I see an opportunity',
+    'Frequent trading focused on generating ongoing income',
+    'Preserve capital',
+    'Exploratory investing',
+  ];
+
+  void _showPicker(String title, List<String> options, String? current,
+      void Function(String) onSelected) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF1A2F22),
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (_) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const SizedBox(height: 12),
+          Container(width: 40, height: 4,
+              decoration: BoxDecoration(color: Colors.white24,
+                  borderRadius: BorderRadius.circular(2))),
+          const SizedBox(height: 12),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Text(title,
+                style: const TextStyle(fontSize: 16,
+                    fontWeight: FontWeight.w700, color: Colors.white)),
+          ),
+          const SizedBox(height: 8),
+          Flexible(
+            child: ListView.separated(
+              shrinkWrap: true,
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
+              itemCount: options.length,
+              separatorBuilder: (_, __) =>
+                  Divider(height: 1, color: TradEtTheme.divider.withValues(alpha: 0.2)),
+              itemBuilder: (ctx, i) {
+                final selected = options[i] == current;
+                return ListTile(
+                  dense: true,
+                  title: Text(options[i],
+                      style: TextStyle(fontSize: 13,
+                          color: selected ? TradEtTheme.positive : Colors.white,
+                          fontWeight: selected
+                              ? FontWeight.w600 : FontWeight.normal)),
+                  trailing: selected
+                      ? const Icon(Icons.check_rounded,
+                          color: TradEtTheme.positive, size: 18)
+                      : null,
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    onSelected(options[i]);
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final user = widget.user;
+
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: Container(
+        decoration: BoxDecoration(gradient: TradEtTheme.bgGradient),
+        child: SafeArea(
+          child: Column(
+            children: [
+              // Header
+              Padding(
+                padding: const EdgeInsets.fromLTRB(4, 8, 16, 0),
+                child: Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back_ios_new_rounded,
+                          color: Colors.white, size: 20),
                       onPressed: () => Navigator.pop(context),
                     ),
                     const Spacer(),
-                    Text(l.yourProfile,
-                        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700,
-                            color: Colors.white)),
+                    Text(l.profileInformation,
+                        style: const TextStyle(fontSize: 18,
+                            fontWeight: FontWeight.w700, color: Colors.white)),
                     const Spacer(),
                     Consumer<AppProvider>(
                       builder: (ctx, prov, _) {
@@ -1586,37 +2344,133 @@ class _AccountDetailsScreen extends StatelessWidget {
                 child: ListView(
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
                   children: [
-                    // Personal section
+                    // ── Personal ──────────────────────────────────────────
                     Text(l.personalSection,
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700,
-                            color: Colors.white)),
+                        style: const TextStyle(fontSize: 18,
+                            fontWeight: FontWeight.w700, color: Colors.white)),
                     const SizedBox(height: 12),
                     _infoCard([
                       _infoRow(l.basicInfo,
-                          '${user?.fullName ?? '--'}\n14 January 1995', editIcon: true),
-                      _infoRow(l.nationality, 'Ethiopia', editIcon: false),
+                          '${user?.fullName ?? '--'}\n14 January 1995',
+                          editIcon: true),
+                      _infoRow(l.nationality, 'Ethiopia'),
                       _infoRow(l.residentialAddress,
                           'Komoros st 29, 489, Addis Ababa', editIcon: true),
-                      _infoRow(l.phone, user?.phone ?? '+251 921 970 367', editIcon: true),
-                      _infoRow(l.emailAddress, user?.email ?? '--', editIcon: true),
+                      _infoRow(l.phone,
+                          user?.phone ?? '+251 921 970 367', editIcon: true),
+                      _infoRow(l.emailAddress,
+                          user?.email ?? '--', editIcon: true),
                       _infoRow(l.purposeOfAccount, 'Investment', editIcon: true),
                       _infoRow(l.taxResidency, 'Ethiopia', editIcon: true),
-                      _infoRow(l.riskAssessment, 'None', editIcon: true, isLast: true),
+                      _infoRow(l.riskAssessment, 'None',
+                          editIcon: true, isLast: true),
                     ]),
                     const SizedBox(height: 20),
-                    // Wealth section
-                    Text(l.wealthSection,
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700,
-                            color: Colors.white)),
+
+                    // ── Wealth / KYC ──────────────────────────────────────
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(l.wealthSection,
+                            style: const TextStyle(fontSize: 18,
+                                fontWeight: FontWeight.w700, color: Colors.white)),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: TradEtTheme.positive.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Text('KYC required',
+                              style: TextStyle(fontSize: 10,
+                                  color: TradEtTheme.positive,
+                                  fontWeight: FontWeight.w600)),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      'Required for regulatory purposes (NBE). '
+                      'Stored securely.',
+                      style: TextStyle(fontSize: 11, color: TradEtTheme.textMuted),
+                    ),
                     const SizedBox(height: 12),
                     _infoCard([
-                      _infoRow(l.occupation, 'Student', editIcon: true),
-                      _infoRow(l.sourceOfWealth, 'ETB 0 – ETB 30,000', editIcon: true),
-                      _infoRow(l.sourceOfFund, 'Employment income', editIcon: true),
-                      _infoRow(l.netWorth, 'ETB 1,000,000 – 10,000,000', editIcon: true),
-                      _infoRow(l.purposeOfTrading,
-                          'Investing for learning purposes', editIcon: true, isLast: true),
+                      _dropdownRow(
+                        label: l.occupation,
+                        value: _occupation ?? 'Student',
+                        options: _occupations,
+                        onTap: () => _showPicker(
+                          l.occupation, _occupations, _occupation,
+                          (v) => setState(() => _occupation = v),
+                        ),
+                      ),
+                      _dropdownRow(
+                        label: l.sourceOfWealth,
+                        value: _sourceOfWealth ?? 'Personal Savings',
+                        options: _wealthSources,
+                        onTap: () => _showPicker(
+                          l.sourceOfWealth, _wealthSources, _sourceOfWealth,
+                          (v) => setState(() => _sourceOfWealth = v),
+                        ),
+                      ),
+                      _dropdownRow(
+                        label: l.sourceOfFund,
+                        value: _sourceOfFunds ?? 'Employment Income (Salary)',
+                        options: _fundSources,
+                        onTap: () => _showPicker(
+                          l.sourceOfFund, _fundSources, _sourceOfFunds,
+                          (v) => setState(() => _sourceOfFunds = v),
+                        ),
+                      ),
+                      _dropdownRow(
+                        label: l.netWorth,
+                        value: _netWorth ?? 'ETB 0 – ETB 100,000',
+                        options: _netWorthRanges,
+                        onTap: () => _showPicker(
+                          l.netWorth, _netWorthRanges, _netWorth,
+                          (v) => setState(() => _netWorth = v),
+                        ),
+                      ),
+                      _dropdownRow(
+                        label: l.purposeOfTrading,
+                        value: _purposeOfTrading ??
+                            'Investing for Learning Purposes',
+                        options: _tradingPurposes,
+                        isLast: true,
+                        onTap: () => _showPicker(
+                          l.purposeOfTrading, _tradingPurposes,
+                          _purposeOfTrading,
+                          (v) => setState(() => _purposeOfTrading = v),
+                        ),
+                      ),
                     ]),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: const Text('Profile updated successfully'),
+                              backgroundColor: TradEtTheme.positive,
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10)),
+                            ),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: TradEtTheme.positive,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
+                        ),
+                        child: Text(l.save,
+                            style: const TextStyle(fontSize: 15,
+                                fontWeight: FontWeight.w700)),
+                      ),
+                    ),
                     const SizedBox(height: 24),
                   ],
                 ),
@@ -1670,6 +2524,50 @@ class _AccountDetailsScreen extends StatelessWidget {
             Icon(Icons.edit_outlined, size: 16,
                 color: TradEtTheme.accent.withValues(alpha: 0.8)),
         ],
+      ),
+    );
+  }
+
+  Widget _dropdownRow({
+    required String label,
+    required String value,
+    required List<String> options,
+    required VoidCallback onTap,
+    bool isLast = false,
+  }) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          border: isLast
+              ? null
+              : Border(bottom: BorderSide(
+                  color: TradEtTheme.divider.withValues(alpha: 0.3))),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(label,
+                      style: const TextStyle(fontSize: 11,
+                          color: TradEtTheme.textMuted)),
+                  const SizedBox(height: 3),
+                  Text(value,
+                      style: const TextStyle(fontSize: 13,
+                          fontWeight: FontWeight.w500, color: Colors.white),
+                      maxLines: 2, overflow: TextOverflow.ellipsis),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            const Icon(Icons.expand_more_rounded,
+                color: TradEtTheme.accent, size: 20),
+          ],
+        ),
       ),
     );
   }
