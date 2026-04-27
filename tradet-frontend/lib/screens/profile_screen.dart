@@ -1114,7 +1114,7 @@ class ProfileScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _cardHeader(Icons.person_outline_rounded, l.account,
+              _cardHeader(Icons.person_outline_rounded, l.profileInformation,
                   'Personal information', const Color(0xFF22D3EE)),
               const SizedBox(height: 18),
               _accountInfoRow(l.fullName, user?.fullName ?? '--'),
@@ -1126,6 +1126,30 @@ class ProfileScreen extends StatelessWidget {
                   user?.kycStatus?.toString().toUpperCase() ?? 'PENDING'),
               const SizedBox(height: 14),
               _kycTierProgress(context, user?.kycStatus ?? 'pending'),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        // Wealth / KYC Card (inline on desktop)
+        Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: TradEtTheme.cardBg,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: TradEtTheme.divider.withValues(alpha: 0.3)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _cardHeader(Icons.account_balance_wallet_outlined, l.wealthSection,
+                  'KYC financial profile', TradEtTheme.positive),
+              const SizedBox(height: 16),
+              _accountInfoRow(l.occupation, 'Student'),
+              _accountInfoRow(l.sourceOfWealth, 'Personal Savings'),
+              _accountInfoRow(l.sourceOfFund, 'Employment Income'),
+              _accountInfoRow(l.netWorth, 'ETB 0 – ETB 100,000'),
+              _accountInfoRow(l.purposeOfTrading, 'Investing for Learning'),
             ],
           ),
         ),
@@ -1529,67 +1553,250 @@ class ProfileScreen extends StatelessWidget {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Account Menu Screen — 4 sub-options from doc spec
+// Account Screen — "Your Profile" hub with banner + 4 sub-options
 // ═══════════════════════════════════════════════════════════════════════════
 
 class _AccountMenuScreen extends StatelessWidget {
   final dynamic user;
   const _AccountMenuScreen({required this.user});
 
+  static const _avatarColors = [
+    Color(0xFF0F6B3C), Color(0xFF1D4ED8), Color(0xFF7C3AED),
+    Color(0xFFB45309), Color(0xFF0D9488), Color(0xFF9D174D),
+  ];
+
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final isVerified = user?.kycStatus == 'verified';
+    final name = user?.fullName ?? 'User';
+    final email = user?.email ?? '';
 
-    return _SubMenuScaffold(
-      title: l.account,
-      icon: Icons.person_outline_rounded,
-      iconColor: const Color(0xFF22D3EE),
-      subtitle: 'Manage your personal & financial profile',
-      children: [
-        _subItem(context,
-          icon: Icons.badge_outlined,
-          color: const Color(0xFF22D3EE),
-          title: l.profileInformation,
-          subtitle: 'Update personal details, avatar & contact email',
-          onTap: () => Navigator.push(context,
-              MaterialPageRoute(builder: (_) => _AccountDetailsScreen(user: user))),
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: Container(
+        decoration: BoxDecoration(gradient: TradEtTheme.bgGradient),
+        child: SafeArea(
+          child: ListView(
+            padding: EdgeInsets.zero,
+            children: [
+              // ── Header ─────────────────────────────────────────────────
+              Padding(
+                padding: const EdgeInsets.fromLTRB(4, 8, 16, 0),
+                child: Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back_ios_new_rounded,
+                          color: Colors.white, size: 20),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                    Text(l.account,
+                        style: const TextStyle(fontSize: 18,
+                            fontWeight: FontWeight.w700, color: Colors.white)),
+                  ],
+                ),
+              ),
+
+              // ── Profile Banner ─────────────────────────────────────────
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 20, vertical: 24),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF0F6B3C), Color(0xFF1B8A5A),
+                               Color(0xFF27AE60)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Consumer<AppProvider>(
+                    builder: (ctx, prov, _) {
+                      final bg = _avatarColors[
+                          prov.avatarColorIndex % _avatarColors.length];
+                      final imgBytes = prov.profileImageBytes;
+                      final initial = name.isNotEmpty
+                          ? name[0].toUpperCase() : '?';
+                      return Row(
+                        children: [
+                          // Avatar
+                          Stack(
+                            children: [
+                              Container(
+                                width: 72, height: 72,
+                                decoration: BoxDecoration(
+                                  color: bg, shape: BoxShape.circle,
+                                  border: Border.all(
+                                      color: Colors.white.withValues(alpha: 0.3),
+                                      width: 2.5),
+                                ),
+                                child: imgBytes != null
+                                    ? ClipOval(child: Image.memory(imgBytes,
+                                        width: 72, height: 72,
+                                        fit: BoxFit.cover))
+                                    : Center(child: Text(initial,
+                                        style: const TextStyle(fontSize: 28,
+                                            fontWeight: FontWeight.w700,
+                                            color: Colors.white))),
+                              ),
+                              Positioned(
+                                bottom: 0, right: 0,
+                                child: Container(
+                                  width: 22, height: 22,
+                                  decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      shape: BoxShape.circle,
+                                      border: Border.all(color: bg, width: 2)),
+                                  child: Icon(Icons.camera_alt,
+                                      size: 11, color: bg),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(width: 16),
+                          // Name + email + badge
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(name,
+                                    style: const TextStyle(fontSize: 18,
+                                        fontWeight: FontWeight.w700,
+                                        color: Colors.white,
+                                        letterSpacing: -0.3)),
+                                const SizedBox(height: 3),
+                                Text('@${email.split('@').first}',
+                                    style: TextStyle(fontSize: 12,
+                                        color: Colors.white.withValues(
+                                            alpha: 0.7))),
+                                const SizedBox(height: 10),
+                                // KYC badge
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 10, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: isVerified
+                                        ? Colors.white.withValues(alpha: 0.2)
+                                        : TradEtTheme.warning.withValues(
+                                            alpha: 0.25),
+                                    borderRadius: BorderRadius.circular(20),
+                                    border: Border.all(
+                                      color: isVerified
+                                          ? Colors.white.withValues(alpha: 0.4)
+                                          : TradEtTheme.warning.withValues(
+                                              alpha: 0.5),
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        isVerified
+                                            ? Icons.verified_rounded
+                                            : Icons.pending_rounded,
+                                        size: 13,
+                                        color: isVerified
+                                            ? Colors.white
+                                            : TradEtTheme.warning,
+                                      ),
+                                      const SizedBox(width: 5),
+                                      Text(
+                                        isVerified
+                                            ? 'KYC Verified'
+                                            : 'KYC Pending',
+                                        style: TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w600,
+                                            color: isVerified
+                                                ? Colors.white
+                                                : TradEtTheme.warning),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              // ── 4 Sub-options ──────────────────────────────────────────
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: TradEtTheme.cardBg,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                        color: TradEtTheme.divider.withValues(alpha: 0.3)),
+                  ),
+                  child: Column(
+                    children: [
+                      _subItem(context,
+                        icon: Icons.badge_outlined,
+                        color: const Color(0xFF22D3EE),
+                        title: l.profileInformation,
+                        subtitle: 'Update personal details, avatar & contact',
+                        onTap: () => Navigator.push(context,
+                            MaterialPageRoute(builder: (_) =>
+                                _AccountDetailsScreen(user: user))),
+                      ),
+                      _subItem(context,
+                        icon: Icons.verified_user_outlined,
+                        color: isVerified
+                            ? TradEtTheme.positive : TradEtTheme.warning,
+                        title: l.verificationStatus,
+                        subtitle: isVerified
+                            ? 'Tier 1 — Verified ✓'
+                            : 'Upload ID documents & check approval',
+                        onTap: () => showDialog(
+                          context: context,
+                          builder: (_) => _KycDialogContent(),
+                        ),
+                      ),
+                      _subItem(context,
+                        icon: Icons.account_balance_outlined,
+                        color: TradEtTheme.accent,
+                        title: l.paymentMethod,
+                        subtitle: 'Manage linked bank accounts & invoices',
+                        onTap: () => Navigator.push(context,
+                            MaterialPageRoute(builder: (_) =>
+                                const _PaymentMethodsMobileScreen())),
+                      ),
+                      _subItem(context,
+                        icon: Icons.price_change_outlined,
+                        color: const Color(0xFF60A5FA),
+                        title: l.feesAndLimits,
+                        subtitle:
+                            '1.5% flat commission • 100K ETB daily limit',
+                        isLast: true,
+                        onTap: () => Navigator.push(context,
+                            MaterialPageRoute(builder: (_) =>
+                                const _FeesLimitsScreen())),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+            ],
+          ),
         ),
-        _subItem(context,
-          icon: Icons.verified_user_outlined,
-          color: isVerified ? TradEtTheme.positive : TradEtTheme.warning,
-          title: l.verificationStatus,
-          subtitle: isVerified ? 'KYC Tier 1 — Verified' : 'Upload ID documents & check KYC approval',
-          trailingBadge: isVerified ? null : '!',
-          onTap: () {
-            Navigator.pop(context);
-            // KYC dialog opened from parent
-            showDialog(
-              context: context,
-              builder: (_) => _KycDialogContent(),
-            );
-          },
-        ),
-        _subItem(context,
-          icon: Icons.account_balance_outlined,
-          color: TradEtTheme.accent,
-          title: l.paymentMethod,
-          subtitle: 'Manage linked bank accounts & invoices',
-          onTap: () => Navigator.push(context,
-              MaterialPageRoute(builder: (_) => const _PaymentMethodsMobileScreen())),
-        ),
-        _subItem(context,
-          icon: Icons.price_change_outlined,
-          color: const Color(0xFF60A5FA),
-          title: l.feesAndLimits,
-          subtitle: 'Commission rates, withdrawal & trading limits',
-          isLast: true,
-          onTap: () => Navigator.push(context,
-              MaterialPageRoute(builder: (_) => const _FeesLimitsScreen())),
-        ),
-      ],
+      ),
     );
   }
+
+  Widget _divider() => Divider(
+      height: 1, indent: 72,
+      color: TradEtTheme.divider.withValues(alpha: 0.3));
 
   Widget _subItem(BuildContext context, {
     required IconData icon,
@@ -2280,10 +2487,18 @@ class _AccountDetailsScreenState extends State<_AccountDetailsScreen> {
     );
   }
 
+  static const _avatarColors = [
+    Color(0xFF0F6B3C), Color(0xFF1D4ED8), Color(0xFF7C3AED),
+    Color(0xFFB45309), Color(0xFF0D9488), Color(0xFF9D174D),
+  ];
+
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final user = widget.user;
+    final name = user?.fullName ?? 'User';
+    final email = user?.email ?? '';
+    final isVerified = user?.kycStatus == 'verified';
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -2292,7 +2507,7 @@ class _AccountDetailsScreenState extends State<_AccountDetailsScreen> {
         child: SafeArea(
           child: Column(
             children: [
-              // Header
+              // ── Top bar ─────────────────────────────────────────────────
               Padding(
                 padding: const EdgeInsets.fromLTRB(4, 8, 16, 0),
                 child: Row(
@@ -2302,53 +2517,119 @@ class _AccountDetailsScreenState extends State<_AccountDetailsScreen> {
                           color: Colors.white, size: 20),
                       onPressed: () => Navigator.pop(context),
                     ),
-                    const Spacer(),
-                    Text(l.profileInformation,
+                    Text(l.yourProfile,
                         style: const TextStyle(fontSize: 18,
                             fontWeight: FontWeight.w700, color: Colors.white)),
                     const Spacer(),
-                    Consumer<AppProvider>(
-                      builder: (ctx, prov, _) {
-                        const avatarColors = [
-                          Color(0xFF0F6B3C), Color(0xFF1D4ED8), Color(0xFF7C3AED),
-                          Color(0xFFB45309), Color(0xFF0D9488), Color(0xFF9D174D),
-                        ];
-                        final bg = avatarColors[prov.avatarColorIndex % avatarColors.length];
-                        final imgBytes = prov.profileImageBytes;
-                        final initial = (user?.fullName ?? 'U').isNotEmpty
-                            ? (user?.fullName ?? 'U')[0].toUpperCase() : '?';
-                        return Container(
-                          width: 36, height: 36,
-                          decoration: BoxDecoration(color: bg, shape: BoxShape.circle),
-                          child: imgBytes != null
-                              ? ClipOval(child: Image.memory(imgBytes, fit: BoxFit.cover))
-                              : Center(child: Text(initial,
-                                  style: const TextStyle(color: Colors.white,
-                                      fontWeight: FontWeight.w700, fontSize: 15))),
-                        );
-                      },
+                    // KYC badge chip
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: isVerified
+                            ? TradEtTheme.positive.withValues(alpha: 0.15)
+                            : TradEtTheme.warning.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: isVerified
+                              ? TradEtTheme.positive.withValues(alpha: 0.4)
+                              : TradEtTheme.warning.withValues(alpha: 0.4),
+                        ),
+                      ),
+                      child: Text(
+                        isVerified ? 'KYC Verified' : 'KYC Pending',
+                        style: TextStyle(
+                            fontSize: 10, fontWeight: FontWeight.w600,
+                            color: isVerified
+                                ? TradEtTheme.positive : TradEtTheme.warning),
+                      ),
                     ),
                   ],
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.only(left: 56, top: 2, bottom: 12),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text('@${(user?.email ?? '').split('@').first}',
-                      style: const TextStyle(color: TradEtTheme.accent, fontSize: 13)),
-                ),
+
+              // ── Avatar + name header ─────────────────────────────────────
+              Consumer<AppProvider>(
+                builder: (ctx, prov, _) {
+                  final bg = _avatarColors[
+                      prov.avatarColorIndex % _avatarColors.length];
+                  final imgBytes = prov.profileImageBytes;
+                  final initial = name.isNotEmpty
+                      ? name[0].toUpperCase() : '?';
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 20),
+                    child: Column(
+                      children: [
+                        GestureDetector(
+                          onTap: () =>
+                              _showAvatarOptionsFromState(context, prov),
+                          child: MouseRegion(
+                            cursor: SystemMouseCursors.click,
+                            child: Stack(
+                              children: [
+                                Container(
+                                  width: 88, height: 88,
+                                  decoration: BoxDecoration(
+                                    color: bg, shape: BoxShape.circle,
+                                    border: Border.all(
+                                        color: Colors.white.withValues(
+                                            alpha: 0.3),
+                                        width: 3),
+                                    boxShadow: [BoxShadow(
+                                        color: bg.withValues(alpha: 0.4),
+                                        blurRadius: 16,
+                                        offset: const Offset(0, 6))],
+                                  ),
+                                  child: imgBytes != null
+                                      ? ClipOval(child: Image.memory(imgBytes,
+                                          width: 88, height: 88,
+                                          fit: BoxFit.cover))
+                                      : Center(child: Text(initial,
+                                          style: const TextStyle(fontSize: 34,
+                                              fontWeight: FontWeight.w700,
+                                              color: Colors.white))),
+                                ),
+                                Positioned(
+                                  bottom: 0, right: 0,
+                                  child: Container(
+                                    width: 26, height: 26,
+                                    decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                            color: bg, width: 2)),
+                                    child: Icon(Icons.camera_alt,
+                                        size: 13, color: bg),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Text(name,
+                            style: const TextStyle(fontSize: 20,
+                                fontWeight: FontWeight.w700, color: Colors.white)),
+                        const SizedBox(height: 3),
+                        Text('@${email.split('@').first}',
+                            style: const TextStyle(fontSize: 13,
+                                color: TradEtTheme.accent)),
+                      ],
+                    ),
+                  );
+                },
               ),
-              // Content
+
+              // ── Content ──────────────────────────────────────────────────
               Expanded(
                 child: ListView(
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
                   children: [
                     // ── Personal ──────────────────────────────────────────
                     Text(l.personalSection,
-                        style: const TextStyle(fontSize: 18,
+                        style: const TextStyle(fontSize: 16,
                             fontWeight: FontWeight.w700, color: Colors.white)),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 10),
                     _infoCard([
                       _infoRow(l.basicInfo,
                           '${user?.fullName ?? '--'}\n14 January 1995',
@@ -2372,7 +2653,7 @@ class _AccountDetailsScreenState extends State<_AccountDetailsScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(l.wealthSection,
-                            style: const TextStyle(fontSize: 18,
+                            style: const TextStyle(fontSize: 16,
                                 fontWeight: FontWeight.w700, color: Colors.white)),
                         Container(
                           padding: const EdgeInsets.symmetric(
@@ -2480,6 +2761,11 @@ class _AccountDetailsScreenState extends State<_AccountDetailsScreen> {
         ),
       ),
     );
+  }
+
+  void _showAvatarOptionsFromState(BuildContext context, AppProvider prov) {
+    // Delegate to the shared avatar options method on ProfileScreen
+    const ProfileScreen()._showAvatarOptions(context, prov);
   }
 
   Widget _infoCard(List<Widget> rows) {
