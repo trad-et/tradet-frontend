@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import '../services/api_service.dart';
 import '../theme.dart';
 
 class MiniSparkline extends StatelessWidget {
@@ -74,10 +75,57 @@ class TradingChart extends StatefulWidget {
 
 class _TradingChartState extends State<TradingChart> {
   String _period = '1D';
+  List<double> _prices = [];
+  bool _loading = false;
+
+  // Period label → (API period, interval)
+  static const _periodMap = {
+    '1D': ('1d',  '15m'),
+    '1W': ('5d',  '1h'),
+    '1M': ('1mo', '1d'),
+    '3M': ('3mo', '1d'),
+    '1Y': ('1y',  '1wk'),
+  };
+
+  @override
+  void initState() {
+    super.initState();
+    _prices = List<double>.from(widget.prices);
+    // Fetch 1M data immediately so the default view isn't the same sparkline
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    if (!mounted) return;
+    setState(() => _loading = true);
+    try {
+      final (period, interval) = _periodMap[_period] ?? ('1mo', '1d');
+      final raw = await ApiService().getChartHistory(
+        widget.symbol,
+        period: period,
+        interval: interval,
+      );
+      if (!mounted) return;
+      final closes = raw
+          .map((j) {
+            final v = j['close'] ?? j['price'];
+            if (v == null) return null;
+            return (v as num).toDouble();
+          })
+          .whereType<double>()
+          .toList();
+      setState(() {
+        if (closes.length >= 2) _prices = closes;
+        _loading = false;
+      });
+    } catch (_) {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    if (widget.prices.length < 2) {
+    if (!_loading && _prices.length < 2) {
       return Container(
         height: 220,
         decoration: BoxDecoration(
@@ -91,11 +139,13 @@ class _TradingChartState extends State<TradingChart> {
       );
     }
 
-    final isPositive = widget.prices.last >= widget.prices.first;
+    final isPositive = _prices.isEmpty || _prices.last >= _prices.first;
     final lineColor = widget.lineColor ??
         (isPositive ? TradEtTheme.positive : TradEtTheme.negative);
-    final minY = widget.prices.reduce((a, b) => a < b ? a : b) * 0.998;
-    final maxY = widget.prices.reduce((a, b) => a > b ? a : b) * 1.002;
+    final minY = _prices.isEmpty ? 0.0 :
+        _prices.reduce((a, b) => a < b ? a : b) * 0.998;
+    final maxY = _prices.isEmpty ? 1.0 :
+        _prices.reduce((a, b) => a > b ? a : b) * 1.002;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -115,114 +165,123 @@ class _TradingChartState extends State<TradingChart> {
                       fontWeight: FontWeight.w600,
                       fontSize: 14)),
               const Spacer(),
-              ..._periods.map((p) => _periodChip(p)),
+              ..._periodMap.keys.map((p) => _periodChip(p)),
             ],
           ),
           const SizedBox(height: 16),
-          // Chart
+          // Chart or loader
           SizedBox(
             height: 180,
-            child: LineChart(
-              LineChartData(
-                gridData: FlGridData(
-                  show: true,
-                  drawVerticalLine: false,
-                  horizontalInterval: (maxY - minY) / 4,
-                  getDrawingHorizontalLine: (value) => FlLine(
-                    color: TradEtTheme.divider.withValues(alpha: 0.3),
-                    strokeWidth: 0.5,
-                  ),
-                ),
-                titlesData: FlTitlesData(
-                  topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  rightTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      reservedSize: 60,
-                      getTitlesWidget: (value, meta) {
-                        return Text(
-                          value.toStringAsFixed(0),
-                          style: const TextStyle(
-                              color: TradEtTheme.textMuted, fontSize: 10),
-                        );
-                      },
-                    ),
-                  ),
-                  bottomTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                ),
-                borderData: FlBorderData(show: false),
-                minY: minY,
-                maxY: maxY,
-                lineTouchData: LineTouchData(
-                  touchTooltipData: LineTouchTooltipData(
-                    getTooltipColor: (_) => TradEtTheme.primaryDark,
-                    getTooltipItems: (spots) => spots.map((s) {
-                      return LineTooltipItem(
-                        '${s.y.toStringAsFixed(2)} ETB',
-                        const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 12),
-                      );
-                    }).toList(),
-                  ),
-                ),
-                lineBarsData: [
-                  LineChartBarData(
-                    spots: List.generate(
-                      widget.prices.length,
-                      (i) => FlSpot(i.toDouble(), widget.prices[i]),
-                    ),
-                    isCurved: true,
-                    curveSmoothness: 0.25,
-                    color: lineColor,
-                    barWidth: 2.5,
-                    isStrokeCapRound: true,
-                    dotData: const FlDotData(show: false),
-                    belowBarData: BarAreaData(
-                      show: true,
-                      gradient: LinearGradient(
-                        colors: [
-                          lineColor.withValues(alpha: 0.25),
-                          lineColor.withValues(alpha: 0.0),
-                        ],
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
+            child: _loading
+                ? const Center(child: CircularProgressIndicator(
+                    strokeWidth: 2, color: TradEtTheme.positive))
+                : LineChart(
+                    LineChartData(
+                      gridData: FlGridData(
+                        show: true,
+                        drawVerticalLine: false,
+                        horizontalInterval: (maxY - minY) / 4,
+                        getDrawingHorizontalLine: (value) => FlLine(
+                          color: TradEtTheme.divider.withValues(alpha: 0.3),
+                          strokeWidth: 0.5,
+                        ),
                       ),
+                      titlesData: FlTitlesData(
+                        topTitles: const AxisTitles(
+                            sideTitles: SideTitles(showTitles: false)),
+                        rightTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            reservedSize: 60,
+                            getTitlesWidget: (value, meta) => Text(
+                              value.toStringAsFixed(0),
+                              style: const TextStyle(
+                                  color: TradEtTheme.textMuted, fontSize: 10),
+                            ),
+                          ),
+                        ),
+                        bottomTitles: const AxisTitles(
+                            sideTitles: SideTitles(showTitles: false)),
+                        leftTitles: const AxisTitles(
+                            sideTitles: SideTitles(showTitles: false)),
+                      ),
+                      borderData: FlBorderData(show: false),
+                      minY: minY,
+                      maxY: maxY,
+                      lineTouchData: LineTouchData(
+                        touchTooltipData: LineTouchTooltipData(
+                          getTooltipColor: (_) => TradEtTheme.primaryDark,
+                          getTooltipItems: (spots) => spots.map((s) {
+                            return LineTooltipItem(
+                              '${s.y.toStringAsFixed(2)} ETB',
+                              const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 12),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                      lineBarsData: [
+                        LineChartBarData(
+                          spots: List.generate(
+                            _prices.length,
+                            (i) => FlSpot(i.toDouble(), _prices[i]),
+                          ),
+                          isCurved: true,
+                          curveSmoothness: 0.25,
+                          color: lineColor,
+                          barWidth: 2.5,
+                          isStrokeCapRound: true,
+                          dotData: const FlDotData(show: false),
+                          belowBarData: BarAreaData(
+                            show: true,
+                            gradient: LinearGradient(
+                              colors: [
+                                lineColor.withValues(alpha: 0.25),
+                                lineColor.withValues(alpha: 0.0),
+                              ],
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
+                    duration: const Duration(milliseconds: 300),
                   ),
-                ],
-              ),
-              duration: const Duration(milliseconds: 300),
-            ),
           ),
         ],
       ),
     );
   }
 
-  List<String> get _periods => ['1D', '1W', '1M', '3M', '1Y'];
-
   Widget _periodChip(String label) {
     final selected = _period == label;
     return GestureDetector(
-      onTap: () => setState(() => _period = label),
-      child: Container(
-        margin: const EdgeInsets.only(left: 4),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-        decoration: BoxDecoration(
-          color: selected
-              ? TradEtTheme.primaryLight.withValues(alpha: 0.2)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(6),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w600,
-            color: selected ? TradEtTheme.positive : TradEtTheme.textMuted,
+      onTap: () {
+        if (_period == label) return;
+        setState(() => _period = label);
+        _loadData();
+      },
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: Container(
+          margin: const EdgeInsets.only(left: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+          decoration: BoxDecoration(
+            color: selected
+                ? TradEtTheme.primaryLight.withValues(alpha: 0.2)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: selected ? TradEtTheme.positive : TradEtTheme.textMuted,
+            ),
           ),
         ),
       ),
