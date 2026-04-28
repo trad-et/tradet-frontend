@@ -2488,7 +2488,7 @@ class _AccountDetailsScreenState extends State<_AccountDetailsScreen> {
         child: SafeArea(
           child: Column(
             children: [
-              // ── Top row: X close button (left) + small avatar (right) ───
+              // ── Top row: back button (left) + small avatar (right) ───
               Consumer<AppProvider>(
                 builder: (ctx, prov, _) {
                   final bg = _avatarColors[
@@ -2500,10 +2500,10 @@ class _AccountDetailsScreenState extends State<_AccountDetailsScreen> {
                     padding: const EdgeInsets.fromLTRB(8, 8, 16, 0),
                     child: Row(
                       children: [
-                        // X close button
+                        // Back button
                         IconButton(
-                          icon: const Icon(Icons.close,
-                              color: Colors.white, size: 22),
+                          icon: const Icon(Icons.arrow_back_ios_new_rounded,
+                              color: Colors.white, size: 20),
                           onPressed: () => Navigator.pop(context),
                         ),
                         const Spacer(),
