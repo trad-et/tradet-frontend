@@ -109,7 +109,7 @@ class ProfileScreen extends StatelessWidget {
               label: l.account,
               subtitle: '${l.profileInformation}, ${l.verificationStatus}...',
               onTap: () => Navigator.push(context,
-                  MaterialPageRoute(builder: (_) => _AccountMenuScreen(user: user)))),
+                  MaterialPageRoute(builder: (_) => _AccountDetailsScreen(user: user)))),
         ]),
         const SizedBox(height: 10),
 
