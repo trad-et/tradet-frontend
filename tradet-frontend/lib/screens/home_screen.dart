@@ -218,6 +218,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       _WebTopBar(
                         onProfileTap: () => setState(() => _currentIndex = 11),
+                        onAnalyticsTap: () => setState(() => _currentIndex = 9),
                       ),
                       Expanded(child: _screens[_currentIndex]),
                     ],
@@ -443,60 +444,128 @@ class _SidebarItemState extends State<_SidebarItem> {
   }
 }
 
-// ─── Desktop top bar (profile avatar + language selector) ───────────────────
+// ─── Desktop top bar ─────────────────────────────────────────────────────────
 
 class _WebTopBar extends StatelessWidget {
   final VoidCallback onProfileTap;
+  final VoidCallback onAnalyticsTap;
 
-  const _WebTopBar({required this.onProfileTap});
+  const _WebTopBar({
+    required this.onProfileTap,
+    required this.onAnalyticsTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 52,
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      decoration: BoxDecoration(
-        color: TradEtTheme.primaryDark,
-        border: Border(
-          bottom: BorderSide(color: TradEtTheme.divider.withValues(alpha: 0.25)),
-        ),
-      ),
-      child: Row(
-        children: [
-          const Spacer(),
-          // Language selector
-          const LanguageSelector(),
-          const SizedBox(width: 12),
-          // Vertical divider
-          Container(width: 1, height: 24,
-              color: TradEtTheme.divider.withValues(alpha: 0.4)),
-          const SizedBox(width: 12),
-          // Profile avatar
-          Consumer<AppProvider>(
-            builder: (context, provider, _) {
-              final user = provider.user;
-              final initials = (user?.fullName.isNotEmpty == true)
-                  ? user!.fullName[0].toUpperCase()
-                  : '?';
-              return MouseRegion(
+    return Consumer<AppProvider>(
+      builder: (context, provider, _) {
+        final user = provider.user;
+        final imgBytes = provider.profileImageBytes;
+        final initials = (user?.fullName.isNotEmpty == true)
+            ? user!.fullName[0].toUpperCase()
+            : '?';
+
+        return Container(
+          height: 52,
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          decoration: BoxDecoration(
+            color: TradEtTheme.primaryDark,
+            border: Border(
+              bottom: BorderSide(
+                  color: TradEtTheme.divider.withValues(alpha: 0.25)),
+            ),
+          ),
+          child: Row(
+            children: [
+              const Spacer(),
+              // Language selector
+              const LanguageSelector(),
+              const SizedBox(width: 4),
+              _divider(),
+              // Analytics
+              _topBarIcon(
+                icon: Icons.bar_chart_rounded,
+                tooltip: 'Analytics',
+                onTap: onAnalyticsTap,
+              ),
+              // Refresh
+              provider.isLoading
+                  ? const SizedBox(
+                      width: 36,
+                      height: 36,
+                      child: Center(
+                        child: SizedBox(
+                          width: 14,
+                          height: 14,
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: TradEtTheme.textSecondary),
+                        ),
+                      ),
+                    )
+                  : _topBarIcon(
+                      icon: Icons.refresh_rounded,
+                      tooltip: 'Refresh',
+                      onTap: () => provider.loadAllData(),
+                    ),
+              _divider(),
+              // Profile avatar (with photo if set)
+              MouseRegion(
                 cursor: SystemMouseCursors.click,
                 child: GestureDetector(
                   onTap: onProfileTap,
-                  child: CircleAvatar(
-                    radius: 17,
-                    backgroundColor: TradEtTheme.primaryLight.withValues(alpha: 0.35),
-                    child: Text(initials,
-                        style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 13)),
-                  ),
+                  child: imgBytes != null
+                      ? CircleAvatar(
+                          radius: 17,
+                          backgroundImage: MemoryImage(imgBytes),
+                        )
+                      : CircleAvatar(
+                          radius: 17,
+                          backgroundColor:
+                              TradEtTheme.primaryLight.withValues(alpha: 0.35),
+                          child: Text(initials,
+                              style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 13)),
+                        ),
                 ),
-              );
-            },
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
+
+  Widget _divider() => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        child: Container(
+            width: 1, height: 22,
+            color: TradEtTheme.divider.withValues(alpha: 0.4)),
+      );
+
+  Widget _topBarIcon({
+    required IconData icon,
+    required String tooltip,
+    required VoidCallback onTap,
+  }) =>
+      Tooltip(
+        message: tooltip,
+        child: MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: GestureDetector(
+            onTap: onTap,
+            child: Container(
+              width: 34,
+              height: 34,
+              decoration: BoxDecoration(
+                color: Colors.transparent,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(icon, size: 20, color: TradEtTheme.textSecondary),
+            ),
+          ),
+        ),
+      );
 }

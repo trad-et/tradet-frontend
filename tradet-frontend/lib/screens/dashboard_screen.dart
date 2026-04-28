@@ -145,64 +145,8 @@ class DashboardScreen extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(32, 24, 32, 32),
       children: [
-        // Header row
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Expanded(child: _greeting(provider, l)),
-            // Language selector
-            const LanguageSelector(),
-            const SizedBox(width: 8),
-            // Analytics icon
-            HeaderIconButton(
-              icon: Icons.bar_chart_rounded,
-              color: TradEtTheme.primaryLight,
-              onTap: () => Navigator.of(context).push(
-                appRoute(
-                  context,
-                  WrappedScreen(
-                    child: const AnalyticsScreen(),
-                    showMobileAppBar: false,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            // Refresh icon
-            provider.isLoading
-                ? const SizedBox(
-                    width: 36,
-                    height: 36,
-                    child: Center(
-                      child: SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: TradEtTheme.textSecondary,
-                        ),
-                      ),
-                    ),
-                  )
-                : HeaderIconButton(
-                    icon: Icons.refresh_rounded,
-                    color: TradEtTheme.textSecondary,
-                    onTap: () => provider.loadAllData(),
-                  ),
-            const SizedBox(width: 8),
-            // Profile avatar
-            _ProfileAvatar(
-              user: provider.user,
-              onTap: () => onNavigateTo != null
-                  ? onNavigateTo(11)
-                  : Navigator.of(context).push(
-                      appRoute(context,
-                          const WrappedScreen(child: ProfileScreen(), showMobileAppBar: false)),
-                    ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
+        // On desktop: greeting is removed — top bar handles identity context
+        const SizedBox(height: 4),
         // Hero: portfolio value + trust badges + CTAs (left)
         //        Cash balance (right) — same height via IntrinsicHeight
         if (desktop)

@@ -93,6 +93,15 @@ class _CandlestickChartState extends State<CandlestickChart> {
     '1y': '1Y',
   };
 
+  // Matching interval per period so each tab looks distinctly different
+  static const _intervalMap = {
+    '5d':  '1h',
+    '1mo': '1d',
+    '3mo': '1d',
+    '6mo': '1wk',
+    '1y':  '1wk',
+  };
+
   @override
   void initState() {
     super.initState();
@@ -102,7 +111,9 @@ class _CandlestickChartState extends State<CandlestickChart> {
   Future<void> _loadData() async {
     setState(() => _loading = true);
     final api = ApiService();
-    final raw = await api.getChartHistory(widget.symbol, period: _period);
+    final interval = _intervalMap[_period] ?? '1d';
+    final raw = await api.getChartHistory(
+        widget.symbol, period: _period, interval: interval);
     final parsed = raw.map((j) => OhlcData.fromJson(j)).toList();
     if (mounted) {
       setState(() {
