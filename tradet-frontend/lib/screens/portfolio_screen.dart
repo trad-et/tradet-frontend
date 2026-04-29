@@ -51,13 +51,13 @@ class PortfolioScreen extends StatelessWidget {
                   // Header
                   Row(
                     children: [
-                      const Expanded(
+                      Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Portfolio',
-                              style: TextStyle(
+                              l.portfolio,
+                              style: const TextStyle(
                                 fontSize: 28,
                                 fontWeight: FontWeight.w800,
                                 color: Colors.white,
@@ -65,8 +65,8 @@ class PortfolioScreen extends StatelessWidget {
                               ),
                             ),
                             Text(
-                              'ፖርትፎሊዮ • Your holdings',
-                              style: TextStyle(
+                              '${l.portfolio} • ${l.yourHoldings}',
+                              style: const TextStyle(
                                 fontSize: 13,
                                 color: TradEtTheme.textSecondary,
                               ),
@@ -78,21 +78,22 @@ class PortfolioScreen extends StatelessWidget {
                         GestureDetector(
                           onTap: () {
                             final fmt = NumberFormat('#,##0.00', 'en');
+                            final l = AppLocalizations.of(context);
                             showExportSheet(
                               context,
-                              title: 'Portfolio',
-                              subtitle: '${provider.holdings.length} holdings',
-                              pdfTitle: 'Portfolio Holdings Statement',
+                              title: l.portfolio,
+                              subtitle: l.holdingsCount(provider.holdings.length),
+                              pdfTitle: l.portfolioHoldingsStatement,
                               headers: [
-                                'Symbol',
-                                'Asset',
-                                'Qty',
-                                'Unit',
-                                'Avg Buy (ETB)',
-                                'Current (ETB)',
-                                'Value (ETB)',
-                                'P&L (ETB)',
-                                'P&L %',
+                                l.symbol,
+                                l.asset,
+                                l.qty,
+                                l.unitLabel,
+                                '${l.avgPrice} (ETB)',
+                                '${l.current} (ETB)',
+                                '${l.value} (ETB)',
+                                l.pnlEtb,
+                                l.pnlPct,
                                 'Sharia',
                               ],
                               rows: provider.holdings
@@ -264,7 +265,7 @@ class PortfolioScreen extends StatelessWidget {
           Row(
             children: [
               Text(
-                'Total Value',
+                l.totalValue,
                 style: TextStyle(
                   color: Colors.white.withValues(alpha: 0.7),
                   fontSize: 13,
@@ -343,14 +344,14 @@ class PortfolioScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 _balanceItem(
-                  'Holdings',
+                  l.holdings,
                   fmt.format(summary?.totalHoldingsValue ?? 0),
                 ),
                 Container(width: 1, height: 30, color: Colors.white24),
-                _balanceItem('Cash', fmt.format(summary?.cashBalance ?? 0)),
+                _balanceItem(l.cash, fmt.format(summary?.cashBalance ?? 0)),
                 Container(width: 1, height: 30, color: Colors.white24),
                 _balanceItem(
-                  'P&L',
+                  l.pnl,
                   '${(summary?.totalPnl ?? 0) >= 0 ? '+' : ''}${fmt.format(summary?.totalPnl ?? 0)}',
                   color: (summary?.totalPnl ?? 0) >= 0
                       ? TradEtTheme.positive
@@ -658,7 +659,7 @@ class PortfolioScreen extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('${fmt.format(invested)} ETB invested',
+              Text('${fmt.format(invested)} ETB ${l.invested}',
                   style: const TextStyle(
                       fontSize: 11, color: TradEtTheme.textMuted)),
               Text(
@@ -714,6 +715,7 @@ class PortfolioScreen extends StatelessWidget {
     NumberFormat fmt,
     double usdRate,
   ) {
+    final l = AppLocalizations.of(context);
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(14),
@@ -730,13 +732,13 @@ class PortfolioScreen extends StatelessWidget {
                 top: Radius.circular(14),
               ),
             ),
-            child: const Row(
+            child: Row(
               children: [
                 Expanded(
                   flex: 2,
                   child: Text(
-                    'Asset',
-                    style: TextStyle(
+                    l.asset,
+                    style: const TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
                       color: TradEtTheme.textMuted,
@@ -746,8 +748,8 @@ class PortfolioScreen extends StatelessWidget {
                 Expanded(
                   flex: 1,
                   child: Text(
-                    'Quantity',
-                    style: TextStyle(
+                    l.quantity,
+                    style: const TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
                       color: TradEtTheme.textMuted,
@@ -757,8 +759,8 @@ class PortfolioScreen extends StatelessWidget {
                 Expanded(
                   flex: 1,
                   child: Text(
-                    'Avg Price',
-                    style: TextStyle(
+                    l.avgPrice,
+                    style: const TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
                       color: TradEtTheme.textMuted,
@@ -768,8 +770,8 @@ class PortfolioScreen extends StatelessWidget {
                 Expanded(
                   flex: 1,
                   child: Text(
-                    'Current',
-                    style: TextStyle(
+                    l.current,
+                    style: const TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
                       color: TradEtTheme.textMuted,
@@ -781,8 +783,8 @@ class PortfolioScreen extends StatelessWidget {
                   child: Align(
                     alignment: Alignment.centerRight,
                     child: Text(
-                      'Value',
-                      style: TextStyle(
+                      l.value,
+                      style: const TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
                         color: TradEtTheme.textMuted,
@@ -795,8 +797,8 @@ class PortfolioScreen extends StatelessWidget {
                   child: Align(
                     alignment: Alignment.centerRight,
                     child: Text(
-                      'P&L',
-                      style: TextStyle(
+                      l.pnl,
+                      style: const TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
                         color: TradEtTheme.textMuted,
@@ -959,7 +961,8 @@ class PortfolioScreen extends StatelessWidget {
 
   // ─── Mobile: holding card (unchanged) ───
   Widget _mobileHoldingCard(BuildContext context, dynamic h, NumberFormat fmt) {
-    final langCode = AppLocalizations.of(context).langCode;
+    final l = AppLocalizations.of(context);
+    final langCode = l.langCode;
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(16),
@@ -1033,11 +1036,11 @@ class PortfolioScreen extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _holdingDetail('Qty', '${h.quantity} ${h.unit}'),
-                _holdingDetail('Avg', fmt.format(h.avgBuyPrice)),
-                _holdingDetail('Current', fmt.format(h.currentPrice)),
+                _holdingDetail(l.qty, '${h.quantity} ${h.unit}'),
+                _holdingDetail(l.avg, fmt.format(h.avgBuyPrice)),
+                _holdingDetail(l.current, fmt.format(h.currentPrice)),
                 _holdingDetail(
-                  'P&L',
+                  l.pnl,
                   '${fmt.format(h.pnl)} ETB',
                   color: h.pnl >= 0
                       ? TradEtTheme.positive
@@ -1634,6 +1637,7 @@ class _PortfolioSplitCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final total = summary?.totalPortfolioValue ?? 0;
     final holdings = summary?.totalHoldingsValue ?? 0;
     final cash = summary?.cashBalance ?? 0;
@@ -1651,16 +1655,16 @@ class _PortfolioSplitCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            children: const [
-              Icon(
+            children: [
+              const Icon(
                 Icons.donut_small_outlined,
                 size: 15,
                 color: TradEtTheme.textSecondary,
               ),
-              SizedBox(width: 6),
+              const SizedBox(width: 6),
               Text(
-                'Portfolio Split',
-                style: TextStyle(
+                l.portfolioSplit,
+                style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                   color: TradEtTheme.textSecondary,
@@ -1669,9 +1673,9 @@ class _PortfolioSplitCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          _bar('Holdings', holdingsPct, const Color(0xFF818CF8)),
+          _bar(l.holdings, holdingsPct, const Color(0xFF818CF8)),
           const SizedBox(height: 10),
-          _bar('Cash', cashPct, TradEtTheme.accent),
+          _bar(l.cash, cashPct, TradEtTheme.accent),
         ],
       ),
     );
@@ -1695,17 +1699,18 @@ class _ShariaScoreCard extends StatelessWidget {
     final score = totalValue > 0 ? compliantValue / totalValue : 1.0;
     final pct = (score * 100).toStringAsFixed(1);
 
+    final l = AppLocalizations.of(context);
     final Color barColor;
     final String statusLabel;
     if (score >= 0.9) {
       barColor = TradEtTheme.positive;
-      statusLabel = 'AAOIFI Compliant';
+      statusLabel = l.aaaoifiCompliant;
     } else if (score >= 0.7) {
       barColor = TradEtTheme.warning;
-      statusLabel = 'Mostly Compliant';
+      statusLabel = l.mostlyCompliant;
     } else {
       barColor = TradEtTheme.negative;
-      statusLabel = 'Review Required';
+      statusLabel = l.reviewRequired;
     }
 
     return Container(
@@ -1722,10 +1727,10 @@ class _ShariaScoreCard extends StatelessWidget {
             children: [
               Icon(Icons.verified_rounded, color: barColor, size: 18),
               const SizedBox(width: 8),
-              const Expanded(
+              Expanded(
                 child: Text(
-                  'Sharia Compliance Score',
-                  style: TextStyle(
+                  l.shariaComplianceScore,
+                  style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w600,
                     fontSize: 15,
@@ -1778,8 +1783,8 @@ class _ShariaScoreCard extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             total == 0
-                ? 'No holdings — AAOIFI screening will apply when you invest'
-                : '$compliant of $total holdings are AAOIFI-compliant — ${pct}% of portfolio value',
+                ? l.noHoldingsSharia
+                : l.shariaHoldingsText(compliant, total, pct),
             style: const TextStyle(
               color: TradEtTheme.textSecondary,
               fontSize: 12,

@@ -528,7 +528,7 @@ class _SecurityScreenState extends State<SecurityScreen> {
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
-                _pinSet ? 'Change' : 'Set PIN',
+                _pinSet ? AppLocalizations.of(context).changeLabel : AppLocalizations.of(context).setPinButton,
                 style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,

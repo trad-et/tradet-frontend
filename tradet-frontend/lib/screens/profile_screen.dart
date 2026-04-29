@@ -8,6 +8,7 @@ import '../l10n/app_localizations.dart';
 import '../models/models.dart';
 import '../providers/app_provider.dart';
 import '../theme.dart';
+import '../white_label.dart';
 import '../widgets/language_selector.dart';
 import '../widgets/responsive_layout.dart';
 import '../services/security_log_service.dart';
@@ -199,10 +200,10 @@ class ProfileScreen extends StatelessWidget {
         Center(
           child: Column(
             children: [
-              const Text('Version 1.0',
-                  style: TextStyle(fontSize: 11, color: TradEtTheme.textMuted)),
-              const Text('Amber Research Inc.',
-                  style: TextStyle(fontSize: 11, color: TradEtTheme.textMuted)),
+              Text(l.appVersion,
+                  style: const TextStyle(fontSize: 11, color: TradEtTheme.textMuted)),
+              Text('${WhiteLabel.bankName} Research Inc.',
+                  style: const TextStyle(fontSize: 11, color: TradEtTheme.textMuted)),
               Text('${l.lastLogin}: ${_lastLoginLabel(context)}',
                   style: const TextStyle(fontSize: 10, color: TradEtTheme.textMuted)),
             ],
@@ -363,10 +364,10 @@ class ProfileScreen extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('TradEt v1.0.0', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+            Text('${WhiteLabel.appName} v1.0.0', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
             const SizedBox(height: 6),
-            const Text('by Amber Research Inc.',
-                style: TextStyle(color: TradEtTheme.textSecondary, fontSize: 13)),
+            Text('by ${WhiteLabel.bankName} Research Inc.',
+                style: const TextStyle(color: TradEtTheme.textSecondary, fontSize: 13)),
             const SizedBox(height: 12),
             Text(l.shariaCompliantPlatform,
                 style: const TextStyle(color: TradEtTheme.textSecondary, fontSize: 12)),
@@ -439,7 +440,7 @@ class ProfileScreen extends StatelessWidget {
         const SizedBox(height: 32),
         Center(
           child: Text(
-            'TradEt v1.0.0 by Amber — Sharia & Ethiopian Trade Compliant',
+            l.appVersionFooter,
             style: TextStyle(fontSize: 11,
                 color: TradEtTheme.textMuted.withValues(alpha: 0.6)),
           ),
@@ -450,6 +451,7 @@ class ProfileScreen extends StatelessWidget {
   }
 
   Widget _webUserBanner(BuildContext context, AppProvider provider, dynamic user) {
+    final l = AppLocalizations.of(context);
     final name = user?.fullName ?? 'User';
     final email = user?.email ?? '';
     final initial = name.isNotEmpty ? name[0].toUpperCase() : '?';
@@ -563,10 +565,10 @@ class ProfileScreen extends StatelessWidget {
           ),
           Row(
             children: [
-              _bannerStat('Holdings', user?.walletBalance != null ? 'Active' : '--',
+              _bannerStat(l.holdings, user?.walletBalance != null ? l.active : '--',
                   Icons.pie_chart_outline),
               const SizedBox(width: 16),
-              _bannerStat('Alerts', 'Active', Icons.notifications_outlined),
+              _bannerStat(l.alerts, l.active, Icons.notifications_outlined),
             ],
           ),
         ],

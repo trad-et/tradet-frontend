@@ -603,7 +603,7 @@ class AppLocalizations {
   String get authenticateToAddPayment => _t({'en': 'Authenticate to add a payment method', 'am': 'የክፍያ ዘዴ ለማከል ማረጋጋጥ', 'ti': 'ሓቀኛነትካ ምርግጋጽ ንምውሳኽ ኣገባብ ክፍሊት', 'om': 'Mala kaffaltii dabaluu mirkaneessuu', 'so': 'Xaqiijinta si aad u darto hab lacag bixin', 'gur': 'ክፍያ ዘዴ ለማክ ማረጋጋጥ'});
   String get failedToAdd => _t({'en': 'Failed to add', 'am': 'ማከል አልተቻለም', 'ti': 'ምውሳኽ ኣይሰለጠን', 'om': "Ida'uu hin milkoofne", 'so': 'Ku darka ma fashilmay', 'gur': 'ማክ አልቻልም'});
   String get refresh => _t({'en': 'Refresh', 'am': 'አድስ', 'ti': 'ኣሕድስ', 'om': 'Haaromsi', 'so': 'Cusboonaysii', 'gur': 'አድስ'});
-  String get appVersionFooter => _t({'en': 'TradEt v1.0.0 by Amber — Sharia & Ethiopian Trade Compliant', 'am': 'TradEt v1.0.0 by Amber — ሸሪዓ እና የኢትዮጵያ ንግድ ተኳካሪ', 'ti': 'TradEt v1.0.0 by Amber — ሸሪዓ ናይ ኢትዮጵያ ንግዲ', 'om': 'TradEt v1.0.0 by Amber — Shari\'aa fi Daldala Itoophiyaa', 'so': 'TradEt v1.0.0 by Amber — Shariicada iyo Ganacsiga Itoobiya', 'gur': 'TradEt v1.0.0 by Amber — ሸሪዓ እና ኢትዮጵያ ንግድ'});
+  String get appVersionFooter => _t({'en': 'TradEt v1.0.0 by Amber — Sharia & Ethiopian Trade Compliant', 'am': 'ትሬድኢት v1.0.0 by አምበር — ሸሪዓ እና የኢትዮጵያ ንግድ ተኳካሪ', 'ti': 'TradEt v1.0.0 by Amber — ሸሪዓ ናይ ኢትዮጵያ ንግዲ', 'om': 'TradEt v1.0.0 by Amber — Shari\'aa fi Daldala Itoophiyaa', 'so': 'TradEt v1.0.0 by Amber — Shariicada iyo Ganacsiga Itoobiya', 'gur': 'TradEt v1.0.0 by Amber — ሸሪዓ እና ኢትዮጵያ ንግድ'});
   String get appVersionFooterShort => _t({'en': 'TradEt v1.0.0 — Sharia & Ethiopian Trade Compliant', 'am': 'TradEt v1.0.0 — ሸሪዓ እና የኢትዮጵያ ንግድ ተኳካሪ', 'ti': 'TradEt v1.0.0 — ሸሪዓ ናይ ኢትዮጵያ ንግዲ', 'om': "TradEt v1.0.0 — Shari'aa fi Daldala Itoophiyaa", 'so': 'TradEt v1.0.0 — Shariicada iyo Ganacsiga Itoobiya', 'gur': 'TradEt v1.0.0 — ሸሪዓ ኢትዮጵያ ንግድ'});
 
   // ─── Common navigation ────────────────────────────
@@ -787,6 +787,17 @@ class AppLocalizations {
   String get savePin => _t({'en': 'Save PIN', 'am': 'PIN አስቀምጥ', 'ti': 'PIN ዓቅብ', 'om': "PIN olkaa'i", 'so': 'Kaydi PIN', 'gur': 'PIN አኑር'});
   String get pinInvalid => _t({'en': 'PIN must be exactly 4 digits', 'am': 'PIN ትክክል 4 ቁጥሮች መሆን አለበት', 'ti': 'PIN ልክ 4 ቑጽሪ ክኸውን ኣለዎ', 'om': 'PIN lakkoofsa 4 qofa ta\'uu qaba', 'so': 'PIN waa in uu ahaa 4 nambar oo kaliya', 'gur': 'PIN ትክክለኛ 4 ቁጥሮቸ ሊሆን አለበት'});
   String get pinSet => _t({'en': 'Security PIN set', 'am': 'የደህንነት PIN ተዘጋጅቷል', 'ti': 'ናይ ድሕንነት PIN ዝቀረበ', 'om': 'PIN nageenyaa qophaahe', 'so': 'PIN amni ayaa la dejiyay', 'gur': 'የደህንነት PIN ተዘጋጅቷ'});
+  String get qty => _t({'en': 'Qty', 'am': 'ብዛት', 'ti': 'ብዝሒ', 'om': "Ba'aa", 'so': 'Tirada', 'gur': 'ብዛት'});
+  String get unit => _t({'en': 'Unit', 'am': 'ክፍሊ', 'ti': 'ክፍሊ', 'om': 'Iddoo', 'so': 'Cutubka', 'gur': 'ክፍሊ'});
+  String get avg => _t({'en': 'Avg', 'am': 'አማካይ', 'ti': 'ማእከላይ', 'om': 'Giddugaleessa', 'so': 'Celceliska', 'gur': 'አማካይ'});
+  String get changeLabel => _t({'en': 'Change', 'am': 'ቀይር', 'ti': 'ቀይር', 'om': 'Jijjiiri', 'so': 'Beddel', 'gur': 'ቀይር'});
+  String get setPinButton => _t({'en': 'Set PIN', 'am': 'PIN ዘርጋ', 'ti': 'PIN ቀናብር', 'om': 'PIN qindeessi', 'so': 'Dejiso PIN', 'gur': 'PIN ዘርጋ'});
+  String get securityRequired => _t({'en': 'Security Required', 'am': 'ደህንነት ያስፈልጋል', 'ti': 'ድሕንነት ይሕለፍ', 'om': 'Nageenyaan barbaachisa', 'so': 'Amni waajib ah', 'gur': 'ደህንነት ያስፈጋ'});
+  String get enterPin => _t({'en': 'Enter PIN', 'am': 'PIN ያስገቡ', 'ti': 'PIN ኣእቱ', 'om': 'PIN galchi', 'so': 'Geli PIN', 'gur': 'PIN ያስገቡ'});
+  String get ok => _t({'en': 'OK', 'am': 'እሺ', 'ti': 'ቅቡል', 'om': 'Egaa', 'so': 'Waaye', 'gur': 'እሺ'});
+  String get appVersion => _t({'en': 'Version 1.0', 'am': 'ስሪት 1.0', 'ti': 'ሓርበኛ 1.0', 'om': 'Galmee 1.0', 'so': 'Nooca 1.0', 'gur': 'ስሪት 1.0'});
+  String get tooManyFailedAttempts => _t({'en': 'Too many failed attempts', 'am': 'ብዙ ሙከራዎች ወድቀዋል', 'ti': 'ብዙ ፈተናታት ወዲቀን', 'om': "Yaalii kufe baay'inaan", 'so': 'Isku dayado fashilmay oo badan', 'gur': 'ብዙ ሙከራዎቸ ወድቀዋ'});
+  String get securityPinRequiredMsg => _t({'en': 'A security PIN is required to authorize transactions.\n\nGo to Profile → Security → App Lock to set up your PIN.', 'am': 'ግብይቶችን ለማፅደቅ የደህንነት PIN ያስፈልጋል።\n\nPIN ለማዘጋጀት ፕሮፋይል → ደህንነት → ኣፕ ቆልፍ ይሂዱ።', 'ti': 'PIN ድሕንነት ንምርግጋጽ ምትሕልላፍ ያስፈልጋ።\n\nPIN ንምቕናዕ ፕሮፋይል → ድሕንነት → ሸፋዕ ኣፕ ሂድ።', 'om': 'Hojii mallaqa hayyamuuf PIN nageenyaa barbaachisa.\n\nPIN qopheessuuf Piroofaayilii → Nageenyaa → Cufaa App deemuun.', 'so': 'PIN amni ah ayaa loo baahan yahay si loo oggolaado macaamilaadaha.\n\nSi aad PIN u dejiso u tag Profile → Amniga → App Lock.', 'gur': 'ግብይቶቼን ለፍቀድ የደህንነት PIN ያስፈጋ።\n\nPIN ለዘጋጀ ፕሮፋይል → ደህንነት → ኣፕ ቆልፍ ሂዱ።'});
 
   /// Multi-language translation helper.
   String _t(Map<String, String> translations) {
