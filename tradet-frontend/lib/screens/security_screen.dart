@@ -341,6 +341,7 @@ class _SecurityScreenState extends State<SecurityScreen> {
   // ─── Auth method card ────────────────────────────────────────────────
 
   Widget _authMethodCard() {
+    final l = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -382,15 +383,15 @@ class _SecurityScreenState extends State<SecurityScreen> {
           _authMethodTile(
             method: 'any',
             icon: Icons.security_rounded,
-            title: 'Any Available',
-            subtitle: 'Biometrics first, then PIN',
+            title: l.anyAvailable,
+            subtitle: l.biometricsFirstThenPin,
             color: TradEtTheme.positive,
           ),
           const SizedBox(height: 8),
           _authMethodTile(
             method: 'biometric',
             icon: Icons.fingerprint_rounded,
-            title: 'Biometrics Only',
+            title: l.biometricsOnly,
             subtitle: _biometricAvailable
                 ? 'Fingerprint or Face ID'
                 : 'Not available on this device',
@@ -401,7 +402,7 @@ class _SecurityScreenState extends State<SecurityScreen> {
           _authMethodTile(
             method: 'pin',
             icon: Icons.pin_rounded,
-            title: 'PIN Only',
+            title: l.pinOnly,
             subtitle: _pinSet ? '4-digit security PIN' : 'No PIN set — set one below',
             color: const Color(0xFF818CF8),
             disabled: !_pinSet,
@@ -618,6 +619,7 @@ class _SecurityScreenState extends State<SecurityScreen> {
   // ─── Session protection card (configurable) ─────────────────────────
 
   Widget _sessionInfoCard() {
+    final l = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -662,8 +664,8 @@ class _SecurityScreenState extends State<SecurityScreen> {
           _timeoutSection(
             icon: Icons.hourglass_top_rounded,
             color: const Color(0xFF22D3EE),
-            label: 'Session Timeout',
-            sublabel: 'Auto-logout after inactivity',
+            label: l.sessionTimeout,
+            sublabel: l.autoLogoutAfterInactivity,
             options: const [5, 10, 15],
             labels: const ['5 min', '10 min', '15 min'],
             selected: _sessionTimeoutMins,
@@ -678,8 +680,8 @@ class _SecurityScreenState extends State<SecurityScreen> {
           _timeoutSection(
             icon: Icons.screen_lock_portrait_rounded,
             color: TradEtTheme.accent,
-            label: 'App Lock Delay',
-            sublabel: 'Lock screen after backgrounding',
+            label: l.appLockDelay,
+            sublabel: l.lockAfterBackgrounding,
             options: const [30, 60, 120],
             labels: const ['30 sec', '1 min', '2 min'],
             selected: _appLockDelaySecs,
@@ -713,8 +715,8 @@ class _SecurityScreenState extends State<SecurityScreen> {
                     Text(AppLocalizations.of(context).accountLockout,
                         style: const TextStyle(
                             fontSize: 12, color: TradEtTheme.textSecondary)),
-                    const Text('5 failed attempts → 15 min block',
-                        style: TextStyle(
+                    Text(l.failedAttemptsBlock,
+                        style: const TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
                             color: Colors.white)),

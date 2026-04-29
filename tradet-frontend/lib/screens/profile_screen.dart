@@ -202,7 +202,7 @@ class ProfileScreen extends StatelessWidget {
             children: [
               Text(l.appVersion,
                   style: const TextStyle(fontSize: 11, color: TradEtTheme.textMuted)),
-              Text('${WhiteLabel.bankName} Research Inc.',
+              Text('${l.bankNameLocalized} Research Inc.',
                   style: const TextStyle(fontSize: 11, color: TradEtTheme.textMuted)),
               Text('${l.lastLogin}: ${_lastLoginLabel(context)}',
                   style: const TextStyle(fontSize: 10, color: TradEtTheme.textMuted)),
@@ -364,9 +364,9 @@ class ProfileScreen extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('${WhiteLabel.appName} v1.0.0', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+            Text('${l.appNameLocalized} v1.0.0', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
             const SizedBox(height: 6),
-            Text('by ${WhiteLabel.bankName} Research Inc.',
+            Text('${l.byBankName} Research Inc.',
                 style: const TextStyle(color: TradEtTheme.textSecondary, fontSize: 13)),
             const SizedBox(height: 12),
             Text(l.shariaCompliantPlatform,
@@ -714,7 +714,7 @@ class ProfileScreen extends StatelessWidget {
           _webSettingRow(
             icon: Icons.gavel_rounded,
             title: l.legalDocs,
-            subtitle: 'Terms, Risk Disclosures, Privacy Policy',
+            subtitle: l.subtitleTermsRiskPrivacy,
             color: const Color(0xFF60A5FA),
             trailing: const Icon(Icons.chevron_right_rounded,
                 color: TradEtTheme.textMuted, size: 20),
@@ -726,7 +726,7 @@ class ProfileScreen extends StatelessWidget {
           _webSettingRow(
             icon: Icons.account_balance_outlined,
             title: l.regulatoryStatus,
-            subtitle: 'ESX licensing info',
+            subtitle: l.subtitleEcxLicensing,
             color: const Color(0xFF818CF8),
             trailing: const Icon(Icons.chevron_right_rounded,
                 color: TradEtTheme.textMuted, size: 20),
@@ -738,7 +738,7 @@ class ProfileScreen extends StatelessWidget {
           _webSettingRow(
             icon: Icons.verified_rounded,
             title: l.halalCompliance,
-            subtitle: 'Sharia screening audit',
+            subtitle: l.subtitleShariaAudit,
             color: TradEtTheme.positive,
             trailing: const Icon(Icons.chevron_right_rounded,
                 color: TradEtTheme.textMuted, size: 20),
@@ -750,7 +750,7 @@ class ProfileScreen extends StatelessWidget {
           _webSettingRow(
             icon: Icons.receipt_long_outlined,
             title: l.taxStatements,
-            subtitle: 'Annual P&L for tax declaration',
+            subtitle: l.subtitleTaxDeclaration,
             color: TradEtTheme.accent,
             trailing: const Icon(Icons.chevron_right_rounded,
                 color: TradEtTheme.textMuted, size: 20),
@@ -782,7 +782,7 @@ class ProfileScreen extends StatelessWidget {
           _webSettingRow(
             icon: Icons.show_chart_rounded,
             title: l.marketAlerts,
-            subtitle: 'Price movements & trends',
+            subtitle: l.subtitlePriceMovements,
             color: TradEtTheme.positive,
             trailing: const Icon(Icons.chevron_right_rounded,
                 color: TradEtTheme.textMuted, size: 20),
@@ -794,7 +794,7 @@ class ProfileScreen extends StatelessWidget {
           _webSettingRow(
             icon: Icons.campaign_outlined,
             title: l.systemMarketing,
-            subtitle: 'Newsletter & AI assistance',
+            subtitle: l.subtitleNewsletterAi,
             color: TradEtTheme.accent,
             trailing: const Icon(Icons.chevron_right_rounded,
                 color: TradEtTheme.textMuted, size: 20),
@@ -826,7 +826,7 @@ class ProfileScreen extends StatelessWidget {
           _webSettingRow(
             icon: Icons.support_agent_rounded,
             title: l.supportCenter,
-            subtitle: 'FAQ, docs, community forums',
+            subtitle: l.subtitleFaqDocs,
             color: TradEtTheme.positive,
             trailing: const Icon(Icons.chevron_right_rounded,
                 color: TradEtTheme.textMuted, size: 20),
@@ -838,7 +838,7 @@ class ProfileScreen extends StatelessWidget {
           _webSettingRow(
             icon: Icons.chat_outlined,
             title: l.contactUs,
-            subtitle: 'Submit ticket or chat with agents',
+            subtitle: l.subtitleSupportTicket,
             color: const Color(0xFF60A5FA),
             trailing: const Icon(Icons.chevron_right_rounded,
                 color: TradEtTheme.textMuted, size: 20),
@@ -939,7 +939,7 @@ class ProfileScreen extends StatelessWidget {
           _webSettingRow(
             icon: Icons.shield_outlined,
             title: l.loginSecurity,
-            subtitle: 'Password & 2FA',
+            subtitle: l.subtitlePasswordTwoFa,
             color: const Color(0xFF22D3EE),
             trailing: const Icon(Icons.chevron_right_rounded,
                 color: TradEtTheme.textMuted, size: 20),
@@ -950,7 +950,7 @@ class ProfileScreen extends StatelessWidget {
           _webSettingRow(
             icon: Icons.visibility_outlined,
             title: l.privacyControls,
-            subtitle: 'Data sharing & visibility',
+            subtitle: l.subtitleDataSharing,
             color: const Color(0xFF60A5FA),
             trailing: const Icon(Icons.chevron_right_rounded,
                 color: TradEtTheme.textMuted, size: 20),
@@ -962,7 +962,7 @@ class ProfileScreen extends StatelessWidget {
           _webSettingRow(
             icon: Icons.shield_rounded,
             title: l.security,
-            subtitle: 'Wealth protection & PIN',
+            subtitle: l.subtitleWealthProtection,
             color: TradEtTheme.positive,
             trailing: const Icon(Icons.chevron_right_rounded,
                 color: TradEtTheme.textMuted, size: 20),
@@ -1738,7 +1738,7 @@ class _AccountMenuScreen extends StatelessWidget {
                         icon: Icons.badge_outlined,
                         color: const Color(0xFF22D3EE),
                         title: l.profileInformation,
-                        subtitle: 'Update personal details, avatar & contact',
+                        subtitle: l.subtitlePersonalDetails,
                         onTap: () => Navigator.push(context,
                             MaterialPageRoute(builder: (_) =>
                                 _AccountDetailsScreen(user: user))),
@@ -1760,7 +1760,7 @@ class _AccountMenuScreen extends StatelessWidget {
                         icon: Icons.account_balance_outlined,
                         color: TradEtTheme.accent,
                         title: l.paymentMethod,
-                        subtitle: 'Manage linked bank accounts & invoices',
+                        subtitle: l.subtitleBankAccounts,
                         onTap: () => Navigator.push(context,
                             MaterialPageRoute(builder: (_) =>
                                 const _PaymentMethodsMobileScreen())),
@@ -1852,13 +1852,13 @@ class _SecurityPrivacyMenuScreen extends StatelessWidget {
       title: l.securityAndPrivacy,
       icon: Icons.shield_outlined,
       iconColor: const Color(0xFF22D3EE),
-      subtitle: 'Protect your account & manage privacy',
+      subtitle: l.subtitleAccountSecurity,
       children: [
         _secItem(context,
           icon: Icons.lock_outline_rounded,
           color: const Color(0xFF22D3EE),
           title: l.loginSecurity,
-          subtitle: 'Change password & enable Two-Factor Authentication (2FA)',
+          subtitle: l.subtitleChangePassword,
           onTap: () => Navigator.push(context,
               MaterialPageRoute(builder: (_) => const SecurityScreen())),
         ),
@@ -1866,7 +1866,7 @@ class _SecurityPrivacyMenuScreen extends StatelessWidget {
           icon: Icons.visibility_outlined,
           color: const Color(0xFF60A5FA),
           title: l.privacyControls,
-          subtitle: 'Manage data sharing & account visibility settings',
+          subtitle: l.subtitleDataVisibility,
           isLast: true,
           onTap: () => ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('${l.privacyControls} — coming soon'),
@@ -1916,13 +1916,13 @@ class _NotificationsMenuScreen extends StatelessWidget {
       title: l.notifications,
       icon: Icons.notifications_outlined,
       iconColor: TradEtTheme.accent,
-      subtitle: 'Configure alerts & messaging preferences',
+      subtitle: l.subtitleAlertsMessaging,
       children: [
         _notifItem(context,
           icon: Icons.show_chart_rounded,
           color: TradEtTheme.positive,
           title: l.marketAlerts,
-          subtitle: 'Configure push/email alerts for price movements & trends',
+          subtitle: l.subtitleConfigureAlerts,
           onTap: () => ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('${l.marketAlerts} — coming soon'),
                 behavior: SnackBarBehavior.floating)),
@@ -1931,7 +1931,7 @@ class _NotificationsMenuScreen extends StatelessWidget {
           icon: Icons.campaign_outlined,
           color: TradEtTheme.accent,
           title: l.systemMarketing,
-          subtitle: 'Toggle newsletter & system-triggered AI assistance',
+          subtitle: l.subtitleNewsletterToggle,
           isLast: true,
           onTap: () => ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('${l.systemMarketing} — coming soon'),
@@ -1981,13 +1981,13 @@ class _HelpSupportMenuScreen extends StatelessWidget {
       title: l.helpAndSupport,
       icon: Icons.help_outline_rounded,
       iconColor: TradEtTheme.positive,
-      subtitle: 'FAQ, documentation & contact',
+      subtitle: l.subtitleFaqHelp,
       children: [
         _helpItem(context,
           icon: Icons.support_agent_rounded,
           color: TradEtTheme.positive,
           title: l.supportCenter,
-          subtitle: 'Access FAQ, help documentation & community forums',
+          subtitle: l.subtitleAccessFaq,
           onTap: () => ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('${l.supportCenter} — coming soon'),
                 behavior: SnackBarBehavior.floating)),
@@ -1996,7 +1996,7 @@ class _HelpSupportMenuScreen extends StatelessWidget {
           icon: Icons.chat_outlined,
           color: const Color(0xFF60A5FA),
           title: l.contactUs,
-          subtitle: 'Submit a support ticket or start an in-app chat',
+          subtitle: l.subtitleSupportChat,
           isLast: true,
           onTap: () => ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('${l.contactUs} — coming soon'),

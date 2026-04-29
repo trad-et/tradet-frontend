@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import '../l10n/app_localizations.dart';
 import '../providers/app_provider.dart';
 import '../theme.dart';
-import '../white_label.dart';
 import '../widgets/language_selector.dart';
 import '../widgets/responsive_layout.dart';
 import 'dashboard_screen.dart';
@@ -120,13 +119,13 @@ class _HomeScreenState extends State<HomeScreen> {
                       const Icon(Icons.play_circle_outline,
                           size: 14, color: TradEtTheme.accent),
                       const SizedBox(width: 6),
-                      const Text('DEMO MODE — Data is simulated for presentation',
-                          style: TextStyle(
+                      Text(AppLocalizations.of(context).demoModeBanner,
+                          style: const TextStyle(
                               color: TradEtTheme.accent,
                               fontSize: 11,
                               fontWeight: FontWeight.w600)),
                       const Spacer(),
-                      const Text('Exit', style: TextStyle(color: TradEtTheme.accent, fontSize: 11)),
+                      Text(AppLocalizations.of(context).exitDemoMode, style: const TextStyle(color: TradEtTheme.accent, fontSize: 11)),
                     ],
                   ),
                 ),
@@ -180,12 +179,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       const Icon(Icons.play_circle_outline, size: 14, color: TradEtTheme.accent),
                       const SizedBox(width: 6),
-                      const Text('DEMO MODE — All data is simulated for presentation purposes',
-                          style: TextStyle(color: TradEtTheme.accent, fontSize: 11,
+                      Text(AppLocalizations.of(context).demoModeBannerFull,
+                          style: const TextStyle(color: TradEtTheme.accent, fontSize: 11,
                               fontWeight: FontWeight.w600)),
                       const Spacer(),
-                      const Text('Exit Demo →',
-                          style: TextStyle(color: TradEtTheme.accent, fontSize: 11,
+                      Text(AppLocalizations.of(context).exitDemoModeArrow,
+                          style: const TextStyle(color: TradEtTheme.accent, fontSize: 11,
                               fontWeight: FontWeight.w600)),
                     ],
                   ),
@@ -283,7 +282,7 @@ class AppWebSidebar extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          WhiteLabel.appName,
+                          AppLocalizations.of(context).appNameLocalized,
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w800,
@@ -292,7 +291,7 @@ class AppWebSidebar extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          'by ${WhiteLabel.bankName} • ${WhiteLabel.appNameAmharic}',
+                          AppLocalizations.of(context).byBankName,
                           style: const TextStyle(
                             fontSize: 11,
                             color: TradEtTheme.textMuted,
