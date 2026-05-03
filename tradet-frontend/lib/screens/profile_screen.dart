@@ -110,70 +110,105 @@ class ProfileScreen extends StatelessWidget {
           _menuItem(context,
               icon: Icons.person_outline_rounded,
               label: l.account,
-              subtitle: '${l.personalInformation}, ${l.verificationStatus}...',
               onTap: () => Navigator.push(context,
                   MaterialPageRoute(builder: (_) => _ProfileInformationMenuScreen(user: user)))),
         ]),
         const SizedBox(height: 10),
 
-        // ── 2. Security & Privacy ─────────────────────────────────────────
+        // ── 2. Security ───────────────────────────────────────────────────
         _menuCard([
           _menuItem(context,
               icon: Icons.shield_outlined,
-              label: l.securityAndPrivacy,
-              subtitle: '${l.loginSecurity}, ${l.privacyControls}',
+              label: l.security,
               onTap: () => Navigator.push(context,
-                  MaterialPageRoute(builder: (_) => const _SecurityPrivacyMenuScreen()))),
+                  MaterialPageRoute(builder: (_) => const SecurityScreen()))),
         ]),
         const SizedBox(height: 10),
 
-        // ── 3. Notifications ──────────────────────────────────────────────
+        // ── 3. Privacy ────────────────────────────────────────────────────
+        _menuCard([
+          _menuItem(context,
+              icon: Icons.visibility_outlined,
+              label: l.privacy,
+              onTap: () => Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => const PrivacyControlsScreen()))),
+        ]),
+        const SizedBox(height: 10),
+
+        // ── 4. Notifications ──────────────────────────────────────────────
         _menuCard([
           _menuItem(context,
               icon: Icons.notifications_outlined,
               label: l.notifications,
-              subtitle: '${l.marketAlerts}, ${l.systemMarketing}',
               onTap: () => Navigator.push(context,
                   MaterialPageRoute(builder: (_) => const _NotificationsMenuScreen()))),
         ]),
         const SizedBox(height: 10),
 
-        // ── 4. Help & Support ─────────────────────────────────────────────
+        // ── 5. Help ───────────────────────────────────────────────────────
         _menuCard([
           _menuItem(context,
               icon: Icons.help_outline_rounded,
-              label: l.helpAndSupport,
-              subtitle: '${l.supportCenter}, ${l.contactUs}',
+              label: l.help,
               onTap: () => Navigator.push(context,
-                  MaterialPageRoute(builder: (_) => const _HelpSupportMenuScreen()))),
+                  MaterialPageRoute(builder: (_) => const _HelpMenuScreen()))),
         ]),
         const SizedBox(height: 10),
 
-        // ── 5. Compliance & Documents ─────────────────────────────────────
+        // ── 6. Appearance ─────────────────────────────────────────────────
+        _menuCard([
+          _menuItem(context,
+              icon: Icons.palette_outlined,
+              label: l.appearance,
+              onTap: () => Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => const _AppearanceScreen()))),
+        ]),
+        const SizedBox(height: 10),
+
+        // ── 7. Compliance & Documents ─────────────────────────────────────
         _menuCard([
           _menuItem(context,
               icon: Icons.description_outlined,
               label: l.complianceDocuments,
-              subtitle: '${l.legalDocs}, ${l.halalCompliance}...',
               onTap: () => Navigator.push(context,
                   MaterialPageRoute(builder: (_) => _ComplianceDocsScreen()))),
         ]),
-        const SizedBox(height: 16),
+        const SizedBox(height: 10),
 
-        // ── Preferences (inline) ──────────────────────────────────────────
+        // ── 8. About us ───────────────────────────────────────────────────
         _menuCard([
-          _menuItem(context, icon: Icons.palette_outlined, label: l.appearance,
-              onTap: () => Navigator.push(context,
-                  MaterialPageRoute(builder: (_) => const _AppearanceScreen()))),
-          _menuDivider(),
-          _menuItem(context, icon: Icons.language_rounded, label: l.language,
-              trailing: const LanguageSelector(),
-              onTap: null),
-          _menuDivider(),
-          _menuItem(context, icon: Icons.info_outline_rounded, label: l.aboutUs,
+          _menuItem(context,
+              icon: Icons.info_outline_rounded,
+              label: l.aboutUs,
               onTap: () => Navigator.push(context,
                   MaterialPageRoute(builder: (_) => const _AboutUsScreen()))),
-          _menuDivider(),
+        ]),
+        const SizedBox(height: 10),
+
+        // ── 9. Upgrade ────────────────────────────────────────────────────
+        _menuCard([
+          _menuItem(context,
+              icon: Icons.workspace_premium_outlined,
+              label: 'Upgrade',
+              iconColor: const Color(0xFFF59E0B),
+              onTap: () => Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => const _UpgradeScreen()))),
+        ]),
+        const SizedBox(height: 10),
+
+        // ── 10. Invite friends ────────────────────────────────────────────
+        _menuCard([
+          _menuItem(context,
+              icon: Icons.person_add_alt_1_rounded,
+              label: 'Invite Friends',
+              iconColor: TradEtTheme.accent,
+              onTap: () => Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => _InviteFriendsScreen(user: user)))),
+        ]),
+        const SizedBox(height: 16),
+
+        // ── Logout ────────────────────────────────────────────────────────
+        _menuCard([
           _menuItem(context,
               icon: Icons.logout_rounded,
               label: l.logout,
@@ -1875,124 +1910,103 @@ class _ProfileInformationMenuScreen extends StatelessWidget {
 // Security & Privacy Menu Screen
 // ═══════════════════════════════════════════════════════════════════════════
 
-class _SecurityPrivacyMenuScreen extends StatelessWidget {
-  const _SecurityPrivacyMenuScreen();
-
-  @override
-  Widget build(BuildContext context) {
-    final l = AppLocalizations.of(context);
-    return _SubMenuScaffold(
-      title: l.securityAndPrivacy,
-      icon: Icons.shield_outlined,
-      iconColor: const Color(0xFF22D3EE),
-      subtitle: l.subtitleAccountSecurity,
-      children: [
-        _secItem(context,
-          icon: Icons.lock_outline_rounded,
-          color: const Color(0xFF22D3EE),
-          title: l.loginSecurity,
-          subtitle: l.subtitleChangePassword,
-          onTap: () => Navigator.push(context,
-              MaterialPageRoute(builder: (_) => const SecurityScreen())),
-        ),
-        _secItem(context,
-          icon: Icons.visibility_outlined,
-          color: const Color(0xFF60A5FA),
-          title: l.privacyControls,
-          subtitle: l.subtitleDataVisibility,
-          isLast: true,
-          onTap: () => Navigator.push(context,
-              MaterialPageRoute(builder: (_) => const PrivacyControlsScreen())),
-        ),
-      ],
-    );
-  }
-
-  Widget _secItem(BuildContext context, {
-    required IconData icon, required Color color,
-    required String title, required String subtitle,
-    required VoidCallback onTap, bool isLast = false,
-  }) {
-    return Column(children: [
-      ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-        leading: Container(width: 40, height: 40,
-          decoration: BoxDecoration(color: color.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(12)),
-          child: Icon(icon, color: color, size: 20)),
-        title: Text(title, style: const TextStyle(fontSize: 14,
-            fontWeight: FontWeight.w600, color: Colors.white)),
-        subtitle: Text(subtitle, style: const TextStyle(fontSize: 11,
-            color: TradEtTheme.textMuted)),
-        trailing: const Icon(Icons.chevron_right_rounded,
-            color: TradEtTheme.textMuted, size: 20),
-        onTap: onTap,
-      ),
-      if (!isLast) Divider(height: 1, indent: 76,
-          color: TradEtTheme.divider.withValues(alpha: 0.3)),
-    ]);
-  }
-}
+// _SecurityPrivacyMenuScreen removed — Security and Privacy are now top-level menu items
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Notifications Menu Screen
 // ═══════════════════════════════════════════════════════════════════════════
 
-class _NotificationsMenuScreen extends StatelessWidget {
+class _NotificationsMenuScreen extends StatefulWidget {
   const _NotificationsMenuScreen();
+
+  @override
+  State<_NotificationsMenuScreen> createState() => _NotificationsMenuScreenState();
+}
+
+class _NotificationsMenuScreenState extends State<_NotificationsMenuScreen> {
+  bool _personalisedTradEt = true;
+  bool _personalisedPartners = false;
+  bool _tradeVolatility = true;
+  bool _commodityVolatility = true;
 
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
+    final items = [
+      _NotifToggle(
+        title: l.privacyPersonalizedOffers,
+        icon: Icons.local_offer_outlined,
+        color: TradEtTheme.accent,
+        value: _personalisedTradEt,
+        onChanged: (v) => setState(() => _personalisedTradEt = v),
+      ),
+      _NotifToggle(
+        title: l.privacyPartnerOffers,
+        icon: Icons.handshake_outlined,
+        color: const Color(0xFF60A5FA),
+        value: _personalisedPartners,
+        onChanged: (v) => setState(() => _personalisedPartners = v),
+      ),
+      _NotifToggle(
+        title: l.tradeVolatilityAlert,
+        icon: Icons.show_chart_rounded,
+        color: TradEtTheme.positive,
+        value: _tradeVolatility,
+        onChanged: (v) => setState(() => _tradeVolatility = v),
+      ),
+      _NotifToggle(
+        title: l.commodityVolatilityAlert,
+        icon: Icons.trending_up_rounded,
+        color: const Color(0xFF818CF8),
+        value: _commodityVolatility,
+        onChanged: (v) => setState(() => _commodityVolatility = v),
+      ),
+    ];
     return _SubMenuScaffold(
       title: l.notifications,
       icon: Icons.notifications_outlined,
       iconColor: TradEtTheme.accent,
       subtitle: l.subtitleAlertsMessaging,
       children: [
-        _notifItem(context,
-          icon: Icons.show_chart_rounded,
-          color: TradEtTheme.positive,
-          title: l.marketAlerts,
-          subtitle: l.subtitleConfigureAlerts,
-          onTap: () => Navigator.push(context,
-              MaterialPageRoute(builder: (_) => const AlertsScreen())),
-        ),
-        _notifItem(context,
-          icon: Icons.campaign_outlined,
-          color: TradEtTheme.accent,
-          title: l.systemMarketing,
-          subtitle: l.subtitleNewsletterToggle,
-          isLast: true,
-          onTap: () => showSystemMarketingDialog(context),
-        ),
+        for (int i = 0; i < items.length; i++) ...[
+          items[i].build(context),
+          if (i < items.length - 1)
+            Divider(height: 1, indent: 76,
+                color: TradEtTheme.divider.withValues(alpha: 0.3)),
+        ],
       ],
     );
   }
+}
 
-  Widget _notifItem(BuildContext context, {
-    required IconData icon, required Color color,
-    required String title, required String subtitle,
-    required VoidCallback onTap, bool isLast = false,
-  }) {
-    return Column(children: [
-      ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-        leading: Container(width: 40, height: 40,
-          decoration: BoxDecoration(color: color.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(12)),
-          child: Icon(icon, color: color, size: 20)),
-        title: Text(title, style: const TextStyle(fontSize: 14,
-            fontWeight: FontWeight.w600, color: Colors.white)),
-        subtitle: Text(subtitle, style: const TextStyle(fontSize: 11,
-            color: TradEtTheme.textMuted)),
-        trailing: const Icon(Icons.chevron_right_rounded,
-            color: TradEtTheme.textMuted, size: 20),
-        onTap: onTap,
+class _NotifToggle {
+  final String title;
+  final IconData icon;
+  final Color color;
+  final bool value;
+  final ValueChanged<bool> onChanged;
+  _NotifToggle({
+    required this.title,
+    required this.icon,
+    required this.color,
+    required this.value,
+    required this.onChanged,
+  });
+  Widget build(BuildContext context) {
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+      leading: Container(width: 40, height: 40,
+        decoration: BoxDecoration(color: color.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(12)),
+        child: Icon(icon, color: color, size: 20)),
+      title: Text(title, style: const TextStyle(fontSize: 14,
+          fontWeight: FontWeight.w600, color: Colors.white)),
+      trailing: Switch(
+        value: value,
+        onChanged: onChanged,
+        activeThumbColor: TradEtTheme.positive,
       ),
-      if (!isLast) Divider(height: 1, indent: 76,
-          color: TradEtTheme.divider.withValues(alpha: 0.3)),
-    ]);
+    );
   }
 }
 
@@ -2000,60 +2014,105 @@ class _NotificationsMenuScreen extends StatelessWidget {
 // Help & Support Menu Screen
 // ═══════════════════════════════════════════════════════════════════════════
 
-class _HelpSupportMenuScreen extends StatelessWidget {
-  const _HelpSupportMenuScreen();
+class _HelpMenuScreen extends StatelessWidget {
+  const _HelpMenuScreen();
+
+  void _showHelpDialog(BuildContext context, String title, String body) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: TradEtTheme.cardBg,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(title, style: const TextStyle(color: Colors.white)),
+        content: Text(body,
+            style: const TextStyle(color: TradEtTheme.textSecondary, fontSize: 13)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close',
+                style: TextStyle(color: TradEtTheme.positive)),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
+    final items = <Map<String, dynamic>>[
+      {
+        'icon': Icons.flag_outlined,
+        'color': TradEtTheme.positive,
+        'title': l.gettingStarted,
+        'body': 'Learn how to set up your TradEt account, navigate the app, and place your first trade.',
+      },
+      {
+        'icon': Icons.show_chart_rounded,
+        'color': const Color(0xFF60A5FA),
+        'title': l.tradingHelp,
+        'body': 'Understand how trading works on TradEt, including order types, ECX session hours, and Sharia screening.',
+      },
+      {
+        'icon': Icons.account_balance_wallet_outlined,
+        'color': const Color(0xFF818CF8),
+        'title': l.depositWithdrawalHelp,
+        'body': 'Find guidance on how to deposit funds, withdraw to your bank, and manage payment methods.',
+      },
+      {
+        'icon': Icons.badge_outlined,
+        'color': const Color(0xFF22D3EE),
+        'title': l.profileKycHelp,
+        'body': 'Complete your KYC verification, update personal information, and manage tier requirements.',
+      },
+      {
+        'icon': Icons.shield_outlined,
+        'color': TradEtTheme.warning,
+        'title': l.securityFraudHelp,
+        'body': 'Tips for keeping your account safe, recognizing fraud, and recovering compromised access.',
+      },
+      {
+        'icon': Icons.support_agent_rounded,
+        'color': TradEtTheme.accent,
+        'title': l.supportCenter,
+        'body': '__contact__',
+      },
+    ];
     return _SubMenuScaffold(
-      title: l.helpAndSupport,
+      title: l.help,
       icon: Icons.help_outline_rounded,
       iconColor: TradEtTheme.positive,
       subtitle: l.subtitleFaqHelp,
       children: [
-        _helpItem(context,
-          icon: Icons.support_agent_rounded,
-          color: TradEtTheme.positive,
-          title: l.supportCenter,
-          subtitle: l.subtitleAccessFaq,
-          onTap: () => showSupportCenterDialog(context),
-        ),
-        _helpItem(context,
-          icon: Icons.chat_outlined,
-          color: const Color(0xFF60A5FA),
-          title: l.contactUs,
-          subtitle: l.subtitleSupportChat,
-          isLast: true,
-          onTap: () => showContactUsDialog(context),
-        ),
+        for (int i = 0; i < items.length; i++) ...[
+          ListTile(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+            leading: Container(width: 40, height: 40,
+              decoration: BoxDecoration(
+                  color: (items[i]['color'] as Color).withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(12)),
+              child: Icon(items[i]['icon'] as IconData,
+                  color: items[i]['color'] as Color, size: 20)),
+            title: Text(items[i]['title'] as String,
+                style: const TextStyle(fontSize: 14,
+                    fontWeight: FontWeight.w600, color: Colors.white)),
+            trailing: const Icon(Icons.chevron_right_rounded,
+                color: TradEtTheme.textMuted, size: 20),
+            onTap: () {
+              if (items[i]['body'] == '__contact__') {
+                showContactUsDialog(context);
+              } else {
+                _showHelpDialog(context,
+                    items[i]['title'] as String, items[i]['body'] as String);
+              }
+            },
+          ),
+          if (i < items.length - 1)
+            Divider(height: 1, indent: 76,
+                color: TradEtTheme.divider.withValues(alpha: 0.3)),
+        ],
       ],
     );
-  }
-
-  Widget _helpItem(BuildContext context, {
-    required IconData icon, required Color color,
-    required String title, required String subtitle,
-    required VoidCallback onTap, bool isLast = false,
-  }) {
-    return Column(children: [
-      ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-        leading: Container(width: 40, height: 40,
-          decoration: BoxDecoration(color: color.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(12)),
-          child: Icon(icon, color: color, size: 20)),
-        title: Text(title, style: const TextStyle(fontSize: 14,
-            fontWeight: FontWeight.w600, color: Colors.white)),
-        subtitle: Text(subtitle, style: const TextStyle(fontSize: 11,
-            color: TradEtTheme.textMuted)),
-        trailing: const Icon(Icons.chevron_right_rounded,
-            color: TradEtTheme.textMuted, size: 20),
-        onTap: onTap,
-      ),
-      if (!isLast) Divider(height: 1, indent: 76,
-          color: TradEtTheme.divider.withValues(alpha: 0.3)),
-    ]);
   }
 }
 
@@ -3451,8 +3510,15 @@ class _MethodTile extends StatelessWidget {
 // Appearance Screen
 // ═══════════════════════════════════════════════════════════════════════════
 
-class _AppearanceScreen extends StatelessWidget {
+class _AppearanceScreen extends StatefulWidget {
   const _AppearanceScreen();
+
+  @override
+  State<_AppearanceScreen> createState() => _AppearanceScreenState();
+}
+
+class _AppearanceScreenState extends State<_AppearanceScreen> {
+  double _textSize = 14.0;
 
   @override
   Widget build(BuildContext context) {
@@ -3516,6 +3582,7 @@ class _AppearanceScreen extends StatelessWidget {
                       ),
                     ),
                     Container(
+                      margin: const EdgeInsets.only(bottom: 12),
                       decoration: BoxDecoration(
                         color: TradEtTheme.cardBg,
                         borderRadius: BorderRadius.circular(16),
@@ -3531,6 +3598,114 @@ class _AppearanceScreen extends StatelessWidget {
                                 fontSize: 14,
                                 fontWeight: FontWeight.w500)),
                         trailing: const LanguageSelector(),
+                      ),
+                    ),
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      decoration: BoxDecoration(
+                        color: TradEtTheme.cardBg,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                            color: TradEtTheme.divider.withValues(alpha: 0.3)),
+                      ),
+                      child: ListTile(
+                        leading: const Icon(Icons.dashboard_outlined,
+                            color: Color(0xFF22D3EE)),
+                        title: Text(l.interfaceLayout,
+                            style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500)),
+                        subtitle: Text(l.interfaceSubtitle,
+                            style: const TextStyle(
+                                color: TradEtTheme.textMuted, fontSize: 11)),
+                        trailing: const Icon(Icons.chevron_right_rounded,
+                            color: TradEtTheme.textMuted, size: 20),
+                        onTap: () {
+                          showDialog(
+                            context: context,
+                            builder: (_) => AlertDialog(
+                              backgroundColor: TradEtTheme.cardBg,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16)),
+                              title: Text(l.interfaceLayout,
+                                  style: const TextStyle(color: Colors.white)),
+                              content: const Text('Interface settings coming soon',
+                                  style: TextStyle(
+                                      color: TradEtTheme.textSecondary,
+                                      fontSize: 13)),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: const Text('Close',
+                                      style: TextStyle(
+                                          color: TradEtTheme.positive)),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: TradEtTheme.cardBg,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                            color: TradEtTheme.divider.withValues(alpha: 0.3)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(Icons.text_fields_rounded,
+                                  color: Color(0xFFF59E0B)),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.start,
+                                  children: [
+                                    Text(l.textSize,
+                                        style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w500)),
+                                    Text(l.textSizeSubtitle,
+                                        style: const TextStyle(
+                                            color: TradEtTheme.textMuted,
+                                            fontSize: 11)),
+                                  ],
+                                ),
+                              ),
+                              Text('${_textSize.toStringAsFixed(0)}',
+                                  style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600)),
+                            ],
+                          ),
+                          Slider(
+                            value: _textSize,
+                            min: 12.0,
+                            max: 20.0,
+                            divisions: 8,
+                            label: _textSize.toStringAsFixed(0),
+                            activeColor: TradEtTheme.positive,
+                            onChanged: (v) => setState(() => _textSize = v),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                            child: Text(
+                              'Sample text at this size',
+                              style: TextStyle(
+                                  color: Colors.white, fontSize: _textSize),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
@@ -4215,12 +4390,10 @@ class PrivacyControlsScreen extends StatefulWidget {
 
 class _PrivacyControlsScreenState extends State<PrivacyControlsScreen> {
   final Map<String, bool> _toggles = {
-    'Hide balance on dashboard': false,
-    'Show profile birthday': false,
-    'Show plan tier publicly': true,
-    'Allow social media advertising': false,
-    'Personalized offers from TradEt': true,
-    'Personalized offers from partners': false,
+    'Hide balance': false,
+    'Show my birthday': false,
+    'Show my plan': true,
+    'Social media and advertising': false,
   };
 
   @override
@@ -4242,7 +4415,7 @@ class _PrivacyControlsScreenState extends State<PrivacyControlsScreen> {
                 const Icon(Icons.visibility_outlined,
                     color: Color(0xFF60A5FA), size: 20),
                 const SizedBox(width: 10),
-                const Text('Privacy Controls',
+                const Text('Privacy',
                     style: TextStyle(color: Colors.white,
                         fontSize: 17, fontWeight: FontWeight.w700)),
               ]),
@@ -4275,6 +4448,446 @@ class _PrivacyControlsScreenState extends State<PrivacyControlsScreen> {
               ),
             ),
           ]),
+        ),
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Upgrade Screen
+// ═══════════════════════════════════════════════════════════════════════════
+
+class _UpgradeScreen extends StatelessWidget {
+  const _UpgradeScreen();
+
+  void _showComingSoon(BuildContext context, String tier) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('$tier subscription — Coming soon'),
+        backgroundColor: TradEtTheme.cardBg,
+      ),
+    );
+  }
+
+  Widget _planCard(BuildContext context, {
+    required String tier,
+    required String price,
+    required List<Color> gradient,
+    required IconData icon,
+    required List<String> features,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: gradient,
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: gradient.first.withValues(alpha: 0.3),
+            blurRadius: 18,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, color: Colors.white, size: 22),
+              ),
+              const SizedBox(width: 12),
+              Text(tier,
+                  style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.3)),
+              const Spacer(),
+              Text(price,
+                  style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700)),
+            ],
+          ),
+          const SizedBox(height: 18),
+          for (final f in features)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.check_circle_rounded,
+                      color: Colors.white, size: 18),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(f,
+                        style: const TextStyle(
+                            color: Colors.white, fontSize: 13)),
+                  ),
+                ],
+              ),
+            ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () => _showComingSoon(context, tier),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: gradient.first,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)),
+              ),
+              child: const Text('Subscribe',
+                  style: TextStyle(fontWeight: FontWeight.w700)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: Container(
+        decoration: BoxDecoration(gradient: TradEtTheme.bgGradient),
+        child: SafeArea(
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(4, 8, 16, 8),
+                child: Row(children: [
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back_ios_new_rounded,
+                        color: Colors.white, size: 20),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                  const Text('Upgrade',
+                      style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white)),
+                ]),
+              ),
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                  children: [
+                    _planCard(context,
+                      tier: 'Premium',
+                      price: '\$9.99/mo',
+                      gradient: const [
+                        Color(0xFFF59E0B),
+                        Color(0xFFD97706),
+                      ],
+                      icon: Icons.workspace_premium_rounded,
+                      features: const [
+                        'Lower commission (1.0%)',
+                        'Priority support',
+                        'Advanced analytics',
+                      ],
+                    ),
+                    _planCard(context,
+                      tier: 'Elite',
+                      price: '\$29.99/mo',
+                      gradient: const [
+                        Color(0xFF7C3AED),
+                        Color(0xFF1D4ED8),
+                      ],
+                      icon: Icons.diamond_rounded,
+                      features: const [
+                        'Zero commission on first 10 trades/month',
+                        'Dedicated advisor',
+                        'Early IPO access',
+                        'Custom Sharia screening',
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Invite Friends Screen
+// ═══════════════════════════════════════════════════════════════════════════
+
+class _InviteFriendsScreen extends StatelessWidget {
+  final dynamic user;
+  const _InviteFriendsScreen({this.user});
+
+  String _referralCode() {
+    final id = user?.id?.toString() ?? user?.email?.toString().split('@').first ?? 'USER123';
+    return 'TRADET-$id';
+  }
+
+  void _showSharingSnack(BuildContext context, String channel) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('$channel — Sharing coming soon'),
+        backgroundColor: TradEtTheme.cardBg,
+      ),
+    );
+  }
+
+  Widget _shareIcon(BuildContext context, IconData icon, String label, Color color) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => _showSharingSnack(context, label),
+        child: Column(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: color.withValues(alpha: 0.3)),
+              ),
+              child: Icon(icon, color: color, size: 22),
+            ),
+            const SizedBox(height: 6),
+            Text(label,
+                style: const TextStyle(
+                    color: TradEtTheme.textMuted, fontSize: 10)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _statTile(String label, String value) {
+    return Expanded(
+      child: Column(
+        children: [
+          Text(value,
+              style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700)),
+          const SizedBox(height: 4),
+          Text(label,
+              style: const TextStyle(
+                  color: TradEtTheme.textMuted, fontSize: 11),
+              textAlign: TextAlign.center),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final code = _referralCode();
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: Container(
+        decoration: BoxDecoration(gradient: TradEtTheme.bgGradient),
+        child: SafeArea(
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(4, 8, 16, 8),
+                child: Row(children: [
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back_ios_new_rounded,
+                        color: Colors.white, size: 20),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                  const Text('Invite Friends',
+                      style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white)),
+                ]),
+              ),
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                  children: [
+                    // Hero card
+                    Container(
+                      padding: const EdgeInsets.all(22),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [
+                            Color(0xFF0F6B3C),
+                            Color(0xFF1B8A5A),
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(18),
+                      ),
+                      child: Column(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.2),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.card_giftcard_rounded,
+                                color: Colors.white, size: 36),
+                          ),
+                          const SizedBox(height: 14),
+                          const Text('Invite & Earn',
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w800)),
+                          const SizedBox(height: 6),
+                          const Text(
+                            'Get 100 ETB credit when your friend signs up and completes KYC',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                                color: Colors.white, fontSize: 12),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    // Referral code box
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: TradEtTheme.cardBg,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                            color: TradEtTheme.divider.withValues(alpha: 0.3)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Your Referral Code',
+                              style: TextStyle(
+                                  color: TradEtTheme.textMuted,
+                                  fontSize: 11)),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 14, vertical: 12),
+                                  decoration: BoxDecoration(
+                                    color: TradEtTheme.surface,
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(
+                                        color: TradEtTheme.divider
+                                            .withValues(alpha: 0.4)),
+                                  ),
+                                  child: Text(code,
+                                      style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w700,
+                                          letterSpacing: 0.5)),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              ElevatedButton.icon(
+                                onPressed: () {
+                                  Clipboard.setData(ClipboardData(text: code));
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Copied to clipboard'),
+                                    ),
+                                  );
+                                },
+                                icon: const Icon(Icons.copy_rounded, size: 16),
+                                label: const Text('Copy'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: TradEtTheme.positive,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 14, vertical: 12),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    // Share buttons
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: TradEtTheme.cardBg,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                            color: TradEtTheme.divider.withValues(alpha: 0.3)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Share via',
+                              style: TextStyle(
+                                  color: TradEtTheme.textMuted,
+                                  fontSize: 11)),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              _shareIcon(context, Icons.chat_bubble_rounded,
+                                  'WhatsApp', const Color(0xFF25D366)),
+                              _shareIcon(context, Icons.send_rounded,
+                                  'Telegram', const Color(0xFF0088CC)),
+                              _shareIcon(context, Icons.sms_rounded, 'SMS',
+                                  const Color(0xFFF59E0B)),
+                              _shareIcon(context, Icons.email_rounded, 'Email',
+                                  const Color(0xFF60A5FA)),
+                              _shareIcon(context, Icons.link_rounded, 'Link',
+                                  const Color(0xFF818CF8)),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    // Stats card
+                    Container(
+                      padding: const EdgeInsets.all(18),
+                      decoration: BoxDecoration(
+                        color: TradEtTheme.cardBg,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                            color: TradEtTheme.divider.withValues(alpha: 0.3)),
+                      ),
+                      child: Row(
+                        children: [
+                          _statTile('Friends Invited', '0'),
+                          _statTile('Successful Referrals', '0'),
+                          _statTile('Earned Credit', '0 ETB'),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
