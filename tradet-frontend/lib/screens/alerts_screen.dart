@@ -226,6 +226,15 @@ class _AlertsScreenState extends State<AlertsScreen> {
               padding: EdgeInsets.fromLTRB(wide ? 32 : 20, wide ? 24 : 16, wide ? 32 : 20, 0),
               child: Row(
                 children: [
+                  if (!wide && Navigator.of(context).canPop())
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back_ios_new_rounded,
+                          color: Colors.white, size: 20),
+                      onPressed: () => Navigator.of(context).pop(),
+                      tooltip: l.back,
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                    ),
                   Expanded(child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -249,10 +258,6 @@ class _AlertsScreenState extends State<AlertsScreen> {
               child: _loading
                   ? const Center(child: CircularProgressIndicator(color: TradEtTheme.positive))
                   : _buildAlertList(wide),
-            ),
-            const Padding(
-              padding: EdgeInsets.fromLTRB(20, 4, 20, 16),
-              child: DisclaimerFooter(),
             ),
           ],
         ),
@@ -288,6 +293,10 @@ class _AlertsScreenState extends State<AlertsScreen> {
         ],
         if (_alerts.isEmpty && _triggered.isEmpty)
           _buildEmptyState(),
+        const Padding(
+          padding: EdgeInsets.fromLTRB(0, 12, 0, 16),
+          child: DisclaimerFooter(),
+        ),
       ],
     );
     // Skip RefreshIndicator on web — it adds a grey Material3 background

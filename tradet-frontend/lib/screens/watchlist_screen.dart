@@ -47,6 +47,15 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
               padding: EdgeInsets.fromLTRB(hPad, wide ? 24 : 16, hPad, 0),
               child: Row(
                 children: [
+                  if (!wide && Navigator.of(context).canPop())
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back_ios_new_rounded,
+                          color: Colors.white, size: 20),
+                      onPressed: () => Navigator.of(context).pop(),
+                      tooltip: l.back,
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                    ),
                   const Icon(Icons.star_rounded,
                       color: Color(0xFFFF8C00), size: 28),
                   const SizedBox(width: 10),
@@ -109,8 +118,14 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
 
                   return ListView.builder(
                     padding: EdgeInsets.fromLTRB(hPad, 0, hPad, 24),
-                    itemCount: watchlist.length,
+                    itemCount: watchlist.length + 1,
                     itemBuilder: (context, i) {
+                      if (i == watchlist.length) {
+                        return const Padding(
+                          padding: EdgeInsets.fromLTRB(0, 8, 0, 12),
+                          child: DisclaimerFooter(),
+                        );
+                      }
                       final asset = watchlist[i];
                       final change = asset.change24h ?? 0.0;
 
@@ -188,11 +203,6 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
                   );
                 },
               ),
-            ),
-            // Disclaimer
-            Padding(
-              padding: EdgeInsets.fromLTRB(hPad, 4, hPad, 12),
-              child: const DisclaimerFooter(),
             ),
           ],
         ),

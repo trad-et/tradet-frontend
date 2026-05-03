@@ -2492,8 +2492,10 @@ class _AccountDetailsScreenState extends State<_AccountDetailsScreen> {
   /// Saves a single field — backend best-effort, local state guaranteed.
   Future<void> _saveField(String apiKey, String? value) async {
     final l = AppLocalizations.of(context);
+    debugPrint('[ProfileSave] _saveField: $apiKey = $value');
     try {
       await context.read<AppProvider>().updateProfile({apiKey: value});
+      debugPrint('[ProfileSave] updateProfile completed for $apiKey');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text(l.profileUpdated),

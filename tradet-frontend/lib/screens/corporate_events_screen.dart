@@ -493,7 +493,7 @@ class _CorporateEventsScreenState extends State<CorporateEventsScreen> {
               color: TradEtTheme.cardBg,
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.arrow_back_rounded,
+            child: const Icon(Icons.arrow_back_ios_new_rounded,
                 size: 18, color: Colors.white),
           ),
           onPressed: () => Navigator.of(context).pop(),

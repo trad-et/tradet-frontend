@@ -9,6 +9,7 @@ import '../theme.dart';
 import '../widgets/responsive_layout.dart';
 import '../widgets/disclaimer_footer.dart';
 import '../widgets/export_sheet.dart';
+import '../widgets/security_log_section.dart';
 
 class TransactionsScreen extends StatefulWidget {
   const TransactionsScreen({super.key});
@@ -267,7 +268,13 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
         if (i == txns.length) {
           return const Padding(
             padding: EdgeInsets.only(top: 8, bottom: 4),
-            child: DisclaimerFooter(),
+            child: Column(
+              children: [
+                SecurityLogSection(),
+                SizedBox(height: 12),
+                DisclaimerFooter(),
+              ],
+            ),
           );
         }
         return _MobileTxCard(tx: txns[i], fmt: fmt);
@@ -315,7 +322,13 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                   if (i == txns.length) {
                     return const Padding(
                       padding: EdgeInsets.fromLTRB(16, 12, 16, 16),
-                      child: DisclaimerFooter(),
+                      child: Column(
+                        children: [
+                          SecurityLogSection(),
+                          SizedBox(height: 12),
+                          DisclaimerFooter(),
+                        ],
+                      ),
                     );
                   }
                   return _WebTxRow(tx: txns[i], fmt: fmt, isEven: i.isEven);
