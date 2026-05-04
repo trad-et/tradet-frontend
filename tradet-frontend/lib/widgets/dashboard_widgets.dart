@@ -492,22 +492,6 @@ class PortfolioCard extends StatelessWidget {
                   color: TradEtTheme.textSecondary,
                 ),
               ),
-              const Spacer(),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: TradEtTheme.positive.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  AppLocalizations.of(context).halal,
-                  style: const TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                    color: TradEtTheme.positive,
-                  ),
-                ),
-              ),
             ],
           ),
           const SizedBox(height: 8),

@@ -133,7 +133,7 @@ class _NewsScreenState extends State<NewsScreen> with SingleTickerProviderStateM
                           constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
                         ),
                       Expanded(
-                        child: Text(l.newsFeedTitle, style: const TextStyle(fontSize: 28,
+                        child: Text(l.newsFeedTitle, style: const TextStyle(fontSize: 22,
                             fontWeight: FontWeight.w800, color: Colors.white, letterSpacing: -0.5)),
                       ),
                     ],

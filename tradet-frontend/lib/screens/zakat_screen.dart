@@ -74,7 +74,7 @@ class _ZakatScreenState extends State<ZakatScreen> {
                   ),
                 Expanded(
                   child: Text(l.zakatCalculatorTitle,
-                      style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800,
+                      style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800,
                           color: Colors.white, letterSpacing: -0.5)),
                 ),
               ],

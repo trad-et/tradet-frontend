@@ -137,22 +137,12 @@ class _SecurityScreenState extends State<SecurityScreen> {
             ),
           if (!isWideScreen(context))
             const SizedBox(width: 4),
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: const Color(0xFF22D3EE).withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const Icon(Icons.shield_rounded,
-                color: Color(0xFF22D3EE), size: 20),
-          ),
-          const SizedBox(width: 12),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(l.security,
                   style: const TextStyle(
-                      fontSize: 20,
+                      fontSize: 22,
                       fontWeight: FontWeight.w800,
                       color: Colors.white)),
               Text(l.protectYourAccount,

@@ -500,8 +500,8 @@ class _CorporateEventsScreenState extends State<CorporateEventsScreen> {
         ),
         title: Text(l.corporateEvents,
             style: const TextStyle(
-                fontSize: 17,
-                fontWeight: FontWeight.w700,
+                fontSize: 22,
+                fontWeight: FontWeight.w800,
                 color: Colors.white)),
         centerTitle: true,
         actions: actions,

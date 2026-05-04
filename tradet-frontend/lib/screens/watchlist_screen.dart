@@ -56,16 +56,13 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
                     ),
-                  const Icon(Icons.star_rounded,
-                      color: Color(0xFFFF8C00), size: 28),
-                  const SizedBox(width: 10),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(l.watchlist,
                             style: const TextStyle(
-                                fontSize: 28,
+                                fontSize: 22,
                                 fontWeight: FontWeight.w800,
                                 color: Colors.white,
                                 letterSpacing: -0.5)),

@@ -128,7 +128,7 @@ class _ConverterScreenState extends State<ConverterScreen> {
                   ),
                 Expanded(
                   child: Text(l.currencyConverter,
-                      style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800,
+                      style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800,
                           color: Colors.white, letterSpacing: -0.5)),
                 ),
               ],

@@ -845,7 +845,8 @@ class _ProfileAvatarState extends State<_ProfileAvatar> {
   Widget build(BuildContext context) {
     final name = widget.user?.fullName ?? '';
     final initial = name.isNotEmpty ? name[0].toUpperCase() : '?';
-    final isVerified = widget.user?.kycStatus == 'verified';
+    // Hardcoded unread inbox count for now (matches Inbox menu badge).
+    const int _unreadInboxCount = 4;
 
     return Consumer<AppProvider>(
       builder: (context, prov, _) {
@@ -889,8 +890,8 @@ class _ProfileAvatarState extends State<_ProfileAvatar> {
                             ),
                           ),
                   ),
-                  // KYC verified dot
-                  if (isVerified)
+                  // Unread inbox messages indicator (red dot)
+                  if (_unreadInboxCount > 0)
                     Positioned(
                       bottom: 1,
                       right: 1,
@@ -898,7 +899,7 @@ class _ProfileAvatarState extends State<_ProfileAvatar> {
                         width: 10,
                         height: 10,
                         decoration: BoxDecoration(
-                          color: TradEtTheme.positive,
+                          color: const Color(0xFFEF4444),
                           shape: BoxShape.circle,
                           border: Border.all(color: TradEtTheme.primaryDark, width: 1.5),
                         ),

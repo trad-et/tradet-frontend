@@ -238,7 +238,7 @@ class _AlertsScreenState extends State<AlertsScreen> {
                   Expanded(child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(l.priceAlertsTitle, style: const TextStyle(fontSize: 28,
+                      Text(l.priceAlertsTitle, style: const TextStyle(fontSize: 22,
                           fontWeight: FontWeight.w800, color: Colors.white, letterSpacing: -0.5)),
                       Text(l.getNotifiedOnPriceChanges,
                           style: const TextStyle(fontSize: 13, color: TradEtTheme.textSecondary)),

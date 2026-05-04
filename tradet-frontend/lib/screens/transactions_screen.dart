@@ -84,7 +84,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                         children: [
                           Text(l.transactions,
                               style: const TextStyle(
-                                  fontSize: 24,
+                                  fontSize: 22,
                                   fontWeight: FontWeight.w800,
                                   color: Colors.white,
                                   letterSpacing: -0.5)),

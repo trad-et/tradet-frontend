@@ -348,7 +348,7 @@ class PortfolioScreen extends StatelessWidget {
                   fmt.format(summary?.totalHoldingsValue ?? 0),
                 ),
                 Container(width: 1, height: 30, color: Colors.white24),
-                _balanceItem(l.cash, fmt.format(summary?.cashBalance ?? 0)),
+                _balanceItem(l.cash, fmt.format(provider.availableCashBalance)),
                 Container(width: 1, height: 30, color: Colors.white24),
                 _balanceItem(
                   l.pnl,
@@ -1049,7 +1049,238 @@ class PortfolioScreen extends StatelessWidget {
               ],
             ),
           ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => _showTransferSheet(context, h),
+                  child: MouseRegion(
+                    cursor: SystemMouseCursors.click,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      decoration: BoxDecoration(
+                        color: TradEtTheme.surfaceLight,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: TradEtTheme.divider.withValues(alpha: 0.5),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: const [
+                          Icon(Icons.send_rounded,
+                              size: 14, color: TradEtTheme.primaryLight),
+                          SizedBox(width: 6),
+                          Text(
+                            'Transfer',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ],
+      ),
+    );
+  }
+
+  void _showTransferSheet(BuildContext context, dynamic h) {
+    final phoneCtrl = TextEditingController();
+    final qtyCtrl = TextEditingController();
+    final noteCtrl = TextEditingController();
+    final maxQty = (h.quantity as num).toDouble();
+
+    showResponsiveSheet<void>(
+      context: context,
+      backgroundColor: const Color(0xFF1A3D2B),
+      builder: (ctx, isDialog) => StatefulBuilder(
+        builder: (ctx, setSheetState) {
+          return Padding(
+            padding: EdgeInsets.fromLTRB(
+              24,
+              isDialog ? 20 : 24,
+              24,
+              isDialog ? 24 : MediaQuery.of(ctx).viewInsets.bottom + 24,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (!isDialog)
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF2D5A3D),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                const SizedBox(height: 16),
+                Text('Transfer ${h.symbol}',
+                    style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white)),
+                const SizedBox(height: 4),
+                Text('You own ${h.quantity} ${h.unit}',
+                    style: const TextStyle(
+                        fontSize: 13, color: TradEtTheme.textSecondary)),
+                const SizedBox(height: 20),
+                TextField(
+                  controller: phoneCtrl,
+                  keyboardType: TextInputType.phone,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: InputDecoration(
+                    labelText: 'Recipient phone',
+                    labelStyle:
+                        const TextStyle(color: TradEtTheme.textSecondary),
+                    hintText: '+251...',
+                    hintStyle:
+                        const TextStyle(color: TradEtTheme.textMuted),
+                    filled: true,
+                    fillColor: Colors.white.withValues(alpha: 0.06),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: qtyCtrl,
+                  keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true),
+                  style: const TextStyle(color: Colors.white),
+                  decoration: InputDecoration(
+                    labelText: 'Quantity (max ${maxQty.toStringAsFixed(2)})',
+                    labelStyle:
+                        const TextStyle(color: TradEtTheme.textSecondary),
+                    filled: true,
+                    fillColor: Colors.white.withValues(alpha: 0.06),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: noteCtrl,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: InputDecoration(
+                    labelText: 'Note (optional)',
+                    labelStyle:
+                        const TextStyle(color: TradEtTheme.textSecondary),
+                    filled: true,
+                    fillColor: Colors.white.withValues(alpha: 0.06),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.pop(ctx),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          side: const BorderSide(color: Colors.white24),
+                        ),
+                        child: const Text('Cancel',
+                            style: TextStyle(color: Colors.white)),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          final qty = double.tryParse(qtyCtrl.text) ?? 0;
+                          final phone = phoneCtrl.text.trim();
+                          if (phone.isEmpty || qty <= 0 || qty > maxQty) {
+                            ScaffoldMessenger.of(ctx).showSnackBar(
+                              const SnackBar(
+                                  content:
+                                      Text('Enter valid recipient and quantity')),
+                            );
+                            return;
+                          }
+                          final confirmed = await showDialog<bool>(
+                            context: ctx,
+                            builder: (dctx) => AlertDialog(
+                              backgroundColor: TradEtTheme.cardBg,
+                              title: const Text('Confirm transfer',
+                                  style: TextStyle(color: Colors.white)),
+                              content: Text(
+                                'Transfer ${qty.toStringAsFixed(2)} ${h.unit} of ${h.symbol} to $phone?',
+                                style: const TextStyle(
+                                    color: TradEtTheme.textSecondary),
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () =>
+                                      Navigator.pop(dctx, false),
+                                  child: const Text('Cancel'),
+                                ),
+                                ElevatedButton(
+                                  onPressed: () =>
+                                      Navigator.pop(dctx, true),
+                                  child: const Text('Confirm'),
+                                ),
+                              ],
+                            ),
+                          );
+                          if (confirmed != true) return;
+                          final ok = await ctx
+                              .read<AppProvider>()
+                              .transferShares(
+                                assetId: h.assetId,
+                                recipient: phone,
+                                quantity: qty,
+                                note: noteCtrl.text.trim().isEmpty
+                                    ? null
+                                    : noteCtrl.text.trim(),
+                              );
+                          if (!ctx.mounted) return;
+                          Navigator.pop(ctx);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(ok
+                                  ? 'Transfer of ${qty.toStringAsFixed(2)} ${h.unit} sent to $phone — pending recipient acceptance'
+                                  : 'Transfer failed'),
+                              backgroundColor:
+                                  ok ? TradEtTheme.positive : TradEtTheme.negative,
+                            ),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: TradEtTheme.primary,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                        child: const Text('Transfer',
+                            style: TextStyle(fontWeight: FontWeight.w700)),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
@@ -1638,9 +1869,10 @@ class _PortfolioSplitCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
+    final provider = context.watch<AppProvider>();
     final total = summary?.totalPortfolioValue ?? 0;
     final holdings = summary?.totalHoldingsValue ?? 0;
-    final cash = summary?.cashBalance ?? 0;
+    final cash = provider.availableCashBalance;
     final holdingsPct = total > 0 ? holdings / total : 0.0;
     final cashPct = total > 0 ? cash / total : 0.0;
 

@@ -795,4 +795,26 @@ class AppProvider extends ChangeNotifier {
       return {'error': 'Withdrawal failed'};
     }
   }
+
+  /// Stub: Transfer shares of an asset to another user (by phone or user ID).
+  /// Backend endpoint coming — for now returns true after a short delay.
+  Future<bool> transferShares({
+    required int assetId,
+    required String recipient,
+    required double quantity,
+    String? note,
+  }) async {
+    await Future.delayed(const Duration(milliseconds: 500));
+    SecurityLogService.record(
+      SecurityEvent.orderPlaced,
+      userId: _user?.email ?? '',
+      metadata: {
+        'action': 'transfer_shares',
+        'assetId': assetId,
+        'recipient': recipient,
+        'quantity': quantity,
+      },
+    );
+    return true;
+  }
 }
